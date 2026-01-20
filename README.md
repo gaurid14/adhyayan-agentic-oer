@@ -54,7 +54,7 @@ The platform is built using a multi-agent architecture. Each agent is responsibl
 ## Technology Stack
 - **Programming Language:** Python  
 - **Agent Frameworks:** LangChain, LangGraph  
-- **AI Models:** Large Language Models for assisted evaluation  
+- **AI Models:** Large Language Model for assisted evaluation (Gemini)
 - **Data Storage:** Google Drive, PostgreSQL  
 - **Version Control:** Git and GitHub  
 
