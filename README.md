@@ -1,4 +1,4 @@
-Adhyayan – Agentic Open Educational Resources Platform
+###Adhyayan – Agentic Open Educational Resources Platform###
 
 Project Overview
 
