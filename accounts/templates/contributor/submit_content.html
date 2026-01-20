@@ -1,850 +1,26 @@
-<!--{% load static %}-->
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--<meta charset="UTF-8">-->
-<!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--<title>Contributor Dashboard</title>-->
-<!--<link rel="stylesheet" href="{% static 'frontend/css/style_contro.css' %}">-->
-<!--    <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>-->
-
-<!--    <style>-->
-<!--/* Reset */-->
-<!--* {-->
-<!--  box-sizing: border-box;-->
-<!--  margin: 0;-->
-<!--  padding: 0;-->
-<!--}-->
-
-<!--#loadingOverlay {-->
-<!--  position: fixed;-->
-<!--  top: 0; left: 0;-->
-<!--  width: 100vw; height: 100vh;-->
-<!--  background: rgba(255,255,255,0.7);-->
-<!--  display: none;-->
-<!--  justify-content: center;-->
-<!--  align-items: center;-->
-<!--  z-index: 9999;-->
-<!--}-->
-<!--#loadingOverlay span {-->
-<!--  padding: 15px 25px;-->
-<!--  background: #1EAE98;-->
-<!--  color: white;-->
-<!--  border-radius: 8px;-->
-<!--  font-weight: bold;-->
-<!--}-->
-
-
-<!--/* Body */-->
-<!--body {-->
-<!--  font-family: Arial, sans-serif;-->
-<!--  background: #F4FCFA;-->
-<!--  color: #f0f0f0;-->
-<!--}-->
-
-<!--/* Header */-->
-<!--header {-->
-<!--  background: #FFFFFF;-->
-<!--  padding: 15px 25px;-->
-<!--  display: flex;-->
-<!--  justify-content: space-between;-->
-<!--  align-items: center;-->
-<!--  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.12);-->
-<!--}-->
-<!--header h2 { color: #1EAE98; }-->
-<!--.logout-btn {-->
-<!--  color: #fff;-->
-<!--  background: #1EAE98;-->
-<!--  padding: 8px 14px;-->
-<!--  border-radius: 6px;-->
-<!--  text-decoration: none;-->
-<!--}-->
-<!--.logout-btn:hover { background: #178D79; }-->
-
-<!--/* Container */-->
-<!--.dashboard-container {-->
-<!--  max-width: 1200px;-->
-<!--  margin: 20px auto;-->
-<!--  padding: 0 15px;-->
-<!--  color: #72e1cfff;-->
-<!--}-->
-
-<!--/* Thank You Section */-->
-<!--.thankyou-section {-->
-<!--  background: linear-gradient(135deg, #FFFFFF, #7bf1deff);-->
-<!--  padding: 40px 30px;-->
-<!--  text-align: center;-->
-<!--  color: #fff;-->
-<!--  border-radius: 10px;-->
-<!--  margin-bottom: 30px;-->
-<!--}-->
-<!--.thankyou-section img {-->
-<!--  max-width: 100px;-->
-<!--  height: auto;-->
-<!--  display: block;-->
-<!--  margin: 20px auto;-->
-<!--}-->
-<!--.thankyou-section h3 {-->
-<!--  font-size: 28px;-->
-<!--  color: #1EAE98;-->
-<!--  margin-bottom: 10px;-->
-<!--}-->
-<!--.thankyou-section p {-->
-<!--  font-size: 16px;-->
-<!--  max-width: 700px;-->
-<!--  margin: 10px auto;-->
-<!--  line-height: 1.6;-->
-<!--  color: #25cab1ff;-->
-<!--}-->
-<!--.quote {-->
-<!--  font-style: italic;-->
-<!--  margin-top: 15px;-->
-<!--  color: #3e3d3dff;-->
-<!--}-->
-
-<!--/* Tabs */-->
-<!--.tabs {-->
-<!--  display: flex;-->
-<!--  border-bottom: 2px solid #1EAE98;-->
-<!--  margin-bottom: 20px;-->
-<!--  gap: 10px;-->
-<!--}-->
-<!--.tab-btn {-->
-<!--  padding: 10px 20px;-->
-<!--  cursor: pointer;-->
-<!--  background: #ffffffa8;-->
-<!--  color: #adababff;-->
-<!--  border: none;-->
-<!--  font-weight: bold;-->
-<!--  border-top-left-radius: 8px;-->
-<!--  border-top-right-radius: 8px;-->
-<!--}-->
-<!--.tab-btn.active { background: #1EAE98; }-->
-
-<!--/* Two-column Layout */-->
-<!--.main-layout {-->
-<!--  display: flex;-->
-<!--  gap: 20px;-->
-<!--  flex-wrap: wrap;-->
-<!--}-->
-
-<!--/* Sidebar */-->
-<!--.chapters-sidebar {-->
-<!--  width: 250px;-->
-<!--  background: #FFFFFF;-->
-<!--  padding: 15px;-->
-<!--  border-radius: 10px;-->
-<!--}-->
-<!--.chapters-sidebar h4 {-->
-<!--  color: #1EAE98;-->
-<!--  margin-bottom: 15px;-->
-<!--}-->
-<!--.chapter-btn {-->
-<!--  display: block;-->
-<!--  width: 100%;-->
-<!--  padding: 10px 12px;-->
-<!--  margin-bottom: 8px;-->
-<!--  background: #ffffffa8;-->
-<!--  border: none;-->
-<!--  color: #adababff;-->
-<!--  border-radius: 6px;-->
-<!--  cursor: pointer;-->
-<!--  text-align: left;-->
-<!--}-->
-<!--.chapter-btn.active { background: #1EAE98; }-->
-
-<!--/* Content Section */-->
-<!--.concepts-section {-->
-<!--  flex: 1;-->
-<!--  background: #FFFFFF;-->
-<!--  padding: 0px 20px 0px 20px;-->
-<!--  border-radius: 10px;-->
-<!--}-->
-<!--.concepts-section h4 {-->
-<!--  color: #1EAE98;-->
-<!--  margin-bottom: 5px;-->
-<!--}-->
-<!--.concept-btn {-->
-<!--  display: block;-->
-<!--  width: 100%;-->
-<!--  padding: 10px 12px;-->
-<!--  margin-bottom: 0px;-->
-<!--  background: #ffffffa8;-->
-<!--  border: none;-->
-<!--  color: #adababff;-->
-<!--  border-radius: 6px;-->
-<!--  cursor: pointer;-->
-<!--  text-align: left;-->
-<!--}-->
-<!--.concept-btn.active { background: #1EAE98; }-->
-
-<!--/* Upload Section */-->
-<!--/* Upload Section */-->
-<!--.upload-section {-->
-<!--  margin-top: 15px;-->
-<!--  background: #FFFFFF;-->
-<!--  padding: 15px;-->
-<!--  border-radius: 8px;-->
-<!--  /* Retaining original border, if it was here. Assuming the main card border is handled by .concepts-section */-->
-<!--}-->
-
-<!--{% comment %} /* -&#45;&#45; NEW EDITOR TOOLBAR STYLES (MODIFIED) -&#45;&#45; */-->
-<!--.editor-toolbar {-->
-<!--    display: flex;-->
-<!--    gap: 8px;-->
-<!--    padding: 8px 10px;-->
-<!--    margin-bottom: 10px;-->
-<!--    border: none; /* REMOVED BORDER: FIX for nested card look */-->
-<!--    border-radius: 6px;-->
-<!--    background: transparent; /* REMOVED BACKGROUND: FIX for nested card look */-->
-<!--    flex-wrap: wrap;-->
-<!--}-->
-<!--/* ... (toolbar-btn, toolbar-select styles remain the same) ... */-->
-<!--.toolbar-select {-->
-<!--    padding: 4px;-->
-<!--    border: 1px solid #CED4DA;-->
-<!--    border-radius: 4px;-->
-<!--    background: #FFFFFF; /* Keep select background white */-->
-<!--    color: #adababff;-->
-<!--}-->
-<!--/* -&#45;&#45; END NEW EDITOR TOOLBAR STYLES -&#45;&#45; */-->
-
-<!--/* .editor */-->
-
-<!--/* ... and ensure toolbar-btn:hover uses the soft green background: #D9F5E2 */-->
-<!--.toolbar-btn:hover {-->
-<!--    background: #D9F5E2;-->
-<!--    color: #1EAE98;-->
-<!--} {% endcomment %}-->
-
-<!--.upload-section button {-->
-<!--  background: #1EAE98;-->
-<!--  border: none;-->
-<!--  color: #fff;-->
-<!--  padding: 10px 16px;-->
-<!--  margin-right: 10px;-->
-<!--  border-radius: 6px;-->
-<!--  cursor: pointer;-->
-<!--}-->
-<!--.upload-section button:hover { background: #178D79; }-->
-
-<!--/* Chatbot */-->
-<!--.chatbot-btn {-->
-<!--  position: fixed;-->
-<!--  bottom: 25px;-->
-<!--  right: 25px;-->
-<!--  background: #1EAE98;-->
-<!--  border: none;-->
-<!--  color: #adababff;-->
-<!--  border-radius: 50%;-->
-<!--  width: 60px;-->
-<!--  height: 60px;-->
-<!--  font-size: 28px;-->
-<!--  cursor: pointer;-->
-<!--  box-shadow: 0 4px 12px rgba(0,0,0,0.3);-->
-<!--}-->
-<!--.chatbot-btn:hover { background: #178D79; }-->
-<!--.chatbot {-->
-<!--  position: fixed;-->
-<!--  bottom: 100px;-->
-<!--  right: 25px;-->
-<!--  width: 300px;-->
-<!--  background: #FFFFFF;-->
-<!--  border-radius: 10px;-->
-<!--  padding: 15px;-->
-<!--  display: none;-->
-<!--  box-shadow: 0 4px 12px rgba(0,0,0,0.5);-->
-<!--}-->
-<!--.chatbot h4 { color: #1EAE98; margin-bottom: 10px; }-->
-<!--.chatbot .messages {-->
-<!--  background: #ffffffa2;-->
-<!--  height:150px;-->
-<!--  border-radius:6px;-->
-<!--  padding:10px;-->
-<!--  overflow-y:auto;-->
-<!--  color: #07070776;-->
-<!--}-->
-<!--.chatbot input {-->
-<!--  width: calc(100% - 80px);-->
-<!--  padding:8px;-->
-<!--  margin-top:10px;-->
-<!--  border-radius:6px;-->
-<!--  border:none;-->
-<!--  background: #ffffffa2;-->
-<!--  color: #000000ff;-->
-<!--}-->
-<!--.chatbot button {-->
-<!--  width:60px;-->
-<!--  padding:8px;-->
-<!--  margin-left:10px;-->
-<!--  border:none;-->
-<!--  border-radius:6px;-->
-<!--  background: #1EAE98;-->
-<!--  color: #ffffffff;-->
-<!--  cursor:pointer;-->
-<!--}-->
-<!--.chatbot button:hover { background: #178D79; }-->
-
-<!--/* Responsive */-->
-<!--@media (max-width: 768px) {-->
-<!--  .main-layout {-->
-<!--    flex-direction: column;-->
-<!--  }-->
-<!--  .chapters-sidebar {-->
-<!--    width: 100%;-->
-<!--  }-->
-<!--}-->
-
-<!--/* -&#45;&#45; NEW EDITOR TOOLBAR STYLES (MODIFIED FOR STACKED LOOK) -&#45;&#45; */-->
-<!--.editor-toolbar {-->
-<!--    /* Use column direction for stacking the rows */-->
-<!--    display: flex;-->
-<!--    flex-direction: column;-->
-<!--    gap: 1px; /* Minimal gap between rows */-->
-<!--    padding: 8px 10px;-->
-<!--    margin-bottom: 10px;-->
-<!--    border: 1px solid #CED4DA;-->
-<!--    border-radius: 6px;-->
-<!--    background: #FFFFFF; /* White background for the bar */-->
-<!--    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */-->
-<!--    width: 100%; /* Ensure it spans the full width of the upload section */-->
-<!--}-->
-
-<!--.toolbar-row {-->
-<!--    display: flex;-->
-<!--    gap: 8px; /* Horizontal gap between buttons/dropdowns */-->
-<!--    padding: 4px 0; /* Vertical padding for each row */-->
-<!--    align-items: center;-->
-<!--    width: 100%;-->
-<!--}-->
-
-<!--.toolbar-btn {-->
-<!--    background: none;-->
-<!--    border: none;-->
-<!--    cursor: pointer;-->
-<!--    font-size: 1em; /* Smaller icons */-->
-<!--    padding: 4px 6px; /* Compact padding */-->
-<!--    color: #333333;-->
-<!--    border-radius: 4px;-->
-<!--    transition: background 0.2s, color 0.2s;-->
-<!--    line-height: 1;-->
-<!--}-->
-<!--.toolbar-btn:hover {-->
-<!--    background: #F4FCFA;-->
-<!--    color: #1EAE98;-->
-<!--}-->
-<!--.toolbar-select {-->
-<!--    padding: 6px 8px;-->
-<!--    border: 1px solid #CED4DA;-->
-<!--    border-radius: 4px;-->
-<!--    background: #FFFFFF;-->
-<!--    color: #333333;-->
-<!--    font-size: 0.9em;-->
-<!--    height: 30px; /* Compact height */-->
-<!--}-->
-<!--.toolbar-dropdowns .toolbar-select {-->
-<!--    flex-grow: 1; /* Allow dropdowns to fill the space horizontally */-->
-<!--}-->
-<!--/* -&#45;&#45; END NEW EDITOR TOOLBAR STYLES -&#45;&#45; */-->
-
-<!--/* Adjusting the editor height/margin to fit the new flow */-->
-<!--.editor {-->
-<!--    /* ... existing styles ... */-->
-<!--    height: 250px;-->
-<!--    color: #000000;-->
-<!--    resize: vertical;-->
-<!--    margin-top: 10px; /* Keep margin here for spacing below toolbar */-->
-<!--    border: 1px solid #CED4DA; /* Add border back to define editor space */-->
-<!--    background: #F4FCFA;-->
-<!--}-->
-
-<!--/* Ensure file input has proper spacing before the toolbar */-->
-<!--.upload-section input[type="file"] {-->
-<!--    margin-bottom: 10px;-->
-<!--}-->
-<!--</style>-->
-<!--</head>-->
-<!--<body>-->
-
-<!--<header>-->
-<!--  <h2>Contributor Dashboard</h2>-->
-<!--  <a href="{% url 'contributor_dashboard' %}" class="logout-btn">Logout</a>-->
-<!--</header>-->
-
-<!--<div class="dashboard-container">-->
-
-<!--  &lt;!&ndash; Thank You Section &ndash;&gt;-->
-<!--  <section class="thankyou-section">-->
-<!--    <h3>🎓 Thank You for Your Contribution!</h3>-->
-<!--    <img src="{% static 'frontend/images/high-five.jpg' %}" alt="High Five">-->
-<!--    <p>Your efforts are helping students access quality syllabus-based study material.-->
-<!--    This is not just academic work, it is a meaningful contribution to education.</p>-->
-<!--    <div class="quote">"Education is the most powerful weapon which you can use to change the world." – Nelson Mandela</div>-->
-<!--  </section>-->
-
-<!--  &lt;!&ndash; Tabs &ndash;&gt;-->
-<!--    <div class="tabs">-->
-<!--        <button class="tab-btn active" data-subject="{{ course.course_name }}">-->
-<!--            {{ chapter.chapter_name }} {{ chapter.chapter_number }} {{ chapter.course_id }}-->
-<!--        </button>-->
-<!--    </div>-->
-
-<!--    <h3>📘 Submitting content for: {{ course.course_name }} → {{ chapter.chapter_name }}</h3>-->
-<!--    <h3>📘 Chapter content: {{ chapter.description }}</h3>-->
-
-<!--    &lt;!&ndash; Main Layout &ndash;&gt;-->
-<!--  <div class="main-layout">-->
-
-<!--    &lt;!&ndash; Sidebar &ndash;&gt;-->
-<!--&lt;!&ndash;    <div class="chapters-sidebar">&ndash;&gt;-->
-<!--&lt;!&ndash;      <h4>Chapters</h4>&ndash;&gt;-->
-<!--&lt;!&ndash;      <button class="chapter-btn active">Sorting & Searching</button>&ndash;&gt;-->
-<!--&lt;!&ndash;      <button class="chapter-btn">Linked List</button>&ndash;&gt;-->
-<!--&lt;!&ndash;      <button class="chapter-btn">Trees</button>&ndash;&gt;-->
-<!--&lt;!&ndash;    </div>&ndash;&gt;-->
-
-<!--       -->
-<!--&lt;!&ndash;        <div class="upload-section">&ndash;&gt;-->
-<!--&lt;!&ndash;            <input type="file" multiple accept=".pdf,.doc,.docx,video/*">&ndash;&gt;-->
-<!--&lt;!&ndash;        &ndash;&gt;-->
-<!--&lt;!&ndash;                        <div class="editor-toolbar">&ndash;&gt;-->
-<!--&lt;!&ndash;                <div class="toolbar-row toolbar-dropdowns">&ndash;&gt;-->
-<!--&lt;!&ndash;                    <select id="fontName" class="toolbar-select" onchange="formatDoc('fontname', this.value)">&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="Arial">Arial</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="Times New Roman">Times New Roman</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="Verdana">Verdana</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </select>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <select id="fontSize" class="toolbar-select" onchange="formatDoc('fontsize', this.value)">&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="3">12pt</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="4">14pt</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="5">18pt</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <option value="6">24pt</option>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </select>&ndash;&gt;-->
-<!--&lt;!&ndash;                </div>&ndash;&gt;-->
-
-<!--&lt;!&ndash;                <div class="toolbar-row toolbar-actions">&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('bold')" title="Bold">𝐁</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('italic')" title="Italic">𝘐</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('underline')" title="Underline">U̲</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('strikeThrough')" title="Strikethrough">S̸</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('superscript')" title="Superscript">X²</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('subscript')" title="Subscript">X₁</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    &ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('justifyLeft')" title="Align Left">☰</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('justifyCenter')" title="Center">☷</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('justifyRight')" title="Align Right">≡</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    &ndash;&gt;-->
-<!--&lt;!&ndash;                    &ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List">●</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List">1.</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    &ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('undo')" title="Undo">↶</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <button class="toolbar-btn" onclick="formatDoc('redo')" title="Redo">↷</button>&ndash;&gt;-->
-<!--&lt;!&ndash;                </div>&ndash;&gt;-->
-<!--&lt;!&ndash;            &ndash;&gt;-->
-<!--&lt;!&ndash;        </div>&ndash;&gt;-->
-
-<!--      &lt;!&ndash; File list &ndash;&gt;-->
-<!--      <div class="file-section">-->
-<!--          <h4>Your Existing Files</h4>-->
-<!--          <ul id="fileList">-->
-<!--              {% for file in files %}-->
-<!--              <li>-->
-<!--                  {% if file.type == 'pdf' %}-->
-<!--                  <a href="https://drive.google.com/uc?export=download&id={{ file.id }}" target="_blank">{{ file.name }}</a>-->
-<!--                  {% elif file.type == 'drafts' %}-->
-<!--                  <a href="#" class="load-file" data-fileid="{{ file.id }}">{{ file.name }}</a>-->
-<!--                  {% elif file.type == 'video' %}-->
-<!--                  <a href="https://drive.google.com/uc?export=download&id={{ file.id }}" target="_blank">{{ file.name }}</a>-->
-<!--                  {% else %}-->
-<!--                  <span>{{ file.name }}</span>-->
-<!--                  {% endif %}-->
-<!--                  <button class="delete-file-btn" data-fileid="{{ file.id }}">Delete</button>-->
-<!--              </li>-->
-<!--              {% endfor %}-->
-<!--          </ul>-->
-<!--      </div>-->
-
-
-<!--      <div class="upload-section">-->
-<!--            <form id="uploadForm" method="POST" enctype="multipart/form-data" action="{% url 'upload_files' %}">-->
-<!--                {% csrf_token %}-->
-
-<!--                &lt;!&ndash; File Inputs &ndash;&gt;-->
-<!--                <label><strong>Upload PDF:</strong></label>-->
-<!--                <input type="file" name="pdf_file" accept=".pdf" multiple><br><br>-->
-
-<!--                <label><strong>Upload Video:</strong></label>-->
-<!--                <input type="file" name="video_file" accept="video/*" multiple><br><br>-->
-<!--                <button type="submit" name="action" value="submit">Upload Save</button>-->
-<!--            </form>-->
-
-<!--            <h4>Editor - Save Draft / Submit PDF</h4>-->
-
-<!--            <form id="editorForm" method="POST" action="{% url 'contributor_editor' %}">-->
-<!--                {% csrf_token %}-->
-<!--                <input type="hidden" name="file_id" id="file_id">-->
-<!--                <label>File Name:</label>-->
-<!--                <input type="text" name="filename" id="filename" placeholder="Enter file name" required><br><br>-->
-
-<!--                <div id="editorContainer">-->
-<!--                    <textarea id="editor" name="notes" placeholder="Start writing your notes here..."></textarea>-->
-<!--                </div>-->
-
-<!--                <button type="submit" name="action" value="draft">💾 Save Draft</button>-->
-<!--                <button type="submit" name="action" value="submitDraft">🚀 Submit PDF</button>-->
-<!--            </form>-->
-<!--              {% csrf_token %}-->
-<!--              <button type="submit" name="action" value="finalSubmission" class="confirm-submit-btn">-->
-<!--                  🚀 Confirm Submission-->
-<!--              </button>-->
-<!--          </form>-->
-
-
-<!--          <hr style="margin: 30px 0; border: 1px dashed #1EAE98;">-->
-
-<!--          <h4>📋 Add Assessment Questions</h4>-->
-<!--          <form id="assessmentForm" method="POST" action="{% url 'submit_assessment' %}">-->
-<!--              {% csrf_token %}-->
-<!--              <div id="questionsContainer">-->
-<!--                  <div class="question-block">-->
-<!--                      <label>Question:</label>-->
-<!--                      <textarea name="questions[0][question]" placeholder="Enter your question" required></textarea>-->
-
-<!--                      <div class="options-container">-->
-<!--                          <input type="text" name="questions[0][options][]" placeholder="Option 1" required>-->
-<!--                          <input type="text" name="questions[0][options][]" placeholder="Option 2" required>-->
-<!--                          <input type="text" name="questions[0][options][]" placeholder="Option 3" required>-->
-<!--                          <input type="text" name="questions[0][options][]" placeholder="Option 4" required>-->
-<!--                      </div>-->
-
-<!--                      <label>Correct Answer:</label>-->
-<!--                      <select name="questions[0][correct]" required>-->
-<!--                          <option value="" disabled selected>Select correct option</option>-->
-<!--                          <option value="0">Option 1</option>-->
-<!--                          <option value="1">Option 2</option>-->
-<!--                          <option value="2">Option 3</option>-->
-<!--                          <option value="3">Option 4</option>-->
-<!--                      </select>-->
-
-<!--                      <button type="button" class="add-option-btn">➕ Add Option</button>-->
-<!--                      <hr>-->
-<!--                  </div>-->
-<!--              </div>-->
-
-<!--              <button type="button" id="addQuestionBtn">➕ Add Another Question</button>-->
-<!--              <button type="submit">Submit All Questions</button>-->
-<!--          </form>-->
-
-
-
-<!--      </div>-->
-<!--                               -->
-<!--&lt;!&ndash;            <div id="editor" class="editor" contenteditable="true">Start writing your notes here...</div>&ndash;&gt;-->
-<!--&lt;!&ndash;        &ndash;&gt;-->
-<!--&lt;!&ndash;            <button>Save</button>&ndash;&gt;-->
-<!--&lt;!&ndash;            <button>Draft</button>&ndash;&gt;-->
-<!--&lt;!&ndash;        </div>&ndash;&gt;-->
-<!--&lt;!&ndash;    </div>&ndash;&gt;-->
-
-<!--  </div>-->
-<!--</div>-->
-
-<!--&lt;!&ndash; Chatbot &ndash;&gt;-->
-<!--<button class="chatbot-btn" id="chatbotToggle">💬</button>-->
-<!--<div class="chatbot" id="chatbotBox">-->
-<!--  <h4>Chatbot</h4>-->
-<!--  <div class="messages">Hello! I am your assistant.</div>-->
-<!--  <input type="text" placeholder="Type your message...">-->
-<!--  <button>Send</button>-->
-<!--</div>-->
-
-<!--<script src="{% static 'frontend/js/contributor.js' %}"></script>-->
-<!--<script>-->
-<!--    let questionIndex = 1;-->
-
-<!--              document.getElementById('addQuestionBtn').addEventListener('click', function() {-->
-<!--                  const container = document.getElementById('questionsContainer');-->
-<!--                  const newQuestionHTML = `-->
-<!--                  <div class="question-block">-->
-<!--                      <label>Question:</label>-->
-<!--                      <textarea name="questions[${questionIndex}][question]" placeholder="Enter your question" required></textarea>-->
-<!--                      <div class="options-container">-->
-<!--                          <input type="text" name="questions[${questionIndex}][options][]" placeholder="Option 1" required>-->
-<!--                          <input type="text" name="questions[${questionIndex}][options][]" placeholder="Option 2" required>-->
-<!--                          <input type="text" name="questions[${questionIndex}][options][]" placeholder="Option 3" required>-->
-<!--                          <input type="text" name="questions[${questionIndex}][options][]" placeholder="Option 4" required>-->
-<!--                      </div>-->
-<!--                      <label>Correct Answer:</label>-->
-<!--                      <select name="questions[${questionIndex}][correct]" required>-->
-<!--                          <option value="" disabled selected>Select correct option</option>-->
-<!--                          <option value="0">Option 1</option>-->
-<!--                          <option value="1">Option 2</option>-->
-<!--                          <option value="2">Option 3</option>-->
-<!--                          <option value="3">Option 4</option>-->
-<!--                      </select>-->
-<!--                      <button type="button" class="add-option-btn">➕ Add Option</button>-->
-<!--                      <hr>-->
-<!--                  </div>`;-->
-<!--                  container.insertAdjacentHTML('beforeend', newQuestionHTML);-->
-<!--                  questionIndex++;-->
-<!--              });-->
-
-<!--              // Add dynamic option inside each question-->
-<!--              document.addEventListener('click', function(e) {-->
-<!--                  if(e.target.classList.contains('add-option-btn')) {-->
-<!--                      const optionsContainer = e.target.previousElementSibling; // the options container-->
-<!--                      const optionCount = optionsContainer.children.length;-->
-<!--                      const questionBlock = e.target.closest('.question-block');-->
-<!--                      const select = questionBlock.querySelector('select');-->
-
-<!--                      const newInput = document.createElement('input');-->
-<!--                      newInput.type = 'text';-->
-<!--                      newInput.name = optionsContainer.children[0].name.replace(/\[\d+\]/, '') + '[]';-->
-<!--                      newInput.placeholder = `Option ${optionCount + 1}`;-->
-<!--                      newInput.required = true;-->
-<!--                      optionsContainer.appendChild(newInput);-->
-
-<!--                      // Update select dropdown-->
-<!--                      const newOption = document.createElement('option');-->
-<!--                      newOption.value = optionCount;-->
-<!--                      newOption.textContent = `Option ${optionCount + 1}`;-->
-<!--                      select.appendChild(newOption);-->
-<!--                  }-->
-<!--              });-->
-
-<!--    document.addEventListener('DOMContentLoaded', function() {-->
-<!--console.log("TinyMCE script loaded:", typeof tinymce);-->
-
-<!--   tinymce.init({-->
-<!--     selector: '#editor',-->
-<!--     height: 600,-->
-<!--     menubar: 'file edit view insert format tools table help',-->
-<!--     plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',-->
-<!--     toolbar: 'undo redo | styles | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | table image link media | removeformat | fullscreen',-->
-<!--     toolbar_mode: 'wrap',-->
-<!--     font_size_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',-->
-<!--     content_style: 'body { font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.6; color:#000; background:#fff; padding:20px; }',-->
-<!--     branding: false-->
-<!--   });-->
-
-<!--   // Sync content before form submit-->
-<!--   const editorForm = document.getElementById('editorForm');-->
-<!--   if (editorForm) {-->
-<!--     editorForm.addEventListener('submit', function(e) {-->
-<!--     tinymce.triggerSave(); // Sync TinyMCE content into original textarea-->
-<!--    // Now 'notes' field contains actual HTML content-->
-<!--     });-->
-<!--   }-->
-<!--     /* &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; Load Draft &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; */-->
-<!--     document.querySelectorAll('.load-file').forEach(link => {-->
-<!--    link.addEventListener('click', async function(e) {-->
-<!--        e.preventDefault();-->
-<!--        const fileId = this.dataset.fileid;-->
-
-<!--        try {-->
-<!--            const res = await fetch(`{% url 'load_file' %}?file_id=${fileId}`);-->
-<!--            if (!res.ok) throw new Error("Failed to load file");-->
-<!--            const data = await res.json();-->
-
-<!--            // Ensure TinyMCE is ready-->
-<!--            const editor = tinymce.get('editor');-->
-<!--            if (editor) {-->
-<!--                editor.setContent(data.content || '');-->
-<!--                document.getElementById('file_id').value = fileId;-->
-<!--            } else {-->
-<!--                console.warn("TinyMCE editor not initialized yet");-->
-<!--            }-->
-
-<!--            // Set filename input (remove extensions)-->
-<!--            const cleanName = this.textContent.replace(/\.(docx|pdf)$/i, '');-->
-<!--            document.getElementById('filename').value = cleanName;-->
-
-<!--        } catch(err) {-->
-<!--            alert("Error loading file: " + err.message);-->
-<!--        }-->
-<!--    });-->
-<!--});-->
-
-
-<!--document.querySelectorAll('.delete-file-btn').forEach(btn => {-->
-<!--    btn.addEventListener('click', async function() {-->
-<!--        const fileId = this.dataset.fileid;-->
-<!--        if (!confirm("Are you sure you want to delete this file?")) return;-->
-
-<!--        try {-->
-<!--            const res = await fetch("{% url 'delete_drive_file' %}", {-->
-<!--                method: 'POST',-->
-<!--                headers: {-->
-<!--                    'Content-Type': 'application/x-www-form-urlencoded',-->
-<!--                    'X-CSRFToken': '{{ csrf_token }}'-->
-<!--                },-->
-<!--                body: `file_id=${fileId}`-->
-<!--            });-->
-<!--            const data = await res.json();-->
-<!--            if (data.success) {-->
-<!--                alert(data.message);-->
-<!--                location.reload();-->
-<!--            } else {-->
-<!--                alert("Error: " + data.message);-->
-<!--            }-->
-<!--        } catch (err) {-->
-<!--            alert("Error deleting file: " + err.message);-->
-<!--        }-->
-<!--    });-->
-<!--});-->
-
-<!--&lt;!&ndash;Chatbot&ndash;&gt;-->
-<!--const chatbotBtn = document.getElementById('chatbotToggle');-->
-<!--const chatbotBox = document.getElementById('chatbotBox');-->
-<!--const messagesDiv = chatbotBox.querySelector('.messages');-->
-<!--const inputField = chatbotBox.querySelector('input');-->
-<!--const sendBtn = chatbotBox.querySelector('button');-->
-
-<!--chatbotBtn.addEventListener('click', () => {-->
-<!--    chatbotBox.style.display = chatbotBox.style.display === 'block' ? 'none' : 'block';-->
-<!--});-->
-
-<!--sendBtn.addEventListener('click', async () => {-->
-<!--    const message = inputField.value.trim();-->
-<!--    if(!message) return;-->
-
-<!--    // Display user message-->
-<!--    messagesDiv.innerHTML += `<div><strong>You:</strong> ${message}</div>`;-->
-<!--    inputField.value = '';-->
-<!--    messagesDiv.scrollTop = messagesDiv.scrollHeight;-->
-
-<!--    try {-->
-<!--        const res = await fetch("{% url 'gemini_chat' %}", {-->
-<!--            method: 'POST',-->
-<!--            headers: {-->
-<!--                'Content-Type': 'application/json',-->
-<!--                'X-CSRFToken': '{{ csrf_token }}'-->
-<!--            },-->
-<!--            body: JSON.stringify({ message })-->
-<!--        });-->
-<!--        const data = await res.json();-->
-
-<!--        if(data.reply) {-->
-<!--            messagesDiv.innerHTML += `<div><strong>Gemini:</strong> ${data.reply}</div>`;-->
-<!--        } else if(data.error) {-->
-<!--            messagesDiv.innerHTML += `<div style="color:red;"><strong>Error:</strong> ${data.error}</div>`;-->
-<!--        }-->
-<!--    } catch(err) {-->
-<!--        messagesDiv.innerHTML += `<div style="color:red;"><strong>Error:</strong> ${err.message}</div>`;-->
-<!--    }-->
-
-<!--    messagesDiv.scrollTop = messagesDiv.scrollHeight;-->
-<!--});-->
-
-
-<!--// Tabs & Buttons-->
-<!--         const tabs = document.querySelectorAll('.tab-btn');-->
-<!--         const chapterBtns = document.querySelectorAll('.chapter-btn');-->
-<!--         const conceptBtns = document.querySelectorAll('.concept-btn');-->
-
-<!--         tabs.forEach(tab => {-->
-<!--           tab.addEventListener('click', () => {-->
-<!--             tabs.forEach(t => t.classList.remove('active'));-->
-<!--             tab.classList.add('active');-->
-<!--             chapterBtns.forEach(c => c.classList.remove('active'));-->
-<!--             chapterBtns[0].classList.add('active');-->
-<!--             conceptBtns.forEach(c => c.classList.remove('active'));-->
-<!--             conceptBtns[0].classList.add('active');-->
-<!--           });-->
-<!--         });-->
-
-<!--         chapterBtns.forEach(chap => {-->
-<!--           chap.addEventListener('click', () => {-->
-<!--             chapterBtns.forEach(c => c.classList.remove('active'));-->
-<!--             chap.classList.add('active');-->
-<!--             conceptBtns.forEach(c => c.classList.remove('active'));-->
-<!--             conceptBtns[0].classList.add('active');-->
-<!--           });-->
-<!--         });-->
-
-<!--         conceptBtns.forEach(con => {-->
-<!--           con.addEventListener('click', () => {-->
-<!--             conceptBtns.forEach(c => c.classList.remove('active'));-->
-<!--             con.classList.add('active');-->
-<!--           });-->
-<!--         });-->
-
-
-<!--         // Sync editor content before form submission-->
-<!--         document.getElementById('uploadForm').addEventListener('submit', async function(e){-->
-<!--             e.preventDefault();-->
-
-<!--             const formData = new FormData(this);-->
-
-<!--             // Show loading spinner-->
-<!--             showLoading();-->
-
-<!--             try {-->
-<!--                 const res = await fetch("{% url 'upload_files' %}", {-->
-<!--                     method: 'POST',-->
-<!--                     body: formData,-->
-<!--                     headers: { 'X-CSRFToken': '{{ csrf_token }}' }-->
-<!--                 });-->
-
-<!--                 if (!res.ok) {-->
-<!--                     const err = await res.text();-->
-<!--                     throw new Error(err || "Upload failed.");-->
-<!--                 }-->
-
-<!--                 const data = await res.json();-->
-<!--                 alert(data.message || "✅ Upload successful!");-->
-<!--             } catch (err) {-->
-<!--&lt;!&ndash;                 alert("❌ Upload failed: " + err.message);&ndash;&gt;-->
-<!--             } finally {-->
-<!--                 hideLoading();-->
-<!--             }-->
-<!--         });-->
-
-
-<!--         });-->
-<!--         function showLoading() {-->
-<!--           document.getElementById('loadingOverlay').style.display = 'flex';-->
-<!--         }-->
-<!--         function hideLoading() {-->
-<!--           document.getElementById('loadingOverlay').style.display = 'none';-->
-<!--         }-->
-
-
-<!--</script>-->
-<!--<div id="loadingOverlay">-->
-<!--    <span>Uploading... Please wait ⏳</span>-->
-<!--</div>-->
-
-<!--</body>-->
-<!--</html>-->
-
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chapter Content</title>
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         /* Reset & Base Styles */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #F4FCFA; color: #333; display: flex; min-height: 100vh; }
+        body { background-color: #FFFFFF; color: #333;  min-height: 100vh; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
 
-        /* ADDED: Makes sure the layout wrapper fills the page */
-        .dashboard-layout {
-            width: 100%;
-        }
-
         /* --- MODIFIED MAIN CONTENT AREA --- */
         .main-content {
-            flex-grow: 1;
+            margin-left: 260px;
             /* MODIFIED: Better padding for a full-width look */
             padding: 40px 60px;
+            min-height: 100vh;
             /* REMOVED max-width and margin: 0 auto to use full page */
         }
         /* --- END OF MODIFICATION --- */
@@ -860,26 +36,32 @@
 
         /* Cards */
         .card {
-            background-color: #ffffff; border-radius: 12px; padding: 25px 30px;
+            background-color: #ffffff; border-radius: 10px; padding: 22px 26px;
             margin-bottom: 30px;
+            border: 1px solid #E5E7EB;
             /* MODIFIED: A slightly softer, more modern shadow */
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+            box-shadow: none;
             opacity: 0; transform: translateY(20px); animation: fadeInCard 0.5s ease-out forwards;
         }
         .card-title {
-            font-size: 20px; color: #1EAE98; margin-bottom: 20px;
-            padding-bottom: 10px; border-bottom: 1px solid #eee;
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #E5E7EB;
         }
+
 
         /* --- SUBMISSION DETAILS STYLES --- */
         .submission-info p { font-size: 16px; margin-bottom: 8px; color: #555; }
-        .submission-info strong { color: #1EAE98; font-weight: 600; }
+        .submission-info strong { color: #111827; font-weight: 600; }
 
         /* --- TOPICS TABLE STYLES --- */
         .topics-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .topics-table th, .topics-table td { padding: 15px 12px; text-align: left; border-bottom: 1px solid #eee; }
         .topics-table th {
-            font-weight: 600; color: #555; font-size: 14px; text-transform: uppercase; background-color: #f8f9fa;
+            font-weight: 600; color: #555; font-size: 14px; text-transform: uppercase; background-color: #FAFAFA;
         }
         .topics-table td { font-size: 15px; color: #333; vertical-align: middle; }
 
@@ -1085,71 +267,96 @@
         }
         /* --- MODAL STYLES END --- */
 
+        .meta-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            margin-right: 6px;
+        }
+
+        .meta-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #111827;
+        }
+
+
     </style>
 </head>
 <body>
 
 <div class="dashboard-layout">
-
+    {% include "contributor/sidebar.html" %}
     <main class="main-content">
-        <header class="main-header"><h1>Submit Content</h1></header>
+<!--        <header class="main-header"><h1>Submit Content</h1></header>-->
 
         <section class="card submission-info">
             <h2 class="card-title">Submission Details</h2>
-            <p>Course: <strong>{{ course.course_name }}</strong> ({{ course.course_code }})</p>
-            <p>Chapter: <strong>Chapter {{ chapter.chapter_number }}: {{ chapter.chapter_name }}</strong></p>
+<!--            <p>Course: <strong>{{ course.course_name }}</strong> ({{ course.course_code }})</p>-->
+<!--            <p>Chapter: <strong>Chapter {{ chapter.chapter_number }}: {{ chapter.chapter_name }}</strong></p>-->
+            <p>
+                <span class="meta-label">Course</span>
+                <span class="meta-value">{{ course.course_name }} ({{ course.course_code }})</span>
+            </p>
+
+            <p>
+                <span class="meta-label">Chapter</span>
+                <span class="meta-value">Chapter {{ chapter.chapter_number }}: {{ chapter.chapter_name }}</span>
+            </p>
+
         </section>
 
-<!--        <section class="card topics-card">-->
-<!--            <h2 class="card-title">Chapter Topics</h2>-->
+        <!--        <section class="card topics-card">-->
+        <!--            <h2 class="card-title">Chapter Topics</h2>-->
 
-<!--            <table class="topics-table">-->
-<!--                <thead>-->
-<!--                <tr>-->
-<!--                    <th>Topic Name</th>-->
-<!--                    <th class="action-column">View Submission</th>-->
-<!--                    <th class="action-column">Upload New</th>-->
-<!--                </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                <tr data-topic-id="1" data-topic-name="Introduction to Topic A">-->
-<!--                    <td>Introduction to Topic A</td>-->
-<!--                    <td class="action-column">-->
-<!--                        <a href="#" class="action-button view-past-button">-->
-<!--                            <i class="fas fa-history"></i> View </a>-->
-<!--                    </td>-->
-<!--                    <td class="action-column">-->
-<!--                            <i class="fas fa-upload"></i> Upload-->
-<!--                        </a>-->
-<!--                    </td>-->
-<!--                </tr>-->
-<!--                <tr data-topic-id="2" data-topic-name="Core Concepts of Topic B">-->
-<!--                    <td>Core Concepts of Topic B</td>-->
-<!--                    <td class="action-column">-->
-<!--                        <a href="#" class="action-button view-past-button">-->
-<!--                            <i class="fas fa-history"></i> View-->
-<!--                        </a>-->
-<!--                    </td>-->
-<!--                    <td class="action-column">-->
-<!--                            <i class="fas fa-upload"></i> Upload-->
-<!--                        </a>-->
-<!--                    </td>-->
-<!--                </tr>-->
-<!--                <tr data-topic-id="3" data-topic-name="Advanced Applications of Topic C">-->
-<!--                    <td>Advanced Applications of Topic C</td>-->
-<!--                    <td class="action-column">-->
-<!--                        <a href="#" class="action-button view-past-button">-->
-<!--                            <i class="fas fa-history"></i> View-->
-<!--                        </a>-->
-<!--                    </td>-->
-<!--                    <td class="action-column">-->
-<!--                            <i class="fas fa-upload"></i> Upload-->
-<!--                        </a>-->
-<!--                    </td>-->
-<!--                </tr>-->
-<!--                </tbody>-->
-<!--            </table>-->
-<!--        </section>-->
+        <!--            <table class="topics-table">-->
+        <!--                <thead>-->
+        <!--                <tr>-->
+        <!--                    <th>Topic Name</th>-->
+        <!--                    <th class="action-column">View Submission</th>-->
+        <!--                    <th class="action-column">Upload New</th>-->
+        <!--                </tr>-->
+        <!--                </thead>-->
+        <!--                <tbody>-->
+        <!--                <tr data-topic-id="1" data-topic-name="Introduction to Topic A">-->
+        <!--                    <td>Introduction to Topic A</td>-->
+        <!--                    <td class="action-column">-->
+        <!--                        <a href="#" class="action-button view-past-button">-->
+        <!--                            <i class="fas fa-history"></i> View </a>-->
+        <!--                    </td>-->
+        <!--                    <td class="action-column">-->
+        <!--                            <i class="fas fa-upload"></i> Upload-->
+        <!--                        </a>-->
+        <!--                    </td>-->
+        <!--                </tr>-->
+        <!--                <tr data-topic-id="2" data-topic-name="Core Concepts of Topic B">-->
+        <!--                    <td>Core Concepts of Topic B</td>-->
+        <!--                    <td class="action-column">-->
+        <!--                        <a href="#" class="action-button view-past-button">-->
+        <!--                            <i class="fas fa-history"></i> View-->
+        <!--                        </a>-->
+        <!--                    </td>-->
+        <!--                    <td class="action-column">-->
+        <!--                            <i class="fas fa-upload"></i> Upload-->
+        <!--                        </a>-->
+        <!--                    </td>-->
+        <!--                </tr>-->
+        <!--                <tr data-topic-id="3" data-topic-name="Advanced Applications of Topic C">-->
+        <!--                    <td>Advanced Applications of Topic C</td>-->
+        <!--                    <td class="action-column">-->
+        <!--                        <a href="#" class="action-button view-past-button">-->
+        <!--                            <i class="fas fa-history"></i> View-->
+        <!--                        </a>-->
+        <!--                    </td>-->
+        <!--                    <td class="action-column">-->
+        <!--                            <i class="fas fa-upload"></i> Upload-->
+        <!--                        </a>-->
+        <!--                    </td>-->
+        <!--                </tr>-->
+        <!--                </tbody>-->
+        <!--            </table>-->
+        <!--        </section>-->
         <section class="card topics-card">
             <h2 class="card-title">Chapter Topics</h2>
 
@@ -1157,7 +364,7 @@
                 <thead>
                 <tr>
                     <th>Topic Name</th>
-<!--                    <th class="action-column">View Submission</th>-->
+                    <!--                    <th class="action-column">View Submission</th>-->
                     <th class="action-column">Upload New</th>
                 </tr>
                 </thead>
@@ -1166,11 +373,11 @@
                 {% if topic %}
                 <tr data-topic-id="{{ forloop.counter }}" data-topic-name="{{ topic }}">
                     <td>{{ topic }}</td>
-<!--                    <td class="action-column">-->
-<!--                        <a href="#" class="action-button view-past-button">-->
-<!--                            <i class="fas fa-history"></i> View-->
-<!--                        </a>-->
-<!--                    </td>-->
+                    <!--                    <td class="action-column">-->
+                    <!--                        <a href="#" class="action-button view-past-button">-->
+                    <!--                            <i class="fas fa-history"></i> View-->
+                    <!--                        </a>-->
+                    <!--                    </td>-->
                     <td class="action-column">
                         <a href="{% url 'contributor_upload_file' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}&topic={{ topic|urlencode }}">
                             <i class="fas fa-upload"></i> Upload
@@ -1178,10 +385,14 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="3" style="color:red;">⚠️ Empty topic found</td></tr>
+                <tr>
+                    <td colspan="3" style="color:red;">⚠️ Empty topic found</td>
+                </tr>
                 {% endif %}
                 {% empty %}
-                <tr><td colspan="3" style="text-align:center;">No topics found for this chapter.</td></tr>
+                <tr>
+                    <td colspan="3" style="text-align:center;">No topics found for this chapter.</td>
+                </tr>
                 {% endfor %}
                 </tbody>
             </table>
@@ -1189,8 +400,10 @@
 
 
         <section class="final-submission-section">
-            <hr class="section-divider"> <p>Once you have uploaded content for all desired topics, confirm your final submission for this chapter.</p>
-            <form action="{% url 'final_submission' %}" method="POST" style="text-align: center;">
+            <hr class="section-divider">
+            <p>Once you have uploaded content for all desired topics, confirm your final submission for this
+                chapter.</p>
+            <form action="{% url 'confirm_submission' %}" method="POST" style="text-align: center;">
                 {% csrf_token %}
                 <input type="hidden" name="course_id" value="{{ course.id }}">
                 <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
@@ -1204,30 +417,6 @@
     </main>
 </div>
 
-<div class="modal-overlay" id="file-modal-overlay">
-    <div class="modal-content" id="file-modal">
-        <div class="modal-header">
-            <h2 id="modal-title">Existing Files</h2>
-            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
-        </div>
-        <div class="modal-body">
-            <table class="file-table">
-                <thead>
-                <tr>
-                    <th>File Name</th>
-                    <th>Type</th>
-                    <th style="text-align: center;">Actions</th>
-                </tr>
-                </thead>
-                <tbody id="file-list-tbody">
-                <tr>
-                    <td colspan="3" style="text-align: center;">Loading...</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const modalOverlay = document.getElementById('file-modal-overlay');

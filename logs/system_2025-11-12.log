@@ -1,0 +1,219 @@
+[WARNING] 2025-11-12 14:12:36,487 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-11-12 14:12:36,519 | django.server | "GET /favicon.ico HTTP/1.1" 404 11623
+[WARNING] 2025-11-12 14:12:49,584 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-12 14:12:55,645 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:12:56,423 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:13:07,802 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:13:08,193 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:13:08,650 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 14:13:16,729 | django.request | Internal Server Error: /dashboard/contributor/submit_content/upload/submission
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\submit_content.py", line 148, in contributor_upload_file
+    return render(request, "contributor/contributor_upload_file.html", context)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 1016, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 1016, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 977, in render_annotated
+    return self.render(context)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'generated_assessment' not found. 'generated_assessment' is not a valid view function or pattern name.
+[ERROR] 2025-11-12 14:13:16,743 | django.server | "GET /dashboard/contributor/submit_content/upload/submission?course_id=30&chapter_id=77&topic=Introduction%20to%20ES6 HTTP/1.1" 500 139700
+[INFO] 2025-11-12 14:14:28,752 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:14:29,641 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:14:30,439 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:14:58,665 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:14:59,252 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:15:02,550 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:15:03,105 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:15:03,548 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:15:59,564 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:16:00,181 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:16:01,241 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:16:01,651 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:16:02,021 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:17:42,132 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:17:42,685 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:17:43,728 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:17:44,213 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:17:44,627 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:18:32,919 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:18:33,506 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:18:42,978 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:18:43,400 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:18:43,867 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:19:24,718 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:19:25,140 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:19:25,596 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:19:59,784 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:20:00,296 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:20:01,423 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:20:01,770 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:20:02,122 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:27:28,054 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:27:28,956 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:27:39,574 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:27:39,974 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:27:40,604 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:28:08,189 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:28:08,650 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:28:09,719 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:28:10,147 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:28:10,602 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:37:38,525 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:37:39,178 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:37:39,662 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:38:03,059 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:38:03,508 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:38:04,564 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:38:04,887 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:38:05,249 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:40:55,360 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:40:56,005 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:40:56,580 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:41:23,649 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:41:24,127 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:41:25,187 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:41:25,509 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:41:25,958 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:42:04,131 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:04,581 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:42:16,974 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:17,325 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:17,785 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:42:33,304 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:33,761 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:42:34,700 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:35,060 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:35,500 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:42:57,273 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:57,633 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:42:58,132 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:43:10,789 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:43:11,236 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:43:14,156 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:43:14,556 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:43:15,028 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:43:33,971 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:43:34,485 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:43:35,517 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:43:35,799 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:43:36,226 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:44:21,396 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:44:21,893 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:44:27,081 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:44:27,379 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:44:27,673 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:44:39,322 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:44:39,750 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:44:40,220 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 14:44:49,619 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 14:44:49,627 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 54
+[ERROR] 2025-11-12 14:50:57,828 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 14:50:57,836 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 54
+[INFO] 2025-11-12 14:52:06,976 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:52:07,398 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:52:07,943 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 14:52:08,010 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:52:08,398 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 14:52:08,845 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 14:52:18,954 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 14:52:18,954 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 54
+[WARNING] 2025-11-12 17:36:52,221 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-11-12 17:36:52,233 | django.server | "GET /favicon.ico HTTP/1.1" 404 11623
+[WARNING] 2025-11-12 17:39:41,807 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-12 17:39:46,104 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:39:47,068 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:39:57,897 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:40:03,778 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:40:04,217 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:40:32,262 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:40:32,678 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:40:33,699 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:40:34,073 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:40:34,446 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-12 17:47:16,061 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-12 17:47:19,498 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:47:20,037 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:47:39,048 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:47:39,432 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:47:39,901 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:48:03,515 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:48:03,871 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:48:04,685 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:48:05,085 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:48:05,451 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:49:43,522 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:49:44,021 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:49:49,934 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:49:50,304 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:49:50,696 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 17:50:23,884 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:50:24,496 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 17:50:24,977 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 17:56:32,635 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 17:56:32,649 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 54
+[INFO] 2025-11-12 18:00:54,701 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:00:55,622 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:00:55,833 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:00:55,962 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:00:56,652 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:00:56,659 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:00:59,781 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:01:00,116 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:01:00,584 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 18:01:10,356 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 18:01:10,364 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 54
+[INFO] 2025-11-12 18:05:02,354 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:05:02,800 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:05:03,280 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:05:11,760 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:05:12,598 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 18:05:22,647 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 18:05:22,647 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 3681
+[INFO] 2025-11-12 18:16:22,565 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:16:23,017 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:16:23,592 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:16:31,456 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:16:32,057 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-11-12 18:16:41,331 | django.request | Internal Server Error: /contributor/generate_assessment
+[ERROR] 2025-11-12 18:16:41,332 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 500 171
+[INFO] 2025-11-12 18:22:55,878 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:22:56,156 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:22:56,578 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:23:30,644 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:23:31,000 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:23:36,793 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:23:37,099 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:23:37,449 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:24:08,522 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:24:08,733 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:24:09,099 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-12 18:24:18,023 | django.request | Bad Request: /contributor/generate_assessment
+[WARNING] 2025-11-12 18:24:18,026 | django.server | "POST /contributor/generate_assessment HTTP/1.1" 400 36
+[INFO] 2025-11-12 18:26:22,193 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:26:22,690 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:26:23,269 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:27:26,360 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:27:26,933 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-12 18:33:36,817 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-12 18:33:37,452 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.

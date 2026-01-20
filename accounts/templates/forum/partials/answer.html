@@ -1,73 +1,39 @@
-{# accounts/templates/forum/partials/answer.html #}
 <div class="{% if level > 0 %}reply-branch{% endif %}">
-<<<<<<< HEAD
-  <div class="d-flex justify-content-between">
-    <div>
-      <p class="mb-1">{{ answer.content|linebreaks }}</p>
-      <div class="text-muted" style="font-size:.9rem;">
-        by <strong>{{ answer.author.username }}</strong> • {{ answer.created_at|date:"M d, Y H:i" }}
-      </div>
-    </div>
-    <form method="post" action="{% url 'forum_answer_upvote' answer.id %}">
-      {% csrf_token %}
-      <button class="btn btn-outline-success btn-sm">▲ {{ answer.total_upvotes }}</button>
-    </form>
-  </div>
-
-  {% if user.is_authenticated %}
-    <details class="mt-2">
-      <summary class="reply-toggle">Reply</summary>
-      <form method="post" action="{% url 'forum_reply' question.id answer.id %}" class="mt-2">
-        {% csrf_token %}
-        <textarea name="content" class="form-control" rows="2" placeholder="Write a reply..."></textarea>
-        <button class="btn btn-sm btn-secondary mt-2">Post reply</button>
-      </form>
-    </details>
-  {% endif %}
-
-  {% with kids=answer.children %}
-    {% if kids %}
-      <div class="mt-2">
-        {% for child in kids %}
-          {% include "forum/partials/answer.html" with answer=child question=question level=level|add:1 %}
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-</div>
-=======
     <div class="d-flex justify-content-between">
         <div>
             <p class="mb-1">{{ answer.content|linebreaks }}</p>
             <div class="text-muted" style="font-size:.9rem;">
-                by <strong>{{ answer.author.username }}</strong> • {{ answer.created_at|date:"M d, Y H:i" }}
+                by <strong>{{ answer.author.username }}</strong>
+                • {{ answer.created_at|date:"M d, Y H:i" }}
             </div>
         </div>
+
         <form method="post" action="{% url 'forum_answer_upvote' answer.id %}">
             {% csrf_token %}
-            <button class="btn btn-outline-success btn-sm">▲ {{ answer.total_upvotes }}</button>
+            <button class="btn btn-outline-success btn-sm">
+                ▲ {{ answer.total_upvotes }}
+            </button>
         </form>
     </div>
 
     {% if user.is_authenticated %}
     <details class="mt-2">
         <summary class="reply-toggle">Reply</summary>
-        <form method="post" action="{% url 'forum_reply' question.id answer.id %}" class="mt-2">
+        <form method="post"
+              action="{% url 'forum_reply' question.id answer.id %}"
+              class="mt-2">
             {% csrf_token %}
-            <textarea name="content" class="form-control" rows="2" placeholder="Write a reply..."></textarea>
-            <button class="btn btn-sm btn-secondary mt-2">Post reply</button>
+            <textarea name="content" class="form-control" rows="2"
+                      placeholder="Write a reply..."></textarea>
+            <button class="btn btn-sm btn-secondary mt-2">
+                Post reply
+            </button>
         </form>
     </details>
     {% endif %}
 
-    {% with kids=answer.children %}
-    {% if kids %}
-    <div class="mt-2">
-        {% for child in kids %}
-        {% include "forum/partials/answer.html" with answer=child question=question level=level|add:1 %}
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+    {% for child in answer.children %}
+    {% include "forum/partials/answer.html"
+    with answer=child question=question level=level|add:1 %}
+    {% endfor %}
 </div>
->>>>>>> 1c8d171 (Update UI and agents)

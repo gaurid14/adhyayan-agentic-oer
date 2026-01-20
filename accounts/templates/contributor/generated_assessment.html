@@ -162,44 +162,29 @@
         <p>Review the generated questions and publish them for students.</p>
     </div>
 
-    <form id="assessment-form" method="POST" action="/path/to/publish/assessment/">
         {% csrf_token %}
-        <div class="question-block">
-            <p class="question-text">1. What is the primary purpose of using indexes in a database?</p>
-            <ul class="options-list">
-                <li><input type="radio" name="q1" value="a" id="q1a"><label for="q1a">To enforce data integrity constraints.</label></li>
-                <li class="correct-answer"><input type="radio" name="q1" value="b" id="q1b" checked><label for="q1b">To speed up data retrieval operations.</label></li>
-                <li><input type="radio" name="q1" value="c" id="q1c"><label for="q1c">To reduce database storage space.</label></li>
-                <li><input type="radio" name="q1" value="d" id="q1d"><label for="q1d">To provide data encryption.</label></li>
-            </ul>
-        </div>
+    {% for q in questions %}
+    <div class="question-block">
+        <p class="question-text">{{ forloop.counter }}. {{ q.text }}</p>
+        <ul class="options-list">
+            {% for opt in q.options.all %}
+            <li class="{% if forloop.counter0 == q.correct_option %}correct-answer{% endif %}">
+                <input type="radio" name="q{{ q.id }}" id="q{{ q.id }}_{{ forloop.counter }}" {% if forloop.counter0 == q.correct_option %}checked{% endif %}>
+                <label for="q{{ q.id }}_{{ forloop.counter }}">{{ opt.text }}</label>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% empty %}
+    <p>No questions generated yet.</p>
+    {% endfor %}
 
-        <div class="question-block">
-            <p class="question-text">2. Which SQL clause is used to filter results?</p>
-            <ul class="options-list">
-                <li><input type="radio" name="q2" value="a" id="q2a"><label for="q2a">ORDER BY</label></li>
-                <li><input type="radio" name="q2" value="b" id="q2b"><label for="q2b">GROUP BY</label></li>
-                <li class="correct-answer"><input type="radio" name="q2" value="c" id="q2c" checked><label for="q2c">WHERE</label></li>
-                <li><input type="radio" name="q2" value="d" id="q2d"><label for="q2d">SELECT</label></li>
-            </ul>
-        </div>
 
-        <div class="question-block">
-            <p class="question-text">3. What does ACID stand for in the context of database transactions?</p>
-            <ul class="options-list">
-                <li class="correct-answer"><input type="radio" name="q3" value="a" id="q3a" checked><label for="q3a">Atomicity, Consistency, Isolation, Durability</label></li>
-                <li><input type="radio" name="q3" value="b" id="q3b"><label for="q3b">Availability, Concurrency, Integrity, Durability</label></li>
-                <li><input type="radio" name="q3" value="c" id="q3c"><label for="q3c">Atomicity, Concurrency, Isolation, Distribution</label></li>
-                <li><input type="radio" name="q3" value="d" id="q3d"><label for="q3d">Accuracy, Consistency, Integrity, Durability</label></li>
-            </ul>
-        </div>
-
-        <div class="publish-section">
-            <button type="submit" class="publish-button">
-                <i class="fas fa-paper-plane"></i> Publish Assessment
-            </button>
-        </div>
-    </form>
+    <!--        <div class="publish-section">-->
+<!--            <button type="submit" class="publish-button">-->
+<!--                <i class="fas fa-paper-plane"></i> Publish Assessment-->
+<!--            </button>-->
+<!--        </div>-->
 
 </div>
 

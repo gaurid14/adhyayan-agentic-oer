@@ -3,7 +3,7 @@ import io
 from PyPDF2 import PdfReader
 from googleapiclient.http import MediaIoBaseDownload
 
-from langgraph_agents.services.drive_service import get_drive_service
+from langgraph_agents.services.drive_service import GoogleDriveAuthService
 
 
 def download_and_read_pdf(file_id: str) -> str:
@@ -11,7 +11,7 @@ def download_and_read_pdf(file_id: str) -> str:
     Downloads a PDF from Google Drive and extracts all readable text.
     """
     try:
-        service = get_drive_service()
+        service = GoogleDriveAuthService.get_service()
 
         # 1️⃣ Download file bytes from Google Drive
         request = service.files().get_media(fileId=file_id)

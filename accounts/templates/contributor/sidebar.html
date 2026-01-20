@@ -1,0 +1,55 @@
+<!-- SIDEBAR -->
+{% load static %}
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <img src="{% static 'images/adhyayan2.png' %}"
+             alt="Adhyayan – Open Educational Resources"
+             class="sidebar-logo-img">
+    </div>
+
+
+    <nav class="sidebar-nav">
+        <ul>
+
+            <li>
+                <a href="{% url 'contributor_dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'contributor_dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'contributor_submissions' %}"
+                   class="{% if request.resolver_match.url_name == 'contributor_submissions' %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    My Content
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'forum_home' %}"
+                   class="{% if request.resolver_match.url_name == 'forum_home' %}active{% endif %}">
+                    <i class="fas fa-comments"></i>
+                    Discussion Forum
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'contributor_profile' %}"
+                   class="{% if request.resolver_match.url_name == 'contributor_profile' %}active{% endif %}">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}">
+            Logout
+        </a>
+    </div>
+</aside>

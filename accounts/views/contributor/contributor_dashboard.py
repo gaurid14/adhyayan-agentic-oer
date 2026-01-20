@@ -1,321 +1,397 @@
 import json
 import re
+import os
+from typing import List, Dict
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
-from .submit_content import get_drive_service, get_or_create_drive_folder
-from ...models import Expertise, Course, Chapter, UploadCheck
+from google.auth.exceptions import RefreshError
 
-
-# @login_required
-# def contributor_dashboard_view(request):
-#     user = request.user
-#
-#     # --- Ensure it's a contributor ---
-#     if user.role != "CONTRIBUTOR":
-#         return render(request, "403.html", status=403)
-#
-#     # --- Get all expertise areas selected by this contributor ---
-#     user_expertises = user.domain_of_expertise.all()
-#
-#     # --- Collect all unique related courses from those expertises ---
-#     recommended_courses = Course.objects.filter(
-#         expertises__in=user_expertises
-#     ).distinct()
-#
-#     print("SQL:", str(recommended_courses.query))
-#     print("Recommended Courses:", [c.course_name for c in recommended_courses])
-#
-#     # --- For each course, get its chapters to show dynamically ---
-#     chapters_by_course = {
-#         course.id: list(course.chapters.values("id", "chapter_name"))
-#         for course in recommended_courses
-#     }
-#
-#     context = {
-#         "recommended_courses": list(
-#             recommended_courses.values("id", "course_name")
-#         ),
-#         "chapters_by_course": chapters_by_course,
-#     }
-#
-#     return render(request, "contributor/contributor_dashboard.html", context)
+from langgraph_agents.services.drive_service import GoogleDriveAuthService, GoogleDriveFolderService
+from ...models import Course, Chapter, UploadCheck
 
 
+# ==============================
+# 🔒 Authorization Guard
+# ==============================
+class ContributorAccessGuard:
+    @staticmethod
+    def ensure_contributor(user) -> bool:
+        return user.role == "CONTRIBUTOR"
 
-import json
 
+# ==============================
+# 📚 Course Recommendation Service
+# ==============================
+class ContributorCourseService:
+    @staticmethod
+    def get_recommended_courses(user):
+        expertises = user.domain_of_expertise.all()
+        return (
+            Course.objects
+            .filter(expertises__in=expertises)
+            .distinct()
+        )
+
+    @staticmethod
+    def get_chapters_by_course(courses) -> Dict[int, List[dict]]:
+        return {
+            course.id: list(
+                course.chapters.values(
+                    "id", "chapter_number", "chapter_name"
+                )
+            )
+            for course in courses
+        }
+
+
+# ==============================
+# 📦 Submission Query Service
+# ==============================
+class ContributorSubmissionService:
+    @staticmethod
+    def get_user_submissions(user):
+        return (
+            UploadCheck.objects
+            .select_related(
+                "chapter",
+                "chapter__course",
+                "chapter__course__scheme",
+                "chapter__course__department",
+                "chapter__course__department__program",
+            )
+            .filter(contributor=user)
+            .order_by("-timestamp")
+        )
+
+    @staticmethod
+    def has_existing_submission(contributor_id, chapter_id) -> bool:
+        return UploadCheck.objects.filter(
+            contributor_id=contributor_id,
+            chapter_id=chapter_id
+        ).exists()
+
+
+# ==============================
+# ☁️ Contributor Drive Facade
+# ==============================
+class ContributorDriveFacade:
+    """
+    High-level facade used ONLY by views.
+    Internally uses OOP Drive services.
+    """
+
+    def __init__(self):
+        self.service = GoogleDriveAuthService.get_service()
+        self.folder_service = GoogleDriveFolderService(self.service)
+        self.oer_root_id = self.folder_service.get_or_create_folder("oer_content")
+
+    def get_all_files_for_chapter(
+            self,
+            contributor_id: int,
+            course_id: int,
+            chapter_number: int
+    ) -> List[dict]:
+
+        files: List[dict] = []
+
+        for folder_type in ["drafts", "pdf", "videos", "assessments"]:
+            files.extend(
+                self._get_files_by_type(
+                    contributor_id,
+                    course_id,
+                    chapter_number,
+                    folder_type
+                )
+            )
+
+        return files
+
+    def _get_files_by_type(
+            self,
+            contributor_id: int,
+            course_id: int,
+            chapter_number: int,
+            folder_type: str
+    ) -> List[dict]:
+
+        contributor_folder = f"{contributor_id}_{course_id}_{chapter_number}"
+
+        category_root_id = self.folder_service.get_or_create_folder(
+            settings.GOOGLE_DRIVE_FOLDERS[folder_type],
+            self.oer_root_id
+        )
+
+        query = (
+            "mimeType='application/vnd.google-apps.folder' "
+            f"and name='{contributor_folder}' "
+            f"and '{category_root_id}' in parents "
+            "and trashed=false"
+        )
+
+        result = (
+            self.service.files()
+            .list(q=query, fields="files(id, name)")
+            .execute()
+        )
+
+        folders = result.get("files", [])
+        if not folders:
+            return []
+
+        folder_id = folders[0]["id"]
+
+        result = (
+            self.service.files()
+            .list(
+                q=f"'{folder_id}' in parents and trashed=false",
+                fields="files(id, name, mimeType)"
+            )
+            .execute()
+        )
+
+        return [
+            {
+                "id": f["id"],
+                "name": f["name"],
+                "mimeType": f["mimeType"],
+                "type": folder_type,
+            }
+            for f in result.get("files", [])
+        ]
+
+
+# ==============================
+# 🧠 Topic Extraction Utility
+# ==============================
+class TopicExtractor:
+    @staticmethod
+    def extract(description: str) -> List[str]:
+        if not description:
+            return []
+        return [
+            t.strip()
+            for t in re.split(r"[;,.]", description)
+            if t.strip()
+        ]
+
+
+# ==============================
+# 🌐 Views (Thin Controllers)
+# ==============================
 @login_required
 def contributor_dashboard_view(request):
     user = request.user
 
-    if user.role != "CONTRIBUTOR":
+    if not ContributorAccessGuard.ensure_contributor(user):
         return render(request, "403.html", status=403)
 
-    user_expertises = user.domain_of_expertise.all()
-
-    recommended_courses = Course.objects.filter(
-        expertises__in=user_expertises
-    ).distinct()
-
-    chapters_by_course = {
-        course.id: list(course.chapters.values("id", "chapter_number", "chapter_name"))
-        for course in recommended_courses
-    }
+    courses = ContributorCourseService.get_recommended_courses(user)
+    chapters_map = ContributorCourseService.get_chapters_by_course(courses)
 
     context = {
         "recommended_courses": list(
-            recommended_courses.values("id", "course_name")
+            courses.values("id", "course_name")
         ),
-        "chapters_json": json.dumps(chapters_by_course),  # ✅ Properly serialized JSON
+        "chapters_json": json.dumps(chapters_map),
     }
 
-    return render(request, "contributor/contributor_dashboard.html", context)
+    return render(
+        request,
+        "contributor/contributor_dashboard.html",
+        context
+    )
 
 
+@login_required
+def contributor_submissions(request):
+    user = request.user
 
-# @login_required
-# def contributor_dashboard_view(request):
-#     user = request.user
-#
-#     # Ensure it's a contributor
-#     if user.role != "CONTRIBUTOR":
-#         return render(request, "403.html", status=403)
-#
-#     user_expertises = user.domain_of_expertise.all()
-#     recommended_courses = Course.objects.filter(
-#         expertises__in=user_expertises
-#     ).distinct()
-#
-#     # Contributor uploads
-#     uploads = UploadCheck.objects.filter(contributor=user).select_related('chapter', 'chapter__course').order_by('-timestamp')
-#
-#     chapters_by_course = {course.id: list(course.chapters.values('id', 'chapter_name')) for course in recommended_courses}
-#
-#     context = {
-#         "recommended_courses": recommended_courses,
-#         "uploads": uploads,
-#         "chapters_by_course": chapters_by_course,
-#     }
-#
-#     return render(request, "contributor/contributor_dashboard.html", context)
+    if not ContributorAccessGuard.ensure_contributor(user):
+        return render(request, "403.html", status=403)
+
+    uploads = ContributorSubmissionService.get_user_submissions(user)
+
+    context = {
+        "uploads": uploads,
+        "total_uploads": uploads.count(),
+        "pending_count": uploads.filter(evaluation_status=False).count(),
+        "evaluated_count": uploads.filter(evaluation_status=True).count(),
+    }
+
+    return render(
+        request,
+        "contributor/contributor_submissions.html",
+        context
+    )
+
 
 @login_required
 def contributor_profile(request):
     user = request.user
 
-    if user.role != "CONTRIBUTOR":
+    if not ContributorAccessGuard.ensure_contributor(user):
         return render(request, "403.html", status=403)
 
-    context = {
-        "contributor": user
-    }
-
-    return render(request, "contributor/profile.html", context)
-
-# def contributor_submit_content_view(request):
-#     """
-#     Contributor content submission view.
-#     Displays chapter name dynamically.
-#     """
-#     course_id = request.GET.get("course_id")
-#     chapter_id = request.GET.get("chapter_id")
-#
-#     # Fetch course and chapter safely
-#     course = get_object_or_404(Course, id=course_id)
-#     chapter = get_object_or_404(Chapter, id=chapter_id)
-#
-#     # Save in session (optional if you need later)
-#     request.session["contributor_id"] = request.user.id
-#     request.session["course_name"] = course.course_name
-#     request.session["course_id"] = course.id
-#     request.session["chapter_name"] = chapter.chapter_name
-#     request.session["chapter_number"] = chapter.chapter_number
-#     request.session["description"] = chapter.description
-#
-#     context = {
-#         "course": course,
-#         "chapter": chapter,
-#     }
-#
-#     return render(request, "contributor/submit_content.html", context)
+    return render(
+        request,
+        "contributor/profile.html",
+        {"contributor": user}
+    )
 
 
-
-from django.http import JsonResponse
-from googleapiclient.http import MediaIoBaseDownload
-
-# def contributor_submit_content_view(request):
-#     """
-#     Contributor content submission view.
-#     Displays chapter name dynamically and fetches all existing files.
-#     """
-#     course_id = request.GET.get("course_id")
-#     chapter_id = request.GET.get("chapter_id")
-#
-#     # Fetch course and chapter safely
-#     course = get_object_or_404(Course, id=course_id)
-#     chapter = get_object_or_404(Chapter, id=chapter_id)
-#
-#     contributor_id = request.user.id
-#
-#     # 🔹 Check if UploadCheck already exists for this contributor & chapter
-#     existing_upload = UploadCheck.objects.filter(
-#         contributor_id=contributor_id,
-#         chapter_id=chapter_id
-#     ).first()
-#
-#     if existing_upload:
-#         # ✅ Already submitted — redirect to thank-you/after-submission page
-#         return render(request, "contributor/after_submission.html", {
-#             "chapter_name": chapter.chapter_name,
-#             "contributor_id": contributor_id,
-#             "message": "You have already submitted this chapter’s content."
-#         })
-#
-#     # Save in session
-#     contributor_id = request.user.id
-#     request.session["contributor_id"] = contributor_id
-#     request.session["course_name"] = course.course_name
-#     request.session["course_id"] = course_id
-#     request.session["chapter_id"] = chapter_id
-#     request.session["chapter_name"] = chapter.chapter_name
-#     request.session["chapter_number"] = chapter.chapter_number
-#     request.session["description"] = chapter.description
-#
-#     # Initialize Drive service
-#     service = get_drive_service()
-#     oer_root_id = get_or_create_drive_folder(service, "oer_content")
-#
-#     # Helper function to fetch files from folder
-#     def get_files_from_folder(folder_type):
-#         folder_name = f"{contributor_id}_{course.id}_{chapter.chapter_number}"
-#         root_folder_id = get_or_create_drive_folder(service, settings.GOOGLE_DRIVE_FOLDERS[folder_type], oer_root_id)
-#         # Try to get contributor-specific folder
-#         query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and '{root_folder_id}' in parents and trashed=false"
-#         folders = service.files().list(q=query, fields="files(id, name)").execute().get('files', [])
-#         files_list = []
-#         if folders:
-#             folder_id = folders[0]['id']
-#             # Fetch files
-#             results = service.files().list(q=f"'{folder_id}' in parents and trashed=false", fields="files(id, name, mimeType)").execute()
-#             for f in results.get('files', []):
-#                 files_list.append({
-#                     'id': f['id'],
-#                     'name': f['name'],
-#                     'mimeType': f['mimeType'],
-#                     'type': folder_type
-#                 })
-#         return files_list
-#
-#     files = []
-#     for folder_type in ['drafts', 'pdf', 'videos', 'assessments']:
-#         files.extend(get_files_from_folder(folder_type))
-#
-#     context = {
-#         "course": course,
-#         "chapter": chapter,
-#         "files": files,
-#     }
-#
-#     return render(request, "contributor/submit_content.html", context)
-
-
-from google.auth.exceptions import RefreshError
-import os
-from django.contrib import messages
-
+@login_required
 def contributor_submit_content_view(request):
-    """
-    Contributor content submission view.
-    Displays chapter name dynamically and fetches all existing files.
-    Handles expired/revoked Google tokens gracefully.
-    """
     course_id = request.GET.get("course_id")
     chapter_id = request.GET.get("chapter_id")
 
-    # Fetch course and chapter safely
+    print("Course:", course_id)
+    print("Chapter:", chapter_id)
+
+    if not course_id or not chapter_id:
+        messages.error(request, "Invalid access. Please select a course & chapter.")
+        return redirect("contributor_dashboard")
+
     course = get_object_or_404(Course, id=course_id)
     chapter = get_object_or_404(Chapter, id=chapter_id)
     contributor_id = request.user.id
 
-    # 🔹 Check if UploadCheck already exists
-    existing_upload = UploadCheck.objects.filter(
-        contributor_id=contributor_id,
-        chapter_id=chapter_id
-    ).first()
+    # ---- Prevent duplicate submission ----
+    if ContributorSubmissionService.has_existing_submission(contributor_id, chapter_id):
+        return render(
+            request,
+            "contributor/final_submission.html",
+            {
+                "chapter_name": chapter.chapter_name,
+                "contributor_id": contributor_id,
+                "message": "You have already submitted this chapter’s content."
+            }
+        )
 
-    if existing_upload:
-        return render(request, "contributor/final_submission.html", {
-            "chapter_name": chapter.chapter_name,
-            "contributor_id": contributor_id,
-            "message": "You have already submitted this chapter’s content."
-        })
-
-    # Save in session
+    # ---- Store context in session ----
     request.session.update({
         "contributor_id": contributor_id,
+        "course_id": course.id,
         "course_name": course.course_name,
-        "course_id": course_id,
-        "chapter_id": chapter_id,
+        "chapter_id": chapter.id,
         "chapter_name": chapter.chapter_name,
         "chapter_number": chapter.chapter_number,
         "description": chapter.description,
     })
 
-    try:
-        # 🔹 Initialize Drive service
-        service = get_drive_service()
-        oer_root_id = get_or_create_drive_folder(service, "oer_content")
+    files = []
 
-        # --- Helper to fetch files from Drive ---
+    try:
+        # 🔹 Initialize Drive service (NEW AUTH CLASS)
+        service = GoogleDriveAuthService.get_service()
+        folder_service = GoogleDriveFolderService(service)
+
+        oer_root_id = folder_service.get_or_create_folder("oer_content")
+
+        # --- SAME LOGIC AS YOUR WORKING VERSION ---
         def get_files_from_folder(folder_type):
             folder_name = f"{contributor_id}_{course.id}_{chapter.chapter_number}"
-            root_folder_id = get_or_create_drive_folder(service, settings.GOOGLE_DRIVE_FOLDERS[folder_type], oer_root_id)
 
-            # Find or create contributor folder
-            query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and '{root_folder_id}' in parents and trashed=false"
-            folders = service.files().list(q=query, fields="files(id, name)").execute().get('files', [])
-            files_list = []
+            root_folder_id = folder_service.get_or_create_folder(
+                settings.GOOGLE_DRIVE_FOLDERS[folder_type],
+                oer_root_id
+            )
 
-            if folders:
-                folder_id = folders[0]['id']
-                results = service.files().list(
-                    q=f"'{folder_id}' in parents and trashed=false",
-                    fields="files(id, name, mimeType)"
-                ).execute()
-                for f in results.get('files', []):
-                    files_list.append({
-                        'id': f['id'],
-                        'name': f['name'],
-                        'mimeType': f['mimeType'],
-                        'type': folder_type
+            # Contributor chapter folder
+            query = (
+                "mimeType='application/vnd.google-apps.folder' "
+                f"and name='{folder_name}' "
+                f"and '{root_folder_id}' in parents "
+                "and trashed=false"
+            )
+
+            folders = (
+                service.files()
+                .list(q=query, fields="files(id, name)")
+                .execute()
+                .get("files", [])
+            )
+
+            collected_files = []
+
+            if not folders:
+                return collected_files
+
+            chapter_folder_id = folders[0]["id"]
+
+            # 🔥 STEP 1: Fetch topic folders
+            topic_folders = (
+                service.files()
+                .list(
+                    q=(
+                        "mimeType='application/vnd.google-apps.folder' "
+                        f"and '{chapter_folder_id}' in parents "
+                        "and trashed=false"
+                    ),
+                    fields="files(id, name)"
+                )
+                .execute()
+                .get("files", [])
+            )
+
+            for topic in topic_folders:
+                topic_id = topic["id"]
+                topic_name = topic["name"]
+
+                print(f"📂 TOPIC FOLDER: {topic_name}")
+
+                # 🔥 STEP 2: Fetch actual files inside topic folder
+                files_result = (
+                    service.files()
+                    .list(
+                        q=f"'{topic_id}' in parents and trashed=false",
+                        fields="files(id, name, mimeType)"
+                    )
+                    .execute()
+                )
+
+                for f in files_result.get("files", []):
+                    print(f"📄 FILE FOUND: {f['name']} (inside {topic_name})")
+
+                    collected_files.append({
+                        "id": f["id"],
+                        "name": f["name"],
+                        "mimeType": f["mimeType"],
+                        "type": folder_type,
+                        "topic": topic_name,   # 🔥 useful in UI
                     })
-            return files_list
 
-        files = []
-        for folder_type in ['drafts', 'pdf', 'videos', 'assessments']:
+            return collected_files
+
+
+        # Aggregate files
+        for folder_type in ["drafts", "pdf", "videos", "assessments"]:
             files.extend(get_files_from_folder(folder_type))
 
     except RefreshError as e:
-        # 🔹 Token expired or revoked → delete it and ask user to reauthorize
-        print(f"[ERROR] Google token invalid: {e}")
-        token_path = os.path.join(settings.BASE_DIR, 'token.json')
+        print("[ERROR] Google token invalid:", e)
+
+        token_path = settings.GOOGLE_TOKEN_FILE
         if os.path.exists(token_path):
             os.remove(token_path)
-        messages.error(request, "⚠️ Your Google Drive session has expired. Please reconnect.")
-        return redirect('contributor_submit_content_view')  # Will trigger re-login
+
+        messages.error(
+            request,
+            "⚠️ Your Google Drive session has expired. Please reconnect."
+        )
+        return redirect("contributor_dashboard")
 
     except Exception as e:
-        print(f"[ERROR] Unexpected Drive issue: {e}")
+        print("[ERROR] Unexpected Drive issue:", e)
         messages.error(request, f"An unexpected error occurred: {e}")
         files = []
 
-    # Split description into topics on commas or semicolons
+    # ---- Topic extraction ----
     raw_desc = chapter.description or ""
-    topics = [t.strip() for t in re.split(r'[;,.]', raw_desc) if t.strip()]
+    topics = [t.strip() for t in re.split(r"[;,.]", raw_desc) if t.strip()]
 
     context = {
         "course": course,
@@ -323,4 +399,6 @@ def contributor_submit_content_view(request):
         "files": files,
         "topics": topics,
     }
+
     return render(request, "contributor/submit_content.html", context)
+

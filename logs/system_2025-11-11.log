@@ -1,0 +1,52 @@
+[WARNING] 2025-11-11 18:34:29,857 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-11-11 18:34:29,860 | django.server | "GET /favicon.ico HTTP/1.1" 404 11320
+[WARNING] 2025-11-11 18:34:40,060 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-11 18:40:39,876 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 18:40:40,733 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-11 18:47:32,230 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-11 18:47:37,502 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 18:47:38,211 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 18:57:54,964 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 18:57:55,465 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-11 18:58:08,433 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-11 19:00:20,916 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:00:21,391 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-11 19:00:40,997 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-11 19:00:43,470 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:00:43,883 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:01:01,590 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:01:01,961 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:01:02,343 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:01:14,942 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:01:15,449 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:01:21,414 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:01:21,805 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:01:24,355 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:01:24,771 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:01:25,802 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:01:26,307 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-11 19:01:32,545 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[WARNING] 2025-11-11 19:01:39,067 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[WARNING] 2025-11-11 19:49:14,815 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-11 19:49:18,748 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:49:19,297 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:49:30,132 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:49:30,508 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:49:34,372 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:49:34,692 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:49:36,621 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:49:36,954 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:49:37,624 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:49:37,953 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-11-11 19:50:18,749 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[WARNING] 2025-11-11 19:52:11,288 | django.server | "GET /static/accounts/default_avatar.png HTTP/1.1" 404 1895
+[INFO] 2025-11-11 19:52:18,256 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:52:18,897 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:52:30,039 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:52:30,289 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:52:30,672 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:52:40,860 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:52:41,254 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-11-11 19:52:44,307 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:52:44,553 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-11-11 19:52:44,960 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.

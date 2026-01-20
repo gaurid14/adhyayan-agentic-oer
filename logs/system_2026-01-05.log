@@ -1,0 +1,8 @@
+[INFO] 2026-01-05 10:17:16,808 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-05 10:17:17,502 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2026-01-05 10:17:27,142 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-05 10:17:27,146 | django.server | "GET /favicon.ico HTTP/1.1" 404 11636
+[INFO] 2026-01-05 10:17:31,008 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-05 10:17:31,505 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-05 10:21:48,091 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-05 10:21:48,974 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.

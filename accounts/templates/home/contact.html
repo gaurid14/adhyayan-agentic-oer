@@ -1,106 +1,148 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}Contact OER AgentFlow{% endblock %}
+{% block title %}Contact{% endblock %}
 
 {% block content %}
-    <style>
+<style>
+    /* Specific Styles for Contact Page */
+    .contact-layout {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 40px;
+        margin-top: 30px;
+    }
+    .contact-info, .contact-form {
+        background-color: #FFFFFF;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--secondary-accent);
+    }
+    .contact-form h2, .contact-info h3 {
+        color: #111827;
+        margin-top: 0;
+        border-bottom: 2px solid var(--secondary-accent);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .info-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+        color: var(--text-dark);
+    }
+    .info-item span {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-right: 15px;
+    }
 
-        /* Specific Styles for Contact Page */
+    .contact-form label {
+        font-weight: 600;
+        margin-top: 15px;
+        display: block;
+        color: var(--text-dark);
+    }
+
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+        width: 100%;
+        padding: 12px 14px;
+        margin-top: 6px;
+        margin-bottom: 14px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 15px;
+        background: #ffffff;
+    }
+
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(30,174,152,0.15);
+    }
+
+    .btn {
+        background-color: var(--primary-color);
+        color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: #178d79;
+    }
+
+    /* Responsive Adjustment for Contact Page */
+    @media (max-width: 800px) {
         .contact-layout {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 40px;
-            margin-top: 30px;
+            grid-template-columns: 1fr;
         }
-        .contact-info, .contact-form {
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--secondary-accent);
-        }
-        .contact-form h2, .contact-info h3 {
-            color: var(--primary-color);
-            margin-top: 0;
-            border-bottom: 2px solid var(--secondary-accent);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .info-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            font-size: 1.1em;
-            color: var(--text-dark);
-        }
-        .info-item span {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            margin-right: 15px;
-        }
+    }
+</style>
+<div class="contact-layout fade-in">
+    <div class="contact-info">
+        <h3>Get in Touch</h3>
+        <p>We're here to help! Whether you have questions about using our platform, contributing content, or inquiries
+            about the AI framework, reach out to the appropriate team.</p>
 
-        /* Responsive Adjustment for Contact Page */
-        @media (max-width: 800px) {
-            .contact-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-    <div class="contact-layout fade-in">
-        <div class="contact-info">
-            <h3>Get in Touch</h3>
-            <p>We're here to help! Whether you have questions about using our platform, contributing content, or inquiries about the AI framework, reach out to the appropriate team.</p>
-            
-            <div class="info-item">
-                <span>📧</span>
-                <div>
-                    <strong>Support Email:</strong><br>
-                    <a href="mailto:support@oeragentflow.edu">support@oeragentflow.edu</a>
-                </div>
-            </div>
-            
-            <div class="info-item">
-                <span>💡</span>
-                <div>
-                    <strong>Contributor Team:</strong><br>
-                    <a href="mailto:contribute@oeragentflow.edu">contribute@oeragentflow.edu</a>
-                </div>
-            </div>
-
-            <div class="info-item">
-                <span>📍</span>
-                <div>
-                    <strong>Headquarters:</strong><br>
-                    OER AgentFlow Project Labs,<br>
-                    Knowledge Innovation Center, India.
-                </div>
+        <div class="info-item">
+            <span>📧</span>
+            <div>
+                <strong>Support Email:</strong><br>
+                <a href="mailto:support@adhyayan.edu.in">support@adhyayan.edu.in</a>
             </div>
         </div>
 
-        <div class="contact-form">
-            <h2>Send Us a Message</h2>
-            <form action="/submit_contact" method="POST">
-                <label for="name">Your Full Name</label>
-                <input type="text" id="name" name="name" placeholder="John Doe" required>
+        <div class="info-item">
+            <span>💡</span>
+            <div>
+                <strong>Contributor Team:</strong><br>
+                <a href="mailto:contribute@adhyayan.edu.in">contribute@adhyayan.edu.in</a>
+            </div>
+        </div>
 
-                <label for="email">Your Email Address</label>
-                <input type="email" id="email" name="email" placeholder="you@example.com" required>
-
-                <label for="subject">Subject</label>
-                <select id="subject" name="subject" required>
-                    <option value="" disabled selected>Select a subject</option>
-                    <option value="General Inquiry">General Inquiry</option>
-                    <option value="Technical Support">Technical Support</option>
-                    <option value="Partnership">Partnership/Collaboration</option>
-                    <option value="Content Feedback">Content Feedback</option>
-                </select>
-
-                <label for="message">Your Message</label>
-                <textarea id="message" name="message" rows="6" placeholder="Type your message here..." required></textarea>
-
-                <button type="submit" class="btn" style="width: 100%;">Submit Message</button>
-            </form>
+        <div class="info-item">
+            <span>📍</span>
+            <div>
+                <strong>Headquarters:</strong><br>
+                Adhyayan, Maharashtra, India
+            </div>
         </div>
     </div>
+
+    <div class="contact-form">
+        <h2>Send Us a Message</h2>
+        <form action="/submit_contact" method="POST">
+            <label for="name">Your Full Name</label>
+            <input type="text" id="name" name="name" placeholder="John Doe" required>
+
+            <label for="email">Your Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required>
+
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject" required>
+                <option value="" disabled selected>Select a subject</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Technical Support">Technical Support</option>
+                <option value="Partnership">Partnership/Collaboration</option>
+                <option value="Content Feedback">Content Feedback</option>
+            </select>
+
+            <label for="message">Your Message</label>
+            <textarea id="message" name="message" rows="6" placeholder="Type your message here..." required></textarea>
+
+            <button type="submit" class="btn" style="width: 100%;">Submit Message</button>
+        </form>
+    </div>
+</div>
 {% endblock %}

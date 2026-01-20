@@ -1,0 +1,12 @@
+[WARNING] 2025-12-29 11:55:12,860 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-29 11:55:12,863 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-29 11:55:32,562 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-29 11:55:32,956 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-29 12:11:37,257 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2025-12-29 12:11:37,279 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12060
+[INFO] 2025-12-29 12:12:13,853 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-29 12:12:14,659 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-29 12:12:44,284 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2025-12-29 12:12:44,285 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12060
+[WARNING] 2025-12-29 12:25:17,207 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-29 12:25:17,223 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949

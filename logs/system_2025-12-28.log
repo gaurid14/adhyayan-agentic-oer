@@ -1,0 +1,134 @@
+[WARNING] 2025-12-28 17:55:31,732 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-28 17:55:31,752 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-28 17:55:35,982 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 18:23:19,341 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 18:23:21,980 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 18:23:25,444 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 18:23:33,661 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 18:23:44,667 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 18:23:50,614 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 19:38:59,626 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-28 19:39:02,906 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[INFO] 2025-12-28 19:39:14,009 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 19:39:14,719 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 19:54:14,879 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 19:54:15,723 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 19:54:58,415 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 19:54:59,214 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 19:56:48,342 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 19:56:49,423 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 19:58:25,514 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 19:58:26,136 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-12-28 19:58:41,233 | django.request | Internal Server Error: /dashboard/contributor/submit_content/upload
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\submit_content.py", line 993, in upload_files
+    drive.upload_file(video, folder, contributor_id, "video/mp4")
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\submit_content.py", line 877, in upload_file
+    os.remove(tmp.name)
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\gauri\\AppData\\Local\\Temp\\tmp2lkm2nmy'
+[ERROR] 2025-12-28 19:58:41,270 | django.server | "POST /dashboard/contributor/submit_content/upload HTTP/1.1" 500 87701
+[ERROR] 2025-12-28 19:59:31,340 | django.request | Internal Server Error: /contributor/confirm_submission
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\submit_content.py", line 1013, in confirm_submission
+    result = SubmissionOrchestrator.submit_and_evaluate(state)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\submit_content.py", line 916, in submit_and_evaluate
+    result = loop.run_until_complete(
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", line 646, in run_until_complete
+    return future.result()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\tools\structured.py", line 66, in ainvoke
+    return await super().ainvoke(input, config, **kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\tools\base.py", line 609, in ainvoke
+    return await self.arun(tool_input, **kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\tools\base.py", line 996, in arun
+    raise error_to_raise
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\tools\base.py", line 953, in arun
+    tool_args, tool_kwargs = self._to_args_and_kwargs(tool_input, tool_call_id)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\tools\base.py", line 760, in _to_args_and_kwargs
+    tool_input = self._parse_input(tool_input, tool_call_id)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\tools\base.py", line 667, in _parse_input
+    result = input_args.model_validate(tool_input)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\pydantic\main.py", line 705, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+pydantic_core._pydantic_core.ValidationError: 1 validation error for submission_agent
+drive_folders
+  Field required [type=missing, input_value={'contributor_id': 11, 'c...ogramming fundamentals'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+[ERROR] 2025-12-28 19:59:31,366 | django.server | "POST /contributor/confirm_submission HTTP/1.1" 500 125986
+[INFO] 2025-12-28 20:06:01,798 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 20:06:02,217 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 20:06:11,506 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 20:06:11,899 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 20:06:16,225 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 20:06:16,591 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 20:06:18,792 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 20:06:19,189 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-28 20:06:20,284 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-28 20:06:20,632 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-12-28 20:10:58,342 | django.request | Internal Server Error: /dashboard/contributor/submissions/
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\contributor_dashboard.py", line 418, in contributor_submissions
+    return render(
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 609, in compile_filter
+    return FilterExpression(token, self)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 705, in __init__
+    filter_func = parser.find_filter(filter_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 615, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'localtime'
+[ERROR] 2025-12-28 20:10:58,421 | django.server | "GET /dashboard/contributor/submissions/ HTTP/1.1" 500 205691
+[WARNING] 2025-12-28 20:15:31,539 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-28 20:15:31,543 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949

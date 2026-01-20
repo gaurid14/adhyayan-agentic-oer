@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}OER AgentFlow | AI-Powered Content Curation{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'frontend/css/style.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Inter:wght@400;600;800&display=swap"
+          rel="stylesheet">
 
     <style>
         /* Variables for fallback (new colors are hardcoded below) */
@@ -21,10 +22,41 @@
 
         body {
             font-family: 'Inter', 'Roboto', sans-serif;
-            background-color: var(--bg-light);
+            background-color: #FFFFFF;
             color: var(--text-dark);
             line-height: 1.6;
         }
+
+        /* =====================
+           HEADER LOGO (FIXED)
+        ===================== */
+
+        .header-logo {
+          display: flex;
+          align-items: center;
+          height: 100%;
+          margin-right: 24px;
+        }
+
+        .header-logo img {
+          height: 90px;          /* PERFECT for logo + slogan */
+          width: auto;
+          max-width: 280px;      /* keeps it elegant */
+          object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+          .app-header {
+            min-height: 68px;
+            padding: 0 20px;
+          }
+
+          .header-logo img {
+            height: 44px;   /* still readable on mobile */
+          }
+        }
+
+
 
         /* =========================================== */
         /* --- NEW HEADER STYLES FROM REGISTER.HTML --- */
@@ -39,6 +71,8 @@
             background: #fff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             /* Removed old border-bottom */
+            min-height: 84px;      /* ← KEY CHANGE */
+            padding: 0 60px;       /* vertical padding handled by height */
         }
 
         /* This replaces the old .navbar .logo style */
@@ -188,7 +222,11 @@
 <body>
 
 <header class="app-header">
-    <span class="logo-text">OER</span>
+    <div class="header-logo">
+        <img src="{% static 'images/adhyayan2.png' %}"
+             alt="Adhyayan – Open Educational Resources"
+             class="sidebar-logo-img">
+    </div>
 
     <nav class="main-nav">
         <ul class="nav-list">
@@ -204,29 +242,45 @@
                             <li class="has-submenu">
                                 <a href="#" class="nav-link">1st Year <span>▶</span></a>
                                 <ul class="submenu semester-menu">
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=1 semester='1' %}" class="nav-link">Semester 1</a></li>
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=1 semester='2' %}" class="nav-link">Semester 2</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=1 semester='1' %}"
+                                           class="nav-link">Semester 1</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=1 semester='2' %}"
+                                           class="nav-link">Semester 2</a></li>
                                 </ul>
                             </li>
                             <li class="has-submenu">
                                 <a href="#" class="nav-link">2nd Year <span>▶</span></a>
                                 <ul class="submenu semester-menu">
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=2 semester='3' %}" class="nav-link">Semester 3</a></li>
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=2 semester='4' %}" class="nav-link">Semester 4</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=2 semester='3' %}"
+                                           class="nav-link">Semester 3</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=2 semester='4' %}"
+                                           class="nav-link">Semester 4</a></li>
                                 </ul>
                             </li>
                             <li class="has-submenu">
                                 <a href="#" class="nav-link">3rd Year <span>▶</span></a>
                                 <ul class="submenu semester-menu">
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=3 semester='5' %}" class="nav-link">Semester 5</a></li>
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=3 semester='6' %}" class="nav-link">Semester 6</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=3 semester='5' %}"
+                                           class="nav-link">Semester 5</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=3 semester='6' %}"
+                                           class="nav-link">Semester 6</a></li>
                                 </ul>
                             </li>
                             <li class="has-submenu">
                                 <a href="#" class="nav-link">4th Year <span>▶</span></a>
                                 <ul class="submenu semester-menu">
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=4 semester='7' %}" class="nav-link">Semester 7</a></li>
-                                    <li><a href="{% url 'subject_view' stream='Information Technology' year=4 semester='8' %}" class="nav-link">Semester 8</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=4 semester='7' %}"
+                                           class="nav-link">Semester 7</a></li>
+                                    <li>
+                                        <a href="{% url 'subject_view' stream='Information Technology' year=4 semester='8' %}"
+                                           class="nav-link">Semester 8</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -245,7 +299,7 @@
                 </ul>
             </li>
 
-<!--            <li class="nav-item"><a href="#" class="nav-link">Our products</a></li>-->
+            <!--            <li class="nav-item"><a href="#" class="nav-link">Our products</a></li>-->
             <li class="nav-item"><a href="{% url 'about' %}" class="nav-link">About US</a></li>
             <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link">Contact US</a></li>
         </ul>
@@ -259,7 +313,7 @@
 </div>
 
 <footer class="app-footer">
-    &copy; 2025 OER Agentic System Project. Built for scalable, quality education.
+    &copy; 2025 Adhyayan. An AI-powered Open Educational Resource platform..
 </footer>
 
 {% block extra_js %}{% endblock %}

@@ -1,0 +1,140 @@
+/* =====================
+   SIDEBAR — GLOBAL
+===================== */
+
+:root {
+  --bg-sidebar: #ffffff;
+  --border-soft: #E5E7EB;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+
+  --brand: #0F766E;
+}
+
+/* Sidebar container */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-soft);
+
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px;
+
+  overflow: hidden;
+}
+
+/* NAV — THIS IS CRITICAL */
+.sidebar-nav {
+  flex: 1; /* pushes footer down */
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Links */
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 14px;
+  border-radius: 6px;
+
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-decoration: none;
+
+  position: relative;
+}
+
+/* Hover */
+.sidebar-nav a:hover {
+  background: #F8FAFC;
+  color: var(--text-primary);
+}
+
+/* Active */
+.sidebar-nav a.active {
+  background: #F1F5F9;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Active accent bar */
+.sidebar-nav a.active::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 10%;
+  height: 80%;
+  width: 4px;
+  background: var(--brand);
+  border-radius: 4px;
+}
+
+/* Icon emphasis */
+.sidebar-nav a.active i {
+  color: var(--brand);
+}
+
+/* Footer */
+.sidebar-footer {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 16px;
+}
+
+.sidebar-footer a {
+  display: block;
+  text-align: center;
+  padding: 10px;
+
+  background: #F3F4F6;
+  border-radius: 6px;
+
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+
+
+
+
+
+
+
+
+.sidebar-logo {
+  height: 84px !important;            /* FIXED logo area */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;             /* IMPORTANT */
+}
+
+.sidebar-logo-img {
+  max-height: 100%;             /* fit container */
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+
+
+

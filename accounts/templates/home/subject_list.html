@@ -3,74 +3,88 @@
 
 {% block title %}{{ stream }} - {{ semester_text }} Subjects{% endblock %}
 
-{% block extra_css %}
-    /* Specific Styles for Subject List Page */
+{% block content %}
+
+<style>
+    /* ===============================
+    Subject List Page – MNC / OER
+    =============================== */
+
     .subject-header {
-        background: linear-gradient(90deg, var(--primary-color) 0%, #178D79 100%);
-        color: white;
+        background: #ffffff;
+        color: #111827;
         padding: 30px 40px;
-        border-radius: 10px;
         margin-bottom: 40px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-    .subject-header h1 {
-        color: white;
-        font-size: 2.2rem;
-        margin-bottom: 5px;
-    }
-    .subject-header p {
-        font-size: 1.1rem;
-        opacity: 0.9;
+        border-bottom: 1px solid #e5e7eb;
     }
 
+    .subject-header h1 {
+        color: #111827;
+        font-size: 2.1rem;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .subject-header p {
+        font-size: 0.95rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 8px;
+    }
+
+    /* Grid */
     .subject-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
+        gap: 28px;
     }
 
+    /* Cards */
     .subject-card {
-        background-color: var(--card-bg);
-        padding: 25px;
-        border-radius: 10px;
-        border: 2px solid var(--secondary-accent);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s, box-shadow 0.3s;
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         display: flex;
         flex-direction: column;
     }
+
     .subject-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(30, 174, 152, 0.2);
-        border-color: var(--primary-color);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.08);
     }
 
     .subject-card h3 {
-        font-size: 1.5rem;
-        color: var(--primary-color);
-        margin-top: 0;
-        margin-bottom: 5px;
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 6px;
     }
 
     .subject-card .code {
-        color: #777;
-        font-weight: 500;
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+
+    .subject-card p {
+        color: #374151;
+        font-size: 0.95rem;
         margin-bottom: 20px;
-        font-size: 0.9em;
     }
 
     .subject-card a.btn {
-        margin-top: auto; /* Pushes button to the bottom */
-        text-align: center;
+        margin-top: auto;
         width: 100%;
-        padding: 10px;
+        text-align: center;
+        font-weight: 600;
     }
-{% endblock %}
+</style>
 
-{% block content %}
 <section class="subject-header fade-in">
-    <p>EXPLORE / {{ stream }} / {{ year_text }}</p>
-    <h1>{{ stream }} - {{ semester_text }} Subjects</h1>
+    <p>Explore / {{ stream }} / {{ year_text }}</p>
+    <h1>{{ stream }} – {{ semester_text }} Subjects</h1>
 </section>
 
 <div class="subject-grid">
@@ -78,11 +92,12 @@
     <div class="subject-card">
         <h3>{{ subject.course_name }}</h3>
         <span class="code">Subject Code: {{ subject.course_code }}</span>
-        <p>Year {{ subject.year_of_study }} - Semester {{ subject.semester }}</p>
-        <a href="{% url 'chapter_view' subject.id %}" class="btn">View chapters</a>
+        <p>Year {{ subject.year_of_study }} · Semester {{ subject.semester }}</p>
+        <a href="{% url 'chapter_view' subject.id %}" class="btn">View Chapters</a>
     </div>
     {% empty %}
     <p>No subjects found for this semester.</p>
     {% endfor %}
 </div>
+
 {% endblock %}

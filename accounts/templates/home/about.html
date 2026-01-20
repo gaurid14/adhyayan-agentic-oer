@@ -4,17 +4,18 @@
 {% block title %}About OER AgentFlow | Quality & Automation{% endblock %}
 
 {% block content %}
-    <style>
-        /* Specific Styles for About Page */
+<style>
+    /* Specific Styles for About Page */
     .about-section {
-        padding: 60px 40px;
-        background-color: var(--card-bg);
-        border-radius: 15px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        padding: 60px 0px;
+        background-color: transparent;
+        border-radius: 0px;
+        box-shadow: none;
         margin-top: 30px;
+        background: #FFFFFF
     }
     .about-section h2 {
-        font-size: 2.8rem;
+        font-size: 2.4rem;
         color: var(--primary-color);
         margin-bottom: 25px;
         border-bottom: 3px solid var(--secondary-accent);
@@ -35,44 +36,62 @@
     .value-item {
         padding: 20px;
         border-left: 5px solid var(--primary-color);
-        background-color: var(--bg-light);
+        background-color: #f9fbfb;
         border-radius: 8px;
+        border: 1px solid #e5e7eb;
     }
     .value-item h3 {
         font-size: 1.5rem;
         color: var(--text-dark);
         margin-top: 0;
     }
+
+    .about-section strong {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
 </style>
-    <section class="about-section fade-in">
-        <h2>About OER AgentFlow</h2>
-        
-        <p>
-            OER AgentFlow was born from the mission to solve the single greatest challenge in Open Educational Resources (OER): **Trust and Quality Control**. While OER offers universal access, the sheer volume and lack of centralized review often lead to inconsistent quality, making adoption difficult for educators and students.
-        </p>
+<section class="about-section fade-in">
+    <h2>About ADHYAYAN</h2>
+    <p class="subtitle">
+        An AI-driven quality assurance platform for Open Educational Resources
+    </p>
 
-        <p>
-            We leverage a network of **AI Agents** (powered by LangGraph and Gemini) to automatically review, score, and certify every piece of content submitted to our platform against predefined, objective rubrics. This ensures that every resource consumed by an engineering student is accurate, pedagogically sound, and up-to-date.
-        </p>
+    <p>
+        Adhyayan was born from the mission to solve the single greatest challenge in Open Educational Resources (OER):
+        <strong>Trust and Quality Control</strong>. While OER offers universal access, the sheer volume and lack of
+        centralized review often lead to inconsistent quality, making adoption difficult for educators and students.
+    </p>
 
-        <p>
-            **Our goal is simple:** To be the most reliable, high-quality repository of engineering educational resources available online, using technology to ensure rapid scaling without compromising academic integrity.
-        </p>
+    <p>
+        We leverage a network of <strong>AI Agents</strong> (powered by LangGraph and Gemini) to automatically review,
+        score, and certify every piece of content submitted to our platform against predefined, objective rubrics. This
+        ensures that every resource consumed by an engineering student is accurate, pedagogically sound, and up-to-date.
+    </p>
 
-        <h3>Our Core Commitments</h3>
-        <div class="core-values">
-            <div class="value-item">
-                <h3>Integrity First</h3>
-                <p>Every resource is evaluated by a transparent, rubric-based AI process, providing verifiable quality assurance.</p>
-            </div>
-            <div class="value-item">
-                <h3>Empowerment</h3>
-                <p>We provide detailed feedback to contributors, empowering them to improve their material and grow the community.</p>
-            </div>
-            <div class="value-item">
-                <h3>Access & Scale</h3>
-                <p>By automating the curation process, we can scale our library to meet the needs of all engineering streams globally.</p>
-            </div>
+    <p>
+        <strong>Our goal is simple:</strong> To be the most reliable, high-quality repository of engineering educational
+        resources available online, using technology to ensure rapid scaling without compromising academic integrity.
+    </p>
+
+    <h3>Our Core Commitments</h3>
+    <div class="core-values">
+        <div class="value-item">
+            <h3>Integrity First</h3>
+            <p>Every resource is evaluated by a transparent, rubric-based AI process, providing verifiable quality
+                assurance.</p>
         </div>
-    </section>
+        <div class="value-item">
+            <h3>Empowerment</h3>
+            <p>We provide detailed feedback to contributors, empowering them to improve their material and grow the
+                community.</p>
+        </div>
+        <div class="value-item">
+            <h3>Access & Scale</h3>
+            <p>By automating the curation process, we can scale our library to meet the needs of all engineering streams
+                globally.</p>
+        </div>
+    </div>
+</section>
 {% endblock %}

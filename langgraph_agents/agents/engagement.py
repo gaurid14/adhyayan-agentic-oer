@@ -4,7 +4,7 @@ from asgiref.sync import sync_to_async
 from langchain.tools import tool
 
 from accounts.models import ContentScore, UploadCheck, Assessment
-from langgraph_agents.services.drive_service import get_drive_service
+from langgraph_agents.services.drive_service import GoogleDriveAuthService
 from langgraph_agents.services.gemini_service import llm
 from langgraph_agents.services.pdf_service import download_and_read_pdf
 import tempfile
@@ -15,7 +15,7 @@ from langgraph_agents.services.video_service import transcribe_audio_or_video
 
 
 def extract_all_pdf_texts(folder_id):
-    service = get_drive_service()
+    service = GoogleDriveAuthService.get_service()
     results = service.files().list(
         q=f"'{folder_id}' in parents and mimeType='application/pdf' and trashed=false",
         fields="files(id, name)"
@@ -33,7 +33,7 @@ def extract_all_video_transcripts(folder_id):
     Extracts transcripts from all video files in a Drive folder.
     Downloads each video temporarily to transcribe with Whisper.
     """
-    service = get_drive_service()
+    service = GoogleDriveAuthService.get_service()
     results = service.files().list(
         q=f"'{folder_id}' in parents and trashed=false",
         fields="files(id, name, mimeType)"
@@ -46,25 +46,121 @@ def extract_all_video_transcripts(folder_id):
             print(f"[INFO] Processing video: {f['name']}")
 
             # Create a temporary file
-            with tempfile.NamedTemporaryFile(delete=True, suffix=".mp4") as tmp_file:
-                # Download the file from Drive
-                request = service.files().get_media(fileId=f["id"])
-                downloader = MediaIoBaseDownload(tmp_file, request)
+            import os
+            import tempfile
+
+            # Create temp file WITHOUT keeping it open
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+            tmp_path = tmp_file.name
+            tmp_file.close()   # IMPORTANT: close file handle before ffmpeg reads it
+
+            # Download video from Google Drive
+            request = service.files().get_media(fileId=f["id"])
+            with open(tmp_path, "wb") as out:
+                downloader = MediaIoBaseDownload(out, request)
                 done = False
                 while not done:
                     status, done = downloader.next_chunk()
-                    if status:
-                        print(f"[INFO] Download {int(status.progress() * 100)}%.")
 
-                tmp_file.flush()  # Ensure all bytes are written
-                tmp_file.seek(0)
+            # Now transcribe using Whisper
+            state = {"file_path": tmp_path}
+            state = transcribe_audio_or_video(state)
+            transcripts.append(state.get("transcript", ""))
 
-                # Transcribe using Whisper
-                state = {"file_path": tmp_file.name}
+            # Delete file afterwards
+            os.remove(tmp_path)
+
+
+    return transcripts
+
+
+def extract_all_pdf_texts_recursive(folder_id):
+    """
+    Recursively scans a folder and ALL its subfolders for PDFs.
+    Returns a list of all extracted text.
+    """
+    service = GoogleDriveAuthService.get_service()
+
+    pdf_texts = []
+
+    def scan_folder(folder_id):
+        # Fetch all files & subfolders
+        results = service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            fields="files(id, name, mimeType)"
+        ).execute()
+
+        for f in results.get("files", []):
+            mime = f["mimeType"]
+
+            # If PDF -> extract content
+            if mime == "application/pdf":
+                print(f"[INFO] Reading PDF: {f['name']}")
+                content = download_and_read_pdf(f["id"])
+                if content:
+                    pdf_texts.append(content)
+
+            # If folder -> scan it recursively
+            elif mime == "application/vnd.google-apps.folder":
+                print(f"[INFO] Entering folder: {f['name']}")
+                scan_folder(f["id"])
+
+    scan_folder(folder_id)
+    return pdf_texts
+
+
+def extract_all_video_transcripts_recursive(folder_id):
+    """
+    Recursively scans all folders and extracts transcripts from all video files.
+    """
+    service = GoogleDriveAuthService.get_service()
+    transcripts = []
+
+    def scan_folder(folder_id):
+        results = service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            fields="files(id, name, mimeType)"
+        ).execute()
+
+        for f in results.get("files", []):
+            mime = f["mimeType"]
+
+            # If video → download + transcribe
+            if mime.startswith("video/"):
+                print(f"[INFO] Processing video: {f['name']}")
+
+                import os
+                import tempfile
+
+                # Create temp file WITHOUT keeping it open
+                tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+                tmp_path = tmp_file.name
+                tmp_file.close()   # IMPORTANT: close file handle before ffmpeg reads it
+
+                # Download video from Google Drive
+                request = service.files().get_media(fileId=f["id"])
+                with open(tmp_path, "wb") as out:
+                    downloader = MediaIoBaseDownload(out, request)
+                    done = False
+                    while not done:
+                        status, done = downloader.next_chunk()
+
+                # Now transcribe using Whisper
+                state = {"file_path": tmp_path}
                 state = transcribe_audio_or_video(state)
                 transcripts.append(state.get("transcript", ""))
 
+                # Delete file afterwards
+                os.remove(tmp_path)
+
+# If folder → recursive scan
+            elif mime == "application/vnd.google-apps.folder":
+                scan_folder(f["id"])
+
+    scan_folder(folder_id)
     return transcripts
+
+
 
 async def analyze_engagement_with_gemini(content: str) -> dict:
     """
@@ -198,8 +294,8 @@ async def evaluate_engagement(contributor_id: int, chapter_id: int, drive_folder
     )()
 
     # ✅ If your PDF / video extractors are synchronous — wrap them too
-    pdf_texts = await sync_to_async(extract_all_pdf_texts)(drive_folders.get("pdf"))
-    video_texts = await sync_to_async(extract_all_video_transcripts)(drive_folders.get("videos"))
+    pdf_texts = await sync_to_async(extract_all_pdf_texts_recursive)(drive_folders.get("pdf"))
+    video_texts = await sync_to_async(extract_all_video_transcripts_recursive)(drive_folders.get("videos"))
     full_text = "\n\n".join(pdf_texts + video_texts)
 
     if not full_text.strip():

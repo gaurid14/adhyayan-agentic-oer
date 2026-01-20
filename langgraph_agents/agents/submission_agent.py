@@ -5,7 +5,7 @@ import whisper
 import mimetypes
 from langchain.tools import tool
 
-from langgraph_agents.services.drive_service import get_drive_service
+from langgraph_agents.services.drive_service import GoogleDriveAuthService
 from langgraph_agents.services.gemini_service import llm
 import datetime
 from googleapiclient.discovery import build
@@ -21,7 +21,7 @@ def record_submission_to_db(contributor_id, chapter_id, drive_folders):
     Called once the contributor confirms submission.
     Creates one UploadCheck + linked ContentCheck.
     """
-    service = get_drive_service()
+    service = GoogleDriveAuthService.get_service()
     now = timezone.now()  # Timestamp when Confirm Submission clicked
 
     # 🔹 Check which content folders actually have files

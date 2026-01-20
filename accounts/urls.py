@@ -1,10 +1,11 @@
 from django.urls import path
 from .views import views
 from .views.contributor import generate_expertise
-from .views.contributor.contributor_dashboard import contributor_dashboard_view, contributor_submit_content_view, contributor_profile
+from .views.contributor.contributor_dashboard import contributor_dashboard_view, contributor_submit_content_view, \
+    contributor_profile, contributor_submissions
 from .views.contributor.submit_content import upload_files, load_file, contributor_editor, delete_drive_file, \
-    confirm_submission, submit_assessment, gemini_chat, contributor_upload_file, \
-    generate_assessment, after_submission, final_submission
+    confirm_submission, gemini_chat, contributor_upload_file, \
+    generate_assessment, after_submission, generated_assessment_form
 from .views.home.home import about, contact
 from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
@@ -26,13 +27,14 @@ urlpatterns = [
     path('subject/<str:stream>/<int:year>/<str:semester>/', subject_view, name='subject_view'),
     path('dashboard/contributor/', contributor_dashboard_view, name='contributor_dashboard'),
     path('dashboard/contributor/profile/', contributor_profile, name='contributor_profile'),
+    path('dashboard/contributor/submissions/', contributor_submissions, name='contributor_submissions'),
     path('dashboard/contributor/submit_content/', contributor_submit_content_view, name='contributor_submit_content_view'),
     path('dashboard/contributor/submit_content/upload/submission', contributor_upload_file, name='contributor_upload_file'),
     path('dashboard/contributor/submit_content/upload', upload_files, name='upload_files'),
     path('dashboard/contributor/submit_content/uploadDraft', contributor_editor, name='contributor_editor'),
     path('dashboard/contributor/submit_content/load_file', load_file, name='load_file'),  # needed for JS
     path('dashboard/contributor/submit_content/delete_file', delete_drive_file, name='delete_drive_file'),  # needed for JS
-    path('dashboard/contributor/submit_content/submit_assessment', submit_assessment, name='submit_assessment'),
+    # path('dashboard/contributor/submit_content/submit_assessment', submit_assessment, name='submit_assessment'),
     path('dashboard/contributor/submit_content/gemini_chat', gemini_chat, name='gemini_chat'),
     path('dashboard/contributor/submit_content/after_submission/', after_submission, name='after_submission'),
     path('dashboard/student/', views.dashboard_view, name='student_dashboard'),
@@ -52,8 +54,9 @@ urlpatterns = [
     # --- Redirect/Display Pages ---
     # path('contributor/submission-complete/', after_submission_view, name='after_submission'), # Thank you page
     # Assessment page (might need chapter_id or upload_id)
-    path('contributor/generate-assessment', generate_assessment, name='generate_assessment'),
-    path("contributor/final_submission", final_submission, name="final_submission"),
+    path('contributor/generate_assessment', generate_assessment, name='generate_assessment'),
+    path('contributor/generated_assessment/<int:assessment_id>/', generated_assessment_form, name='generated_assessment_form'),
+    path("contributor/confirm_submission", confirm_submission, name="confirm_submission"),
 
     # DMs
     path("messages/", dm_inbox, name="dm_inbox"),

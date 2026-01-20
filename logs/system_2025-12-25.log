@@ -1,0 +1,118 @@
+[WARNING] 2025-12-25 10:33:35,367 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-25 10:33:35,615 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-25 10:33:35,615 | django.server | "GET /favicon.ico HTTP/1.1" 404 11650
+[WARNING] 2025-12-25 10:45:48,814 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:46:34,738 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:46:37,137 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:49:04,889 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:49:11,387 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:51:10,142 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:51:54,580 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:53:18,462 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:53:28,559 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:53:36,770 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:53:39,163 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:53:47,619 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:55:25,876 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:55:31,026 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:58:36,262 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 10:58:39,647 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:06:30,000 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:06:58,304 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:07:04,218 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:08:53,758 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:09:49,478 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:09:54,578 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:11:37,501 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:14:45,012 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:15:04,458 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:15:16,078 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:15:23,561 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:17:22,613 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:17:30,380 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:19:53,400 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:20:01,481 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:21:35,841 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:21:55,768 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:22:02,443 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:25:55,872 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:26:00,360 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:26:15,182 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[WARNING] 2025-12-25 11:33:22,805 | django.server | "GET /static/frontend/css/style_contro.css HTTP/1.1" 404 1901
+[ERROR] 2025-12-25 11:57:36,962 | django.request | Internal Server Error: /dashboard/contributor/submissions/
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\contributor_dashboard.py", line 88, in contributor_submissions
+    .order_by("-created_at")
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\models\query.py", line 1722, in order_by
+    obj.query.add_ordering(*field_names)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\models\sql\query.py", line 2291, in add_ordering
+    self.names_to_path(item.split(LOOKUP_SEP), self.model._meta)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\db\models\sql\query.py", line 1805, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'created_at' into field. Choices are: chapter, chapter_id, content_check, content_score, contributor, contributor_id, evaluation_status, id, released_content, timestamp
+[ERROR] 2025-12-25 11:57:36,982 | django.server | "GET /dashboard/contributor/submissions/ HTTP/1.1" 500 91349
+[INFO] 2025-12-25 13:13:44,045 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 13:13:45,391 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-25 19:11:41,212 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-25 19:11:41,338 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-25 19:12:47,532 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 19:12:48,233 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-25 19:17:44,419 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 19:17:45,330 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[ERROR] 2025-12-25 19:17:52,007 | django.request | Internal Server Error: /dashboard/contributor/submit_content/
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 510, in parse
+    compile_func = self.tags[command]
+KeyError: 'static'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\contributor\contributor_dashboard.py", line 233, in contributor_submit_content_view
+    return render(request, "contributor/submit_content.html", context)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 512, in parse
+    self.invalid_block_tag(token, command, parse_until)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 577, in invalid_block_tag
+    raise self.error(
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 7: 'static'. Did you forget to register or load this tag?
+[ERROR] 2025-12-25 19:17:52,038 | django.server | "GET /dashboard/contributor/submit_content/?course_id=30&chapter_id=76 HTTP/1.1" 500 164329
+[INFO] 2025-12-25 19:18:15,310 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 19:18:15,758 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-25 19:23:00,853 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 19:23:01,776 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-25 19:23:28,173 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 19:23:28,589 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-25 19:30:03,229 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-25 19:30:03,882 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-25 19:54:37,697 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-25 19:54:37,729 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949

@@ -240,7 +240,6 @@ class Assessment(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
     chapter = models.ForeignKey('Chapter', on_delete=models.CASCADE)
     topic = models.CharField(max_length=100, blank=True, null=True)
-    created_by = models.ForeignKey('User', on_delete=models.CASCADE)
     contributor_id = models.ForeignKey('User', on_delete=models.CASCADE)
 
 
@@ -349,96 +348,3 @@ class DmMessage(models.Model):
 
 # python manage.py makemigrations
 # python manage.py migrate
-
-# ---------- Forum Models --------------------------------------------------------------------------------------
-
-class ForumTopic(models.Model):
-    """Represents syllabus topics or chapters used for tagging questions."""
-    name = models.CharField(max_length=150, unique=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-
-class ForumQuestion(models.Model):
-    """Main question/discussion post."""
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="forum_questions")
-    title = models.CharField(max_length=255)
-    content = models.TextField()
-    topics = models.ManyToManyField(ForumTopic, blank=True, related_name="questions")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    upvotes = models.ManyToManyField(User, related_name="question_upvotes", blank=True)
-
-    def __str__(self):
-        return self.title
-
-    @property
-    def total_upvotes(self):
-        return self.upvotes.count()
-
-
-class ForumAnswer(models.Model):
-    """Answers or replies to a question."""
-    question = models.ForeignKey(ForumQuestion, on_delete=models.CASCADE, related_name="answers")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="forum_answers")
-    content = models.TextField()
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_comments')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    upvotes = models.ManyToManyField(User, related_name="answer_upvotes", blank=True)
-
-    def __str__(self):
-        return f"Answer by {self.author.username} on {self.question.title}"
-
-    @property
-    def total_upvotes(self):
-        return self.upvotes.count()
-    
-    class Meta:
-        ordering = ["created_at"]  # oldest first; flip to ["-created_at"] if you prefer
-
-    @property
-    def children(self):
-        return self.child_comments.all().select_related("author")
-    
-class DmThread(models.Model):
-    """
-    A canonical thread between two users.
-    Enforced uniqueness regardless of order (user_a, user_b).
-    """
-    user_a = models.ForeignKey(User, on_delete=models.CASCADE, related_name="dm_threads_as_a")
-    user_b = models.ForeignKey(User, on_delete=models.CASCADE, related_name="dm_threads_as_b")
-    started_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            UniqueConstraint(fields=["user_a", "user_b"], name="uniq_dm_pair")
-        ]
-
-    def save(self, *args, **kwargs):
-        # always store with smaller id in user_a
-        if self.user_b_id and self.user_a_id and self.user_b_id < self.user_a_id:
-            self.user_a_id, self.user_b_id = self.user_b_id, self.user_a_id
-        super().save(*args, **kwargs)
-
-    def other_of(self, user):
-        return self.user_b if user == self.user_a else self.user_a
-
-    def __str__(self):
-        return f"DM: {self.user_a.username} ↔ {self.user_b.username}"
-
-
-class DmMessage(models.Model):
-    thread   = models.ForeignKey(DmThread, on_delete=models.CASCADE, related_name="messages")
-    sender   = models.ForeignKey(User, on_delete=models.CASCADE, related_name="dm_messages_sent")
-    content  = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read  = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ["created_at"]
-
-    def __str__(self):
-        return f"DM msg by {self.sender.username} at {self.created_at:%Y-%m-%d %H:%M}"

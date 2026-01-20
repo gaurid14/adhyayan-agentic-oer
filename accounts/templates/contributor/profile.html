@@ -3,45 +3,374 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contributor Profile</title>
-    <link rel="stylesheet" href="{% static 'frontend/css/style_contro.css' %}">
+    <title>Contributor Profile | OER</title>
+
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
-        body { font-family: Arial, sans-serif; background: #F4FCFA; margin:0; padding:0; }
-        .container { max-width: 800px; margin: 30px auto; padding: 20px; background:#fff; border-radius:10px; }
-        h2 { color: #1EAE98; margin-bottom: 20px; }
-        .profile-row { margin-bottom: 15px; }
-        .profile-row label { font-weight: bold; display:inline-block; width: 180px; }
-        .profile-pic { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; }
-        .back-btn { display:inline-block; margin-top: 20px; text-decoration:none; background:#1EAE98; color:#fff; padding:8px 12px; border-radius:6px; }
-        .back-btn:hover { background:#178D79; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        body {
+            background: #FFFFFF;
+            min-height: 100vh;
+        }
+
+        .dashboard-layout {
+            display: flex;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            margin-left: 260px;
+            padding: 36px 56px;
+        }
+
+        /* =====================
+           HERO
+        ===================== */
+        .profile-hero {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.02);
+            padding: 36px 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+        }
+
+        .hero-left {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .avatar-xl {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: #F3F4F6;
+            color: #111827;
+            border: 1px solid #E5E7EB;
+            font-size: 32px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-info h1 {
+            font-size: 30px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .hero-info .designation {
+            margin-top: 6px;
+            font-size: 16px;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .hero-info .meta {
+            margin-top: 6px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .edit-btn {
+            background: #F3F4F6;
+            color: #111827;
+            border: 1px solid #E5E7EB;
+            padding: 10px 22px;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* =====================
+           MAIN PROFILE CONTAINER
+        ===================== */
+        .profile-container {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.02);
+            padding: 36px 44px;
+        }
+
+        /* =====================
+           SECTIONS (DIVIDERS)
+        ===================== */
+        .section {
+            padding: 28px 0;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .section:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .section-title {
+            position: relative;
+            padding-left: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .section-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 3px;
+            bottom: 3px;
+            width: 3px;
+            background: #1EAE98;
+            border-radius: 2px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px 48px;
+        }
+
+        .profile-item label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #6B7280;
+            font-weight: 600;
+        }
+
+        .profile-item span {
+            margin-top: 6px;
+            font-size: 15px;
+            color: #111827;
+        }
+
+        /* =====================
+           EXPERTISE
+        ===================== */
+        .expertise-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .expertise-chip {
+            background: #F9FAFB;
+            color: #374151;
+            border: 1px solid #E5E7EB;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* =====================
+           EDIT MODE
+        ===================== */
+        body.editing .read-mode { display: none; }
+        .edit-mode { display: none; }
+        body.editing .edit-mode { display: block; }
+        body.editing .edit-btn { display: none; }
+
+        .edit-mode input,
+        .edit-mode textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #D1D5DB;
+            background: #FAFAFA;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .profile-item {
+            display: flex;
+            flex-direction: column;
+            min-height: 72px; /* KEY: stabilizes row height */
+        }
+
+        .profile-grid input.edit-mode {
+            height: 44px;
+            background: #FFFFFF;
+            border: 1px solid #D1D5DB;
+        }
+
+        .profile-grid input.edit-mode:focus {
+            border-color: #1EAE98;
+            box-shadow: 0 0 0 2px rgba(30, 174, 152, 0.08);
+        }
+
+        .profile-item span.read-mode {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+
+        /* =====================
+           ACTIONS
+        ===================== */
+        .actions {
+            margin-top: 32px;
+            display: none;
+            justify-content: flex-end;
+            gap: 14px;
+        }
+
+        body.editing .actions {
+            display: flex;
+        }
+
+        .btn-primary {
+            background: #1EAE98;
+            color: #fff;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #374151;
+            border: 1px solid #E5E7EB;
+            padding: 12px 26px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .edit-mode {
+            display: none;
+        }
+
+        body.editing .edit-mode {
+            display: block;
+        }
+
+        body.editing .read-mode {
+            display: none;
+        }
+
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>Contributor Profile</h2>
+<div class="dashboard-layout">
+    {% include "contributor/sidebar.html" %}
 
-    {% if contributor.profile_picture %}
-    <img src="{{ contributor.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
-    {% endif %}
+    <main class="main-content">
 
-    <div class="profile-row"><label>Username:</label> {{ contributor.username }}</div>
-    <div class="profile-row"><label>Email:</label> {{ contributor.email }}</div>
-    <div class="profile-row"><label>Phone Number:</label> {{ contributor.phone_number }}</div>
-    <div class="profile-row"><label>Designation:</label> {{ contributor.designation }}</div>
-    <div class="profile-row"><label>Years of Experience:</label> {{ contributor.years_of_experience }}</div>
-    <div class="profile-row"><label>Domain of Expertise:</label>
-        {% for exp in contributor.domain_of_expertise.all %}
-        {{ exp.name }}{% if not forloop.last %}, {% endif %}
-        {% empty %}N/A{% endfor %}
-    </div>
-    <div class="profile-row"><label>Highest Qualification:</label> {{ contributor.highest_qualification }}</div>
-    <div class="profile-row"><label>Current Institution:</label> {{ contributor.current_institution }}</div>
-    <div class="profile-row"><label>Bio:</label> {{ contributor.bio }}</div>
+        <form method="post">
+            {% csrf_token %}
 
-    <a href="{% url 'contributor_dashboard' %}" class="back-btn">Back to Dashboard</a>
+            <!-- HERO -->
+            <section class="profile-hero">
+                <div class="hero-left">
+                    <div class="avatar-xl">
+                        {{ contributor.first_name|default:contributor.username|slice:":1" }}{{ contributor.last_name|slice:":1" }}
+                    </div>
+                    <div class="hero-info">
+                        <h1>{{ contributor.first_name }} {{ contributor.last_name|default:contributor.username }}</h1>
+                        <div class="read-mode designation">
+                            {{ contributor.designation }} • {{ contributor.current_institution }}
+                        </div>
+                        <div class="edit-mode">
+                            <input name="designation" value="{{ contributor.designation }}">
+                            <input name="current_institution" value="{{ contributor.current_institution }}">
+                        </div>
+                        <div class="meta">
+                            {{ contributor.get_highest_qualification_display }} • {{ contributor.years_of_experience }} yrs experience
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="edit-btn" onclick="enableEdit()">Edit Profile</button>
+            </section>
+
+            <!-- MAIN PROFILE CONTENT -->
+            <section class="profile-container">
+
+                <div class="section">
+                    <div class="section-title">About</div>
+                    <div class="read-mode">{{ contributor.bio }}</div>
+                    <div class="edit-mode">
+                        <textarea name="bio">{{ contributor.bio }}</textarea>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Professional Details</div>
+                    <div class="profile-grid">
+                        <div class="profile-item">
+                            <label>Email</label>
+                            <span>{{ contributor.email }}</span>
+                        </div>
+                        <div class="profile-item">
+                            <label>Phone</label>
+                            <span class="read-mode">{{ contributor.phone_number }}</span>
+                            <input class="edit-mode" name="phone_number" value="{{ contributor.phone_number }}">
+                        </div>
+                        <div class="profile-item">
+                            <label>Qualification</label>
+                            <span class="read-mode">{{ contributor.get_highest_qualification_display }}</span>
+                            <input class="edit-mode" name="highest_qualification" value="{{ contributor.highest_qualification }}">
+                        </div>
+                        <div class="profile-item">
+                            <label>Experience (years)</label>
+                            <span class="read-mode">{{ contributor.years_of_experience }}</span>
+                            <input class="edit-mode" type="number" name="years_of_experience" value="{{ contributor.years_of_experience }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Expertise</div>
+                    <div class="read-mode expertise-list">
+                        {% for exp in contributor.domain_of_expertise.all %}
+                        <span class="expertise-chip">{{ exp.name }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="edit-mode">
+                        <input name="expertise"
+                               value="{% for exp in contributor.domain_of_expertise.all %}{{ exp.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                    </div>
+                </div>
+
+            </section>
+
+            <div class="actions edit-mode">
+                <button class="btn-primary">Save Changes</button>
+                <button type="button" class="btn-secondary" onclick="cancelEdit()">Cancel</button>
+            </div>
+
+        </form>
+
+    </main>
 </div>
+
+<script>
+    function enableEdit() {
+        document.body.classList.add("editing");
+    }
+    function cancelEdit() {
+        document.body.classList.remove("editing");
+    }
+</script>
 
 </body>
 </html>

@@ -6,12 +6,14 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 
 from .contributor.generate_expertise import generate_expertise
+from .email.email_service import RegistrationSuccessEmail
 from ..models import User
 from ..forms import ProfilePictureForm # Add this new import at the top
 from .syllabus_upload import extract_and_upload
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from ..models import Program, Expertise, User  # Adjust import as per your project
+
 
 # --- REAL LOGIN VIEW ---
 # OER/accounts/views.py
@@ -50,34 +52,6 @@ def login_view(request):
     return render(request, 'home/register.html')
 
 
-# --- DASHBOARD VIEW ---
-# @login_required
-# def dashboard_view(request):
-#     print("Session data:", request.session.items())
-#     # This code runs if the user submits the upload form
-#     if request.method == 'POST':
-#         print("Session data:", request.session.items())
-#         # We pass request.FILES to handle the uploaded image
-#         form = ProfilePictureForm(request.POST, request.FILES, instance=request.user)
-#         if form.is_valid():
-#             form.save() # This saves the new picture to the user
-#             return redirect('dashboard') # Redirect to refresh the page
-#     else:
-#         # This creates a blank form for the first visit
-#         form = ProfilePictureForm(instance=request.user)
-#
-#     # We'll pass the form to the template
-#     context = {
-#         'form': form
-#     }
-#
-#     # Render the correct template based on the user's role
-#     if request.user.role == 'STUDENT':
-#         return redirect('contributor_dashboard')
-#     elif request.user.role == 'CONTRIBUTOR':
-#         return redirect('student_dashboard')
-#     else:
-#         return redirect('login')
 
 # Contributor Dashboard
 @login_required
@@ -158,6 +132,7 @@ def register_view(request):
 
         # Save user
         user.save()
+        RegistrationSuccessEmail(user.email, user.first_name).send()
         print(f"SUCCESS: User '{email}' was created and saved.")
         return redirect('register')
 
@@ -185,28 +160,3 @@ def upload_syllabus(request):
 
 
 
-# Langgraph submission agent
-# @login_required
-# def upload_content(request):
-#     if request.session.get('role') != 'CONTRIBUTOR':
-#         return redirect('no_permission')  # Prevent students from accessing
-#
-#     contributor_id = request.session.get('user_id')
-#     contributor = User.objects.get(id=contributor_id)
-#
-#     if request.method == 'POST':
-#         chapter_id = request.POST.get('chapter_id')
-#         chapter = Chapter.objects.get(id=chapter_id)
-#
-#         # ✅ Create the UploadCheck object and link it with contributor
-#         upload = UploadCheck.objects.create(
-#             contributor=contributor,
-#             chapter=chapter
-#         )
-#
-#         # You can also log this or redirect somewhere
-#         print(f"✅ Upload recorded by {contributor.username} for {chapter.chapter_name}")
-#         return redirect('dashboard')
-#
-#     # if GET
-#     return render(request, 'accounts/upload_content.html')

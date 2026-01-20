@@ -4,14 +4,89 @@
 {% block title %}{{ course.course_name }} - Chapters{% endblock %}
 
 {% block content %}
-<section class="subject-header fade-in">
-    <p>COURSE / {{ course.course_code }}</p>
+
+<style>
+    /* ===============================
+    Course Chapters – MNC / OER
+    =============================== */
+
+    .course-header {
+        background: #ffffff;
+        padding: 30px 40px;
+        margin-bottom: 40px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .course-header p {
+        font-size: 0.95rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 6px;
+    }
+
+    .course-header h1 {
+        font-size: 2.1rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    /* Grid */
+    .chapter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 28px;
+    }
+
+    /* Chapter Card */
+    .chapter-card {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.2s ease;
+    }
+
+    .chapter-card:hover {
+        box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    }
+
+    /* Chapter Title */
+    .chapter-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 10px;
+    }
+
+    /* Description */
+    .chapter-card p {
+        font-size: 0.95rem;
+        color: #374151;
+        margin-bottom: 18px;
+        line-height: 1.5;
+    }
+
+    /* CTA */
+    .chapter-card a.btn {
+        margin-top: auto;
+        width: 100%;
+        text-align: center;
+        font-weight: 600;
+    }
+</style>
+
+<section class="course-header fade-in">
+    <p>Course / {{ course.course_code }}</p>
     <h1>{{ course.course_name }}</h1>
 </section>
 
-<div class="subject-grid">
+<div class="chapter-grid">
     {% for chapter in chapters %}
-    <div class="subject-card">
+    <div class="chapter-card">
         <h3>Chapter {{ chapter.chapter_number }}: {{ chapter.chapter_name }}</h3>
         <p>{{ chapter.description|truncatewords:30 }}</p>
         <a href="#" class="btn">Open Chapter</a>
@@ -20,4 +95,5 @@
     <p>No chapters found for this course.</p>
     {% endfor %}
 </div>
+
 {% endblock %}

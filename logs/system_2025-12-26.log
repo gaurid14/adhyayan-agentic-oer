@@ -1,0 +1,292 @@
+[WARNING] 2025-12-26 11:24:05,363 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 11:24:05,613 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 11:24:05,621 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:16:12,788 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:16:17,923 | django.request | Not Found: /accounts/login/
+[WARNING] 2025-12-26 12:16:17,926 | django.server | "GET /accounts/login/?next=/dashboard/contributor/ HTTP/1.1" 404 11990
+[WARNING] 2025-12-26 12:16:32,965 | django.request | Not Found: /accounts/login/
+[WARNING] 2025-12-26 12:16:32,967 | django.server | "GET /accounts/login/?next=/dashboard/contributor/ HTTP/1.1" 404 11990
+[WARNING] 2025-12-26 12:16:40,737 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:25:41,349 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2025-12-26 12:25:41,367 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12060
+[WARNING] 2025-12-26 12:26:00,388 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2025-12-26 12:26:00,398 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12060
+[WARNING] 2025-12-26 12:26:00,490 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:26:00,493 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:26:19,066 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:26:19,068 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:26:24,961 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:26:24,963 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:26:43,045 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:26:43,047 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:26:54,491 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:26:54,493 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:27:08,859 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:27:08,860 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:27:16,101 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:27:16,102 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:27:55,004 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:27:55,007 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:28:24,974 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:28:24,976 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:29:58,937 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:29:58,952 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:31:01,891 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:31:19,730 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:31:21,794 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:31:21,946 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:31:21,948 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:32:47,590 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:32:47,804 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:32:47,812 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:33:03,480 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:33:03,632 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:33:03,634 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:33:18,044 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:33:18,168 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:33:18,168 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:33:19,872 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:33:20,026 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:33:20,028 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:34:04,450 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:34:04,592 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:34:04,593 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:34:20,016 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:34:20,153 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:34:20,154 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:34:26,146 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:34:26,309 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:34:26,311 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:34:28,403 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:34:28,554 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:34:28,555 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:34:35,084 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:34:35,215 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:34:35,216 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:34:42,359 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:34:42,501 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:34:42,502 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:39:56,903 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:39:57,147 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:39:57,149 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:41:32,288 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:41:32,476 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:41:32,477 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[ERROR] 2025-12-26 12:44:52,796 | django.request | Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\gauri\IdeaProjects\oer\accounts\views\views.py", line 52, in login_view
+    return render(request, 'home/register.html')
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader_tags.py", line 299, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 523, in parse
+    self.unclosed_block_tag(parse_until)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\base.py", line 590, in unclosed_block_tag
+    raise self.error(token, msg)
+django.template.exceptions.TemplateSyntaxError: Unclosed tag on line 4: 'block'. Looking for one of: endblock.
+[ERROR] 2025-12-26 12:44:52,866 | django.server | "GET /login/ HTTP/1.1" 500 175253
+[WARNING] 2025-12-26 12:44:53,614 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:44:53,615 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:45:13,200 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:45:13,442 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:45:13,443 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:48:00,681 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:48:00,697 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 12:48:30,956 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 12:48:30,958 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 12:48:40,267 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 12:48:42,229 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 12:49:02,772 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 12:49:03,053 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 12:49:03,471 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 12:49:12,551 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 12:49:12,776 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 12:49:13,116 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 12:57:06,951 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:58:01,665 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:58:04,797 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:58:13,317 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 12:58:16,446 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 13:02:35,748 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 13:02:35,984 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 13:02:35,984 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 13:02:51,184 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 13:02:51,490 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 13:02:51,490 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 13:05:08,170 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 13:05:08,457 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 13:05:08,457 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 13:07:59,938 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 13:11:26,510 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[INFO] 2025-12-26 13:13:25,991 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 13:13:26,646 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:09:39,466 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 18:09:39,811 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:09:39,811 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:09:41,261 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 18:09:41,502 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:09:41,502 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:10:08,771 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 18:10:08,978 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:10:08,978 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:10:47,698 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 18:10:47,856 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:10:47,861 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:10:59,974 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 18:11:00,124 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:11:00,124 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:11:22,462 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2025-12-26 18:12:11,958 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:12:11,958 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:12:23,680 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:12:23,680 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:12:35,674 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:12:35,675 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:13:03,778 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:13:03,778 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:13:11,235 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:13:11,238 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 18:13:54,981 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:13:56,088 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 18:14:26,965 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:14:27,328 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:14:27,717 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 18:14:48,153 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:14:48,595 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:14:49,018 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:23:38,727 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:23:38,769 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:25:01,142 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:25:01,150 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:27:48,763 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:27:48,779 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:28:16,307 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:28:16,313 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 18:28:24,602 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:28:24,602 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 18:29:27,092 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:29:27,803 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 18:30:05,414 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:30:05,928 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:30:11,414 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:30:11,417 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 18:30:54,070 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:30:54,786 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:31:00,280 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:31:00,288 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 18:35:46,741 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:35:47,340 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:35:53,012 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:35:53,012 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 18:37:37,277 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:37:37,938 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:37:43,150 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:37:43,154 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 18:37:54,129 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 18:37:54,514 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 18:38:01,024 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 18:38:01,024 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 19:00:07,843 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 19:00:08,596 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 19:00:13,879 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:00:13,881 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 19:01:30,368 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 19:01:30,813 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 19:01:35,456 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:01:35,458 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 19:01:54,510 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 19:01:54,934 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 19:02:56,638 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 19:02:57,062 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 19:03:01,751 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:03:01,753 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 19:03:20,985 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 19:03:21,406 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 19:03:26,069 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:03:26,071 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:06:39,505 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:06:39,516 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:06:48,007 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:06:48,008 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:09:16,821 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:09:16,828 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:11:34,538 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:11:34,546 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:12:18,623 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:12:18,624 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:13:41,050 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:13:41,051 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:14:32,773 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:14:32,774 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:15:40,903 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:15:40,906 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:19:39,645 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:19:39,660 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:21:22,151 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:21:22,162 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:21:51,992 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:21:51,994 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:32:17,345 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:32:17,375 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:35:05,584 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:35:05,601 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:38:03,674 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:38:03,687 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:41:26,732 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:41:26,739 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:44:30,112 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:44:30,124 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:49:28,446 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:49:28,461 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:51:26,907 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:51:26,927 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:53:57,929 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:53:57,937 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 19:59:29,091 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 19:59:29,109 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 20:00:09,884 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 20:00:09,888 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[WARNING] 2025-12-26 20:01:15,835 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 20:01:15,841 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 20:01:27,890 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 20:01:28,716 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2025-12-26 20:15:41,983 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 20:15:42,441 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2025-12-26 20:15:47,378 | django.request | Not Found: /favicon.ico
+[WARNING] 2025-12-26 20:15:47,379 | django.server | "GET /favicon.ico HTTP/1.1" 404 11949
+[INFO] 2025-12-26 20:17:11,495 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 20:17:11,744 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2025-12-26 20:17:12,117 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.

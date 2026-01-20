@@ -1,24 +1,225 @@
+{% extends "home/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Sign Up</title>
-    <link rel="stylesheet" href="{% static 'accounts/style.css' %}">
-    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-<div class="navbar">
-    <div class="logo">OER</div>
-    <ul>
-        <li><a href="{% url 'home' %}">Home</a></li>
-<!--        <li><a href="#">Our products</a></li>-->
-        <li><a href="{% url 'about' %}">About US</a></li>
-        <li><a href="{% url 'contact' %}">Contact US</a></li>
-    </ul>
-    <button class="signup-btn">Sign Up</button>
-</div>
+{% block title %}Login / Sign Up{% endblock %}
+{% block content %}
+<style>
+
+    :root {
+        --primary: #009688;
+        --border: #e5e7eb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --bg: #ffffff;
+    }
+
+    /* Page base */
+    body {
+        background: var(--bg);
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text);
+    }
+
+    /* Centering container */
+    .container {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 48px 16px;
+    }
+
+    /* Auth card */
+    .login-box {
+        width: 100%;
+        max-width: 760px;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        padding: 48px 56px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 40px;
+    }
+
+    .tab-link {
+        font-weight: 600;
+        color: var(--muted);
+        padding-bottom: 10px;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab-link.active {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    /* Login / Signup visibility */
+    .login-row,
+    .signup-row {
+        display: none;
+    }
+
+    .login-row.active {
+        display: grid;
+        grid-template-columns: 1fr 0.9fr;
+        gap: 48px;
+    }
+
+    .signup-row.active {
+        display: block;
+    }
+
+    /* Inputs – NO FIXED HEIGHT */
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 15px;
+        background: #fff;
+    }
+
+    /* Textarea only */
+    textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    /* Focus */
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0,150,136,0.12);
+    }
+
+    /* Buttons */
+    .login-btn {
+        margin-top: 36px;
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        font-size: 16px;
+    }
+
+    .login-btn:hover {
+        background: #00796b;
+    }
+
+    /* Role tabs */
+    .role-tabs {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 10px;
+        padding: 6px;
+        margin-bottom: 36px;
+    }
+
+    .role-tab {
+        flex: 1;
+        padding: 10px;
+        background: transparent;
+        border: none;
+        font-weight: 600;
+        border-radius: 8px;
+        color: var(--muted);
+        cursor: pointer;
+    }
+
+    .role-tab.active {
+        background: #ffffff;
+        color: var(--primary);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    /* ===============================
+       SIGNUP GRID – REAL FIX
+       =============================== */
+
+    .role-form {
+        display: none;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 32px;
+        row-gap: 28px; /* 🔑 THIS FIXES CHIPKE HUE */
+    }
+
+    .role-form.active {
+        display: grid;
+    }
+
+    /* Field wrapper */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Label spacing */
+    .form-group label {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    /* Full width */
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Email + Password */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin-top: 40px;
+    }
+
+    /* Illustration */
+    .illustration {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .illustration img {
+        max-width: 90%;
+        opacity: 0.9;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .login-row.active {
+            grid-template-columns: 1fr;
+        }
+
+        .illustration {
+            display: none;
+        }
+
+        .login-box {
+            padding: 32px 24px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css"/>
 
 <div class="container">
     <div class="login-box">
@@ -52,10 +253,17 @@
 
                 <div class="role-form-content">
                     <div class="role-form active" id="student-form">
-                        <div class="form-group"><label>Full Name</label><input type="text" name="student-name" required></div>
-                        <div class="form-group"><label>College Name</label><input type="text" name="college-name" required></div>
-                        <div class="form-group"><label>Date of Birth</label><input type="date" name="dob" required></div>
-                        <div class="form-group"><label>Gender</label><select name="gender" required><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                        <div class="form-group"><label>Full Name</label><input type="text" name="student-name" required>
+                        </div>
+                        <div class="form-group"><label>College Name</label><input type="text" name="college-name"
+                                                                                  required></div>
+                        <div class="form-group"><label>Date of Birth</label><input type="date" name="dob" required>
+                        </div>
+                        <div class="form-group"><label>Gender</label><select name="gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select></div>
                         <div class="form-group">
                             <label>Course</label>
                             <select name="course" required>
@@ -77,23 +285,28 @@
                     </div>
 
                     <div class="role-form" id="contributor-form">
-                        <div class="form-group"><label>First Name</label><input type="text" name="contrib-fname" required></div>
-                        <div class="form-group"><label>Last Name</label><input type="text" name="contrib-lname" required></div>
-                        <div class="form-group"><label>Phone Number</label><input type="tel" name="contrib-phone" required></div>
-                        <div class="form-group"><label>Designation</label><input type="text" name="designation" required></div>
-                        <div class="form-group"><label>Years of Experience</label><input type="number" name="exp" required></div>
+                        <div class="form-group"><label>First Name</label><input type="text" name="contrib-fname"
+                                                                                required></div>
+                        <div class="form-group"><label>Last Name</label><input type="text" name="contrib-lname"
+                                                                               required></div>
+                        <div class="form-group"><label>Phone Number</label><input type="tel" name="contrib-phone"
+                                                                                  required></div>
+                        <div class="form-group"><label>Designation</label><input type="text" name="designation"
+                                                                                 required></div>
+                        <div class="form-group"><label>Years of Experience</label><input type="number" name="exp"
+                                                                                         required></div>
                         <!-- Program Dropdown -->
-<!--                        <div class="form-group">-->
-<!--                            <label>Program</label>-->
-<!--                            <select name="program" id="program-select" required>-->
-<!--                                <option value="">Select Program</option>-->
-<!--                                <option value="Engineering">Engineering</option>-->
-<!--                                <option value="Commerce">Commerce</option>-->
-<!--                                <option value="Arts">Arts</option>-->
-<!--                                <option value="Science">Science</option>-->
-<!--                                <option value="Humanities">Humanities</option>-->
-<!--                            </select>-->
-<!--                        </div>-->
+                        <!--                        <div class="form-group">-->
+                        <!--                            <label>Program</label>-->
+                        <!--                            <select name="program" id="program-select" required>-->
+                        <!--                                <option value="">Select Program</option>-->
+                        <!--                                <option value="Engineering">Engineering</option>-->
+                        <!--                                <option value="Commerce">Commerce</option>-->
+                        <!--                                <option value="Arts">Arts</option>-->
+                        <!--                                <option value="Science">Science</option>-->
+                        <!--                                <option value="Humanities">Humanities</option>-->
+                        <!--                            </select>-->
+                        <!--                        </div>-->
 
                         <!-- Highest Qualification Dropdown -->
                         <div class="form-group">
@@ -108,20 +321,24 @@
                         </div>
 
                         <!-- Expertise checkboxes will be populated here -->
-<!--                        <div class="form-group">-->
-<!--                            <label>Domain of Expertise</label>-->
-<!--                            <div id="expertise-checkboxes">-->
-<!--                                &lt;!&ndash; Dynamically filled based on selected program &ndash;&gt;-->
-<!--                            </div>-->
-<!--                        </div>-->
+                        <!--                        <div class="form-group">-->
+                        <!--                            <label>Domain of Expertise</label>-->
+                        <!--                            <div id="expertise-checkboxes">-->
+                        <!--                                &lt;!&ndash; Dynamically filled based on selected program &ndash;&gt;-->
+                        <!--                            </div>-->
+                        <!--                        </div>-->
                         <div class="form-group full-width">
                             <label for="domain-input-tagify">Key Skills / Expertise involved</label>
-                            <input type="text" id="domain-input-tagify" name="domain" placeholder="Add skills..." required>
+                            <input type="text" id="domain-input-tagify" name="domain" placeholder="Add skills..."
+                                   required>
                             <!-- <small>Please press enter while specifying multiple skills.</small> -->
                         </div>
-                        <div class="form-group"><label>Date of Birth</label><input type="date" name="contrib-dob" required></div>
-                        <div class="form-group"><label>Current Institution</label><input type="text" name="institution" required></div>
-                        <div class="form-group full-width"><label>Short Bio</label><textarea name="bio"></textarea></div>
+                        <div class="form-group"><label>Date of Birth</label><input type="date" name="contrib-dob"
+                                                                                   required></div>
+                        <div class="form-group"><label>Current Institution</label><input type="text" name="institution"
+                                                                                         required></div>
+                        <div class="form-group full-width"><label>Short Bio</label><textarea name="bio"></textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -253,5 +470,4 @@ if (domainInput) {
     });
 </script>
 
-</body>
-</html>
+{% endblock %}
