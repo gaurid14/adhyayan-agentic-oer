@@ -3,6 +3,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import UniqueConstraint
+from django.utils import timezone
 
 # Syllabus
 class Program(models.Model):
@@ -123,6 +124,10 @@ class User(AbstractUser):
         ('PHD', 'PhD'),
         ('OTHER', 'Other'),
     ]
+    class ContributorApprovalStatus(models.TextChoices):
+        APPROVED = "APPROVED", "Approved"
+        PENDING = "PENDING", "Pending"
+        REJECTED = "REJECTED", "Rejected"
 
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.STUDENT)
 
@@ -148,6 +153,15 @@ class User(AbstractUser):
 
     groups = models.ManyToManyField('auth.Group', related_name='custom_user_set', blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name='custom_user_permission_set', blank=True)
+
+    contributor_approval_status = models.CharField(
+        max_length=20,
+        choices=ContributorApprovalStatus.choices,
+        default=ContributorApprovalStatus.APPROVED,   # students & existing users unaffected
+    )
+    contributor_approved_at = models.DateTimeField(null=True, blank=True)
+    contributor_rejected_at = models.DateTimeField(null=True, blank=True)
+    contributor_rejection_reason = models.TextField(blank=True)
 
     def __str__(self):
         return self.username

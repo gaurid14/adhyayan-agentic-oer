@@ -49,8 +49,6 @@ urlpatterns = [
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
-
-
     # --- Redirect/Display Pages ---
     # path('contributor/submission-complete/', after_submission_view, name='after_submission'), # Thank you page
     # Assessment page (might need chapter_id or upload_id)
@@ -61,4 +59,7 @@ urlpatterns = [
     # DMs
     path("messages/", dm_inbox, name="dm_inbox"),
     path("messages/<int:user_id>/", dm_thread, name="dm_thread"),
+
+    path('pending-approval/', views.pending_approval_view, name='pending_approval'),
+
 ]

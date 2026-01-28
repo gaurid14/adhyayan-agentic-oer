@@ -14,6 +14,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from ..models import Program, Expertise, User  # Adjust import as per your project
 
+from django.utils import timezone
 
 # --- REAL LOGIN VIEW ---
 # OER/accounts/views.py
@@ -27,14 +28,13 @@ def home_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        # FIX: Use .strip() to remove any accidental leading/trailing spaces
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
 
-        # The rest of the function stays the same
         user = authenticate(request, username=email, password=password)
 
         if user is not None:
+            # ✅ If contributor is approved, is_active will be True (backend already blocks inactive)
             login(request, user)
             request.session['user_id'] = user.id
             request.session['role'] = user.role
@@ -43,11 +43,26 @@ def login_view(request):
                 return redirect('contributor_dashboard')
             elif user.role == 'STUDENT':
                 return redirect('student_dashboard')
-            else:
-                return redirect('login')  # fallback
-        else:
-            print("Login failed: Invalid credentials")
-            return redirect('login')
+            return redirect('home')
+
+        # If auth failed, check if contributor exists but pending/rejected
+        try:
+            u = User.objects.get(email__iexact=email)
+            if u.role == User.Role.CONTRIBUTOR:
+                if u.contributor_approval_status == User.ContributorApprovalStatus.PENDING:
+                    messages.info(request, "Your contributor account is pending admin approval.")
+                    return redirect("pending_approval")
+                if u.contributor_approval_status == User.ContributorApprovalStatus.REJECTED:
+                    msg = "Your contributor account was rejected."
+                    if u.contributor_rejection_reason:
+                        msg += f" Reason: {u.contributor_rejection_reason}"
+                    messages.error(request, msg)
+                    return redirect("login")
+        except User.DoesNotExist:
+            pass
+
+        messages.error(request, "Invalid credentials.")
+        return redirect("/login/?tab=login")
 
     return render(request, 'home/register.html')
 
@@ -111,6 +126,9 @@ def register_view(request):
             user.gender = request.POST.get('gender', '').strip()
             user.course = request.POST.get('course', '').strip()
             user.year = request.POST.get('year', '').strip()
+            messages.success(request, "Registration successful. You can log in now.")
+            return redirect("login")
+
 
         elif role == 'contributor':
             user.role = User.Role.CONTRIBUTOR
@@ -120,15 +138,20 @@ def register_view(request):
             user.designation = request.POST.get('designation', '').strip()
             user.current_institution = request.POST.get('institution', '').strip()
             user.years_of_experience = request.POST.get('exp') or None
-            # user.program = Program.objects.get(program_name=request.POST.get('program'))
             user.highest_qualification = request.POST.get('qualification')
             user.date_of_birth = request.POST.get('contrib-dob')
-            user.current_institution = request.POST.get('institution', '').strip()
             user.bio = request.POST.get('bio', '').strip()
-            # domain_ids = request.POST.getlist('expertise')  # can select multiple
-            user.save()  # must save user before assigning M2M
-            # if domain_ids:
-            #     user.domain_of_expertise.set(domain_ids)  # assign multiple Expertise objects
+
+            # ✅ IMPORTANT: contributor must be approved by admin first
+            user.contributor_approval_status = User.ContributorApprovalStatus.PENDING
+            user.is_active = False
+
+            user.save()
+
+            RegistrationSuccessEmail(user.email, user.first_name).send()
+            messages.info(request, "Registration successful. Your contributor account is pending admin approval.")
+            return redirect("pending_approval")
+
 
         # Save user
         user.save()
@@ -158,5 +181,5 @@ def upload_syllabus(request):
 
     return render(request, 'home/upload_syllabus.html')
 
-
-
+def pending_approval_view(request):
+    return render(request, "home/pending_approval.html")
