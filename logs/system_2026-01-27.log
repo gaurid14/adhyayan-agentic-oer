@@ -1,0 +1,5 @@
+[WARNING] 2026-01-27 23:57:23,050 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-27 23:57:23,525 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-27 23:57:25,144 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-27 23:57:25,145 | django.server | "GET /favicon.ico HTTP/1.1" 404 11636
+[WARNING] 2026-01-27 23:58:02,778 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880

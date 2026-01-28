@@ -95,7 +95,6 @@ DATABASES = {
 }
 
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -215,3 +214,6 @@ EMAIL_HOST_USER = "societyhub18@gmail.com"
 EMAIL_HOST_PASSWORD = "pqoq okex osoh riry"  # NOT your regular Gmail password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+LOGIN_URL = "login"               # uses your named URL: path('login/', ..., name='login')
+LOGIN_REDIRECT_URL = "home"       # fallback
+LOGOUT_REDIRECT_URL = "home"      # optional
