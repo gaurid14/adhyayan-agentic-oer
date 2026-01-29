@@ -12,7 +12,12 @@ from google.auth.exceptions import RefreshError
 
 from langgraph_agents.services.drive_service import GoogleDriveAuthService, GoogleDriveFolderService
 from ...models import Course, Chapter, UploadCheck
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
+from django.shortcuts import render
+from django.utils import timezone
 
+from ...models import Course, Chapter, UploadCheck
 
 # ==============================
 # 🔒 Authorization Guard
@@ -186,25 +191,112 @@ class TopicExtractor:
 def contributor_dashboard_view(request):
     user = request.user
 
-    if not ContributorAccessGuard.ensure_contributor(user):
+    # ensure contributor
+    if user.role != "CONTRIBUTOR":
         return render(request, "403.html", status=403)
 
-    courses = ContributorCourseService.get_recommended_courses(user)
-    chapters_map = ContributorCourseService.get_chapters_by_course(courses)
+    # recommended/available subjects
+    courses_qs = (
+        Course.objects
+        .filter(expertises__in=user.domain_of_expertise.all())
+        .distinct()
+        .select_related("department", "department__program", "scheme")
+        .order_by("department__dept_name", "semester", "course_name")
+    )
 
-    context = {
-        "recommended_courses": list(
-            courses.values("id", "course_name")
-        ),
-        "chapters_json": json.dumps(chapters_map),
-    }
+    courses = list(courses_qs)
+    uploads_count = UploadCheck.objects.filter(contributor=user).count()
+
+    if not courses:
+        return render(
+            request,
+            "contributor/contributor_dashboard.html",
+            {
+                "uploads_count": uploads_count,
+                "recommended_courses": [],
+                "course_tree": [],
+                "selected_course": None,
+                "chapters": [],
+                "is_approved_contributor": getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED",
+            },
+        )
+
+    # LEFT panel hierarchy: Course(stream/department) -> Sem -> Subject(Course)
+    tree = {}
+    for c in courses:
+        dept = c.department
+        tree.setdefault(dept.id, {"dept": dept, "sems": {}})
+        tree[dept.id]["sems"].setdefault(c.semester or 0, [])
+        tree[dept.id]["sems"][c.semester or 0].append(c)
+
+    course_tree = []
+    for _, node in sorted(tree.items(), key=lambda kv: kv[1]["dept"].dept_name.lower()):
+        sem_list = []
+        for sem, sem_courses in sorted(node["sems"].items(), key=lambda kv: kv[0]):
+            sem_list.append({
+                "semester": sem,
+                "courses": sorted(sem_courses, key=lambda x: x.course_name.lower()),
+            })
+        course_tree.append({"dept": node["dept"], "sems": sem_list})
+
+    # selected subject
+    selected_course_id = request.GET.get("course_id")
+    selected_course = None
+    if selected_course_id:
+        selected_course = next((c for c in courses if str(c.id) == str(selected_course_id)), None)
+    if not selected_course:
+        selected_course = courses[0]
+
+    # RIGHT: chapters + policy + contribution counts (single query)
+    now = timezone.now()
+
+    chapters_qs = (
+        Chapter.objects
+        .filter(course=selected_course)
+        .select_related("course", "policy")
+        .annotate(
+            contributions_total=Count("uploads", distinct=True),
+            contributions_evaluated=Count("uploads", filter=Q(uploads__evaluation_status=True), distinct=True),
+        )
+        .order_by("chapter_number")
+    )
+
+    # which chapters current contributor has already submitted (single query)
+    submitted_ids = set(
+        UploadCheck.objects
+        .filter(contributor=user, chapter__course=selected_course)
+        .values_list("chapter_id", flat=True)
+    )
+
+    is_approved = (getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED") and user.is_active
+
+    chapters = list(chapters_qs)
+    for ch in chapters:
+        policy = getattr(ch, "policy", None)
+        deadline = getattr(policy, "current_deadline", None)
+
+        ch.deadline = deadline
+        ch.extensions_used = getattr(policy, "extensions_used", 0) if policy else 0
+        ch.max_extensions = getattr(policy, "max_extensions", 0) if policy else 0
+        ch.min_contributions = getattr(policy, "min_contributions", None) if policy else None
+
+        ch.is_open = (deadline is None) or (deadline >= now)
+        ch.user_submitted = ch.id in submitted_ids
+        ch.can_submit = bool(is_approved and ch.is_open and not ch.user_submitted)
 
     return render(
         request,
         "contributor/contributor_dashboard.html",
-        context
+        {
+            "uploads_count": uploads_count,
+            "recommended_courses": courses,
+            "course_tree": course_tree,
+            "selected_course": selected_course,
+            "chapters": chapters,
+            "is_approved_contributor": is_approved,
+            "now": now,
+        },
     )
-
 
 @login_required
 def contributor_submissions(request):

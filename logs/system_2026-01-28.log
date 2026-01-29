@@ -534,3 +534,191 @@ django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 428: '
 [WARNING] 2026-01-28 23:08:52,556 | django.request | Not Found: /favicon.ico
 [WARNING] 2026-01-28 23:08:52,556 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
 [WARNING] 2026-01-28 23:09:01,888 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:10:37,207 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:10:43,503 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:10:49,558 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:10:53,239 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:10:53,257 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:10:53,258 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:11:53,497 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:11:53,497 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:11:53,505 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:11:58,608 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:11:58,610 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:11:58,616 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:12:31,158 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:12:31,174 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:12:31,175 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:12:32,851 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-28 23:12:32,852 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[WARNING] 2026-01-28 23:12:35,699 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:12:35,701 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:12:35,709 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:13:10,721 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:13:10,724 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:13:10,730 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:13:14,606 | django.request | Not Found: /.well-known/appspecific/com.chrome.devtools.json
+[WARNING] 2026-01-28 23:13:14,606 | django.server | "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 12022
+[WARNING] 2026-01-28 23:13:14,613 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:13:16,345 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-28 23:13:16,346 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[WARNING] 2026-01-28 23:28:07,422 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:30:15,406 | django.security.csrf | Forbidden (CSRF token from POST incorrect.): /admin/accounts/user/
+[WARNING] 2026-01-28 23:30:15,407 | django.server | "POST /admin/accounts/user/ HTTP/1.1" 403 2503
+[ERROR] 2026-01-28 23:30:44,943 | django.request | Internal Server Error: /dashboard/contributor/
+Traceback (most recent call last):
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\accounts\views\contributor\contributor_dashboard.py", line 190, in contributor_dashboard_view
+    return render(request, "403.html", status=403)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: 403.html
+[ERROR] 2026-01-28 23:30:44,947 | django.server | "GET /dashboard/contributor/ HTTP/1.1" 500 94810
+[ERROR] 2026-01-28 23:32:16,721 | django.request | Internal Server Error: /dashboard/contributor/
+Traceback (most recent call last):
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\accounts\views\contributor\contributor_dashboard.py", line 190, in contributor_dashboard_view
+    return render(request, "403.html", status=403)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: 403.html
+[ERROR] 2026-01-28 23:32:16,723 | django.server | "GET /dashboard/contributor/ HTTP/1.1" 500 94810
+[ERROR] 2026-01-28 23:32:18,370 | django.request | Internal Server Error: /dashboard/contributor/
+Traceback (most recent call last):
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\accounts\views\contributor\contributor_dashboard.py", line 190, in contributor_dashboard_view
+    return render(request, "403.html", status=403)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: 403.html
+[ERROR] 2026-01-28 23:32:18,372 | django.server | "GET /dashboard/contributor/ HTTP/1.1" 500 94810
+[ERROR] 2026-01-28 23:32:20,251 | django.request | Internal Server Error: /dashboard/contributor/
+Traceback (most recent call last):
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\accounts\views\contributor\contributor_dashboard.py", line 190, in contributor_dashboard_view
+    return render(request, "403.html", status=403)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: 403.html
+[ERROR] 2026-01-28 23:32:20,251 | django.server | "GET /dashboard/contributor/ HTTP/1.1" 500 94938
+[WARNING] 2026-01-28 23:32:20,631 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-28 23:32:20,631 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[ERROR] 2026-01-28 23:32:21,875 | django.request | Internal Server Error: /dashboard/contributor/
+Traceback (most recent call last):
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\accounts\views\contributor\contributor_dashboard.py", line 190, in contributor_dashboard_view
+    return render(request, "403.html", status=403)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: 403.html
+[ERROR] 2026-01-28 23:32:21,877 | django.server | "GET /dashboard/contributor/ HTTP/1.1" 500 94938
+[ERROR] 2026-01-28 23:32:22,147 | django.request | Internal Server Error: /dashboard/contributor/
+Traceback (most recent call last):
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\accounts\views\contributor\contributor_dashboard.py", line 190, in contributor_dashboard_view
+    return render(request, "403.html", status=403)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IT\_OER\OER\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: 403.html
+[ERROR] 2026-01-28 23:32:22,149 | django.server | "GET /dashboard/contributor/ HTTP/1.1" 500 94938
+[WARNING] 2026-01-28 23:32:22,214 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-28 23:32:22,215 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[WARNING] 2026-01-28 23:32:22,479 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-28 23:32:22,481 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[WARNING] 2026-01-28 23:32:24,893 | django.request | Not Found: /dashboard
+[WARNING] 2026-01-28 23:32:24,897 | django.server | "GET /dashboard HTTP/1.1" 404 11905
+[WARNING] 2026-01-28 23:32:31,550 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:33:06,152 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-28 23:33:06,152 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[WARNING] 2026-01-28 23:33:14,844 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-28 23:33:35,620 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880

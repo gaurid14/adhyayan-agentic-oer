@@ -1,0 +1,8 @@
+[WARNING] 2026-01-29 14:25:45,400 | django.security.csrf | Forbidden (CSRF token from POST incorrect.): /admin/login/
+[WARNING] 2026-01-29 14:25:45,403 | django.server | "POST /admin/login/?next=/admin/accounts/user/ HTTP/1.1" 403 2503
+[WARNING] 2026-01-29 14:25:50,165 | django.security.csrf | Forbidden (CSRF token from POST incorrect.): /admin/login/
+[WARNING] 2026-01-29 14:25:50,166 | django.server | "POST /admin/login/?next=/admin/accounts/user/ HTTP/1.1" 403 2503
+[WARNING] 2026-01-29 14:25:50,704 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-29 14:25:50,713 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911
+[WARNING] 2026-01-29 14:25:57,161 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-29 14:25:57,187 | django.server | "GET /favicon.ico HTTP/1.1" 404 11911

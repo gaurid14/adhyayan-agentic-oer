@@ -2,7 +2,31 @@ from django.contrib import admin
 from django.utils import timezone
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import User, ForumTopic, ForumQuestion, ForumAnswer
+from .models import (
+    User,
+    Course,
+    Chapter,
+    ChapterPolicy,
+    ChapterDeadlineExtension,
+    ForumTopic,
+    ForumQuestion,
+    ForumAnswer,
+    Program,
+    Department,
+    Scheme,
+    Expertise,
+    CourseObjective,
+    CourseOutcome,
+    OutcomeChapterMapping,
+    UploadCheck,
+    ContentCheck,
+    ContentScore,
+    ReleasedContent,
+    EnrolledCourse,
+    Assessment,
+    Question,
+    Option,
+)
 
 @admin.register(ForumTopic)
 class ForumTopicAdmin(admin.ModelAdmin):
@@ -60,3 +84,59 @@ class UserAdmin(DjangoUserAdmin):
     )
 
     readonly_fields = ("contributor_approved_at", "contributor_rejected_at")
+
+@admin.action(description="Create missing ChapterPolicy for selected chapters")
+def create_missing_chapter_policies(modeladmin, request, queryset):
+    for chapter in queryset:
+        ChapterPolicy.objects.get_or_create(chapter=chapter)
+
+
+
+@admin.register(Chapter)
+class ChapterAdmin(admin.ModelAdmin):
+    list_display = ("course", "chapter_number", "chapter_name")
+    list_filter = ("course__department", "course__semester", "course__scheme")
+    search_fields = ("chapter_name", "course__course_name")
+    actions = [create_missing_chapter_policies]
+
+
+class ChapterDeadlineExtensionInline(admin.TabularInline):
+    model = ChapterDeadlineExtension
+    extra = 0
+    readonly_fields = ("extended_at", "old_deadline", "new_deadline")
+
+
+@admin.register(ChapterPolicy)
+class ChapterPolicyAdmin(admin.ModelAdmin):
+    list_display = (
+        "chapter",
+        "current_deadline",
+        "extensions_used",
+        "max_extensions",
+        "min_contributions",
+    )
+    list_filter = ("chapter__course__department", "chapter__course__semester")
+    search_fields = ("chapter__chapter_name", "chapter__course__course_name")
+    inlines = [ChapterDeadlineExtensionInline]
+
+
+admin.site.register(Program)
+admin.site.register(Department)
+admin.site.register(Scheme)
+admin.site.register(Expertise)
+admin.site.register(Course)
+admin.site.register(CourseObjective)
+admin.site.register(CourseOutcome)
+admin.site.register(OutcomeChapterMapping)
+
+admin.site.register(UploadCheck)
+admin.site.register(ContentCheck)
+admin.site.register(ContentScore)
+admin.site.register(ReleasedContent)
+
+admin.site.register(EnrolledCourse)
+
+admin.site.register(Assessment)
+admin.site.register(Question)
+admin.site.register(Option)
+

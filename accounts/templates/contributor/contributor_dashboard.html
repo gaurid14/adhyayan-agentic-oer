@@ -1,656 +1,997 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contributor Dashboard | OER</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}" />
 
     <style>
-        :root {
-          --bg-page: #FFFFFF;
-          --bg-card: #F7F8FA;
-          --border-soft: #E6E8EC;
+      :root {
+        --bg-page: #ffffff;
+        --bg-card: #f7f8fa;
+        --border-soft: #e6e8ec;
 
-          --text-primary: #0F172A;   /* slate-900 */
-          --text-secondary: #475569; /* slate-600 */
+        --text-primary: #0f172a; /* slate-900 */
+        --text-secondary: #475569; /* slate-600 */
 
-          --brand: #0F766E;          /* muted enterprise teal */
-          --brand-soft: #E6F4F1;
-          --brand-hover: #115E59;
-        }
+        --brand: #0f766e; /* muted enterprise teal */
+        --brand-soft: #e6f4f1;
+        --brand-hover: #115e59;
+      }
 
-        /* =====================
+      /* =====================
            RESET & BASE
         ===================== */
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
-        body { background:#FFFFFF; color:#333; display:flex; min-height:100vh; }
-        ul { list-style:none; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", sans-serif;
+      }
+      body {
+        background: #ffffff;
+        color: #333;
+        display: flex;
+        min-height: 100vh;
+      }
+      ul {
+        list-style: none;
+      }
 
-        /* =====================
+      /* =====================
            LAYOUT
         ===================== */
-        .dashboard-layout { display:flex; width:100%; }
+      .dashboard-layout {
+        display: flex;
+        width: 100%;
+      }
 
-        /* =====================
+      /* =====================
            MAIN CONTENT
         ===================== */
-        .main-content {
-            flex-grow:1;
-            margin-left:260px;
-            padding:30px 40px;
-        }
+      .main-content {
+        flex-grow: 1;
+        margin-left: 260px;
+        padding: 30px 40px;
+      }
 
-        /* TOP BAR */
-        .topbar {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            background:#fff;
-            padding:12px 20px;
-            border-radius:10px;
-            border: 1px solid #E5E7EB;
-            box-shadow:none;
-            margin-bottom:25px;
-        }
+      /* TOP BAR */
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        box-shadow: none;
+        margin-bottom: 25px;
+      }
 
-        .topbar-left { display:flex; align-items:center; gap:15px; }
-        .role-badge {
-            background:#e6f8f7;
-            color:#1EAE98;
-            font-size:12px;
-            padding:4px 10px;
-            border-radius:20px;
-            font-weight:600;
-        }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .role-badge {
+        background: #e6f8f7;
+        color: #1eae98;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
 
-        .topbar-right { display:flex; align-items:center; gap:20px; }
-        .notification-icon { font-size:18px; cursor:pointer; }
-        .user-chip {
-            background:#F9FAFB;
-            border: 1px solid #E5E7EB;
-            color: #111827;
-            padding:6px 12px;
-            border-radius:20px;
-            font-size:14px;
-        }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .notification-icon {
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .user-chip {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        color: #111827;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+      }
 
-        /* PAGE HEADER */
-        .main-header h1 { font-size:24px; margin-bottom:20px; }
+      /* PAGE HEADER */
+      .main-header h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
 
-        /* =====================
+      /* =====================
            KPI CARDS
         ===================== */
-        .kpi-grid {
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-            gap:20px;
-            margin-bottom:30px;
-        }
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
 
-        .kpi-card {
-            background:#fff;
-            padding:20px;
-            border-radius:12px;
-            border: 1px solid #E5E7EB;
-            box-shadow:0 1px 1px rgba(0,0,0,0.02);
-        }
+      .kpi-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+      }
 
-        .kpi-card h3 {
-          color: var(--text-primary);
-          font-weight: 600;
-        }
+      .kpi-card h3 {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
 
-        .org-name {
-          color: var(--text-primary);
-        }
+      .org-name {
+        color: var(--text-primary);
+      }
 
-
-        /* =====================
+      /* =====================
            CONTENT SECTIONS
         ===================== */
-        .content-section { display:none; }
-        .content-section.active { display:block; animation:fadeIn 0.4s ease; }
+      .content-section {
+        display: none;
+      }
+      .content-section.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+      }
 
-        /* =====================
+      /* =====================
            CARDS
         ===================== */
-        .card {
-            background:#fff;
-            border-radius:12px;
-            padding:25px;
-            border: 1px solid #E5E7EB;
-            box-shadow:0 1px 1px rgba(0,0,0,0.02);
-            margin-bottom:30px;
-        }
-        .card-title {
-            font-size:20px;
-            color: #111827;
-            font-weight: 600;
-            margin-bottom:20px;
-            border-bottom:1px solid #eee;
-            padding-bottom:10px;
-        }
-        .card {
-          border: 1px solid #E6E8EC;
-        }
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+        margin-bottom: 30px;
+      }
+      .card-title {
+        font-size: 20px;
+        color: #111827;
+        font-weight: 600;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      .card {
+        border: 1px solid #e6e8ec;
+      }
 
-        body {
-          color: #1F2937;
-        }
+      body {
+        color: #1f2937;
+      }
 
-        p, td {
-          color: #374151;
-        }
+      p,
+      td {
+        color: #374151;
+      }
 
-        /* =====================
+      /* =====================
            COURSE GRID
         ===================== */
-        .course-grid {
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-            gap:20px;
-        }
+      .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+      }
 
-        .course-card {
-            background: #FFFFFF;
-            padding: 16px 18px;
-            border-radius: 8px;
-            border: 1px solid #E5E7EB;
-            box-shadow: none;
-        }
+      .course-card {
+        background: #ffffff;
+        padding: 16px 18px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        box-shadow: none;
+      }
 
-        .course-card:hover {
-            border-color: #D1FAE5;
-            background: #FAFAFA;
-        }
+      .course-card:hover {
+        border-color: #d1fae5;
+        background: #fafafa;
+      }
 
+      .course-card h4 {
+        margin-bottom: 6px;
+      }
+      .course-card p {
+        font-size: 13px;
+        color: #777;
+        margin-bottom: 15px;
+      }
 
-        .course-card h4 { margin-bottom:6px; }
-        .course-card p { font-size:13px; color:#777; margin-bottom:15px; }
+      .status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+      .status.approved {
+        background: var(--brand-soft);
+        color: var(--brand);
+      }
 
-        .status {
-            position:absolute;
-            top:15px;
-            right:15px;
-            font-size:11px;
-            padding:4px 10px;
-            border-radius:12px;
-            font-weight:600;
-        }
-        .status.approved {
-          background: var(--brand-soft);
-          color: var(--brand);
-        }
+      .card,
+      .topbar,
+      .course-card {
+        border: 1px solid #e5e7eb;
+        box-shadow:
+          0 1px 1px rgba(0, 0, 0, 0.02),
+          0 1px 2px rgba(0, 0, 0, 0.02);
+      }
 
-        .card,
-        .topbar,
-        .course-card {
-        border: 1px solid #E5E7EB;
-          box-shadow: 0 1px 1px rgba(0,0,0,0.02),
-                      0 1px 2px rgba(0,0,0,0.02);
-        }
+      .primary-btn {
+        background: #1eae98;
+        color: #fff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .primary-btn:hover {
+        background: #178d79;
+      }
 
-
-
-        .primary-btn {
-            background:#1EAE98;
-            color:#fff;
-            border:none;
-            padding:8px 14px;
-            border-radius:6px;
-            cursor:pointer;
-        }
-        .primary-btn:hover { background:#178D79; }
-
-        /* =====================
+      /* =====================
            CONTRIBUTIONS
         ===================== */
-        .content-list li {
-            background:#f8f9fa;
-            padding:15px;
-            border-radius:8px;
-            margin-bottom:10px;
-            border-left:4px solid #1EAE98;
-        }
+      .content-list li {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #1eae98;
+      }
 
-        .badge {
-            padding:4px 10px;
-            border-radius:12px;
-            font-size:12px;
-            font-weight:600;
-        }
-        .badge.pending { background:#fff3cd; color:#856404; }
-        .badge.evaluated { background:#d4edda; color:#155724; }
+      .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge.pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .badge.evaluated {
+        background: #d4edda;
+        color: #155724;
+      }
 
-        /* =====================
+      /* =====================
            MODAL
         ===================== */
-        .modal-overlay {
-            position:fixed; inset:0;
-            background:rgba(0,0,0,0.6);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            opacity:0; visibility:hidden;
-            transition:0.3s;
-            z-index:1000;
-        }
-        body.modal-open .modal-overlay { opacity:1; visibility:visible; }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.3s;
+        z-index: 1000;
+      }
+      body.modal-open .modal-overlay {
+        opacity: 1;
+        visibility: visible;
+      }
 
-        .modal {
-            background:#fff;
-            width:90%;
-            max-width:500px;
-            border-radius:12px;
-            padding:20px;
-        }
+      .modal {
+        background: #fff;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 12px;
+        padding: 20px;
+      }
 
-        /* =====================
+      /* =====================
            ANIMATIONS
         ===================== */
-        @keyframes fadeIn {
-            from { opacity:0; transform:translateY(10px); }
-            to { opacity:1; transform:none; }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
 
-        /* =====================
+      /* =====================
            SLIDE-OUT DRAWER
         ===================== */
-        .chapters-drawer {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 380px;
-            height: 100%;
-            background: #ffffff;
-            border: 1px solid #E5E7EB;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.02);
-            padding: 25px;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1100;
-            display: flex;
-            flex-direction: column;
+      .chapters-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 380px;
+        height: 100%;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+        padding: 25px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .drawer-header h3 {
+        font-size: 20px;
+        color: #333;
+      }
+
+      #close-drawer-btn {
+        font-size: 28px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: #888;
+      }
+
+      #drawer-chapters-list li {
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background: #f8f9fa;
+      }
+
+      #drawer-chapters-list li a {
+        color: #333;
+        font-weight: 500;
+      }
+
+      #drawer-chapters-list li:hover {
+        background: #e6f8f7;
+      }
+
+      #drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.3s;
+        z-index: 1000;
+      }
+
+      body.drawer-open .chapters-drawer {
+        transform: translateX(0);
+      }
+
+      body.drawer-open #drawer-overlay {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .notification-wrapper {
+        position: relative;
+      }
+
+      .notification-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .notif-badge {
+        position: absolute;
+        top: -4px;
+        right: -6px;
+        background: #e53935;
+        color: #fff;
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 12px;
+      }
+
+      .notification-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 42px;
+        width: 320px;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.02);
+        z-index: 100;
+      }
+
+      .notification-dropdown.show {
+        display: block;
+      }
+
+      .notif-header {
+        padding: 14px;
+        font-weight: 700;
+        border-bottom: 1px solid #eee;
+      }
+
+      .notif-item {
+        padding: 12px 14px;
+        font-size: 14px;
+        border-bottom: 1px solid #f2f2f2;
+      }
+
+      .notif-item.unread {
+        background: #f0faf8;
+        font-weight: 600;
+      }
+
+      #drawer-chapters-list li {
+        padding: 12px 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #f8fafc;
+        transition:
+          background 0.2s ease,
+          transform 0.15s ease;
+      }
+
+      #drawer-chapters-list li:hover {
+        background: #e6f4f1;
+        transform: translateX(4px);
+      }
+
+      #drawer-chapters-list li a {
+        text-decoration: none;
+        color: #0f172a;
+        display: block;
+        width: 100%;
+      }
+
+      #drawer-chapters-list li::after {
+        float: right;
+        color: #94a3b8;
+      }
+
+      .topbar-right {
+        margin-left: auto;
+      }
+
+      /* ===== Flat section style (enterprise) ===== */
+      .flat-section {
+        margin-top: 32px;
+      }
+
+      .section-heading {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 16px;
+      }
+
+      /* ===== De-cardify inner content ===== */
+
+      /* KPI cards – keep accent */
+      .kpi-card {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+        border-top: 3px solid var(--brand);
+        border-radius: 10px;
+      }
+
+      /* Course cards – neutral */
+      .course-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        background: #ffffff;
+      }
+
+      /* Generic cards – flat */
+      .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+
+      /* Remove rounded stacking feel */
+      .card,
+      .course-card {
+        border-radius: 10px;
+      }
+
+      .flat-section {
+        margin-top: 36px;
+      }
+
+      .section-heading {
+        margin-bottom: 20px;
+      }
+
+      .section-subtext {
+        font-size: 13px;
+        font-weight: 500;
+        color: #6b7280;
+        margin-left: 8px;
+      }
+
+      .page-context {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .timeline-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 22px;
+      }
+
+      .timeline-left {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px;
+        background: #fff;
+        max-height: 70vh;
+        overflow: auto;
+      }
+
+      .tree-group + .tree-group {
+        margin-top: 14px;
+      }
+      .tree-title {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
+        font-size: 13px;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+      }
+
+      .tree-sem details {
+        border: 1px solid #f1f5f9;
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #fafafa;
+        margin-bottom: 10px;
+      }
+      .tree-sem summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #0f172a;
+        list-style: none;
+      }
+
+      .tree-links {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .tree-link {
+        display: block;
+        padding: 8px 10px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #111827;
+        border: 1px solid transparent;
+      }
+      .tree-link:hover {
+        background: #f3f4f6;
+      }
+      .tree-link.active {
+        background: #e6f4f1;
+        border-color: #bfece6;
+        color: #0f766e;
+        font-weight: 700;
+      }
+
+      .timeline-right {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        background: #fff;
+      }
+      .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .timeline-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #111827;
+        font-weight: 700;
+      }
+      .pill {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+      }
+
+      .timeline-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .timeline-table th,
+      .timeline-table td {
+        padding: 10px 8px;
+        border-top: 1px solid #e5e7eb;
+        vertical-align: middle;
+        font-size: 14px;
+      }
+      .timeline-table th {
+        color: #6b7280;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        font-weight: 700;
+      }
+      .muted {
+        color: #6b7280;
+        font-size: 13px;
+      }
+
+      @media (max-width: 1100px) {
+        .timeline-layout {
+          grid-template-columns: 1fr;
         }
-
-        .drawer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        .timeline-left {
+          max-height: none;
         }
-
-        .drawer-header h3 {
-            font-size: 20px;
-            color: #333;
-        }
-
-        #close-drawer-btn {
-            font-size: 28px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: #888;
-        }
-
-        #drawer-chapters-list li {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-        }
-
-        #drawer-chapters-list li a {
-            color: #333;
-            font-weight: 500;
-        }
-
-        #drawer-chapters-list li:hover {
-            background: #e6f8f7;
-        }
-
-        #drawer-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            opacity: 0;
-            visibility: hidden;
-            transition: 0.3s;
-            z-index: 1000;
-        }
-
-        body.drawer-open .chapters-drawer {
-            transform: translateX(0);
-        }
-
-        body.drawer-open #drawer-overlay {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .notification-wrapper {
-            position: relative;
-        }
-
-        .notification-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .notif-badge {
-            position: absolute;
-            top: -4px;
-            right: -6px;
-            background: #e53935;
-            color: #fff;
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 12px;
-        }
-
-        .notification-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 42px;
-            width: 320px;
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #E5E7EB;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.02);
-            z-index: 100;
-        }
-
-        .notification-dropdown.show {
-            display: block;
-        }
-
-        .notif-header {
-            padding: 14px;
-            font-weight: 700;
-            border-bottom: 1px solid #eee;
-        }
-
-        .notif-item {
-            padding: 12px 14px;
-            font-size: 14px;
-            border-bottom: 1px solid #f2f2f2;
-        }
-
-        .notif-item.unread {
-            background: #f0faf8;
-            font-weight: 600;
-        }
-
-        #drawer-chapters-list li {
-            padding: 12px 14px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #F8FAFC;
-            transition: background 0.2s ease, transform 0.15s ease;
-        }
-
-        #drawer-chapters-list li:hover {
-            background: #E6F4F1;
-            transform: translateX(4px);
-        }
-
-        #drawer-chapters-list li a {
-            text-decoration: none;
-            color: #0F172A;
-            display: block;
-            width: 100%;
-        }
-
-        #drawer-chapters-list li::after {
-            float: right;
-            color: #94A3B8;
-        }
-
-        .topbar-right {
-            margin-left: auto;
-        }
-
-        /* ===== Flat section style (enterprise) ===== */
-        .flat-section {
-            margin-top: 32px;
-        }
-
-        .section-heading {
-            font-size: 18px;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 16px;
-        }
-
-
-        /* ===== De-cardify inner content ===== */
-
-        /* KPI cards – keep accent */
-        .kpi-card {
-            box-shadow: none;
-            border: 1px solid #E5E7EB;
-            border-top: 3px solid var(--brand);
-            border-radius: 10px;
-        }
-
-        /* Course cards – neutral */
-        .course-card {
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            box-shadow: none;
-            background: #FFFFFF;
-        }
-
-        /* Generic cards – flat */
-        .card {
-            border: 1px solid #E5E7EB;
-            border-radius: 10px;
-            box-shadow: none;
-        }
-
-
-        /* Remove rounded stacking feel */
-        .card,
-        .course-card {
-            border-radius: 10px;
-        }
-
-        .flat-section {
-            margin-top: 36px;
-        }
-
-        .section-heading {
-            margin-bottom: 20px;
-        }
-
-        .section-subtext {
-            font-size: 13px;
-            font-weight: 500;
-            color: #6B7280;
-            margin-left: 8px;
-        }
-
-        .page-context {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-        }
-
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
-<div class="dashboard-layout">
-    {% include "contributor/sidebar.html" %}
-    <!-- MAIN -->
-    <main class="main-content">
-
+  <body>
+    <div class="dashboard-layout">
+      {% include "contributor/sidebar.html" %}
+      <!-- MAIN -->
+      <main class="main-content">
         <!-- TOP BAR -->
         <div class="topbar">
-            <div class="topbar-left">
-                <span class="page-context">Contributor Dashboard</span>
-            </div>
+          <div class="topbar-left">
+            <span class="page-context">Contributor Dashboard</span>
+          </div>
 
-            <div class="topbar-right">
+          <div class="topbar-right">
+            <!-- 🔔 Notification Component -->
+            <div class="notification-wrapper">
+              <button class="notification-btn" onclick="toggleNotifications()">
+                <i class="fas fa-bell notification-icon"></i>
 
-                <!-- 🔔 Notification Component -->
-                <div class="notification-wrapper">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <i class="fas fa-bell notification-icon"></i>
+                {% if unread_count > 0 %}
+                <span class="notif-badge">{{ unread_count }}</span>
+                {% endif %}
+              </button>
 
-                        {% if unread_count > 0 %}
-                        <span class="notif-badge">{{ unread_count }}</span>
-                        {% endif %}
-                    </button>
+              <div class="notification-dropdown" id="notifDropdown">
+                <div class="notif-header">Notifications</div>
 
-                    <div class="notification-dropdown" id="notifDropdown">
-                        <div class="notif-header">Notifications</div>
-
-                        {% for notif in notifications %}
-                        <div class="notif-item {% if not notif.is_read %}unread{% endif %}">
-                            <strong>{{ notif.title }}</strong>
-                            <p>{{ notif.message }}</p>
-                        </div>
-                        {% empty %}
-                        <div class="notif-item">No notifications</div>
-                        {% endfor %}
-                    </div>
+                {% for notif in notifications %}
+                <div
+                  class="notif-item {% if not notif.is_read %}unread{% endif %}"
+                >
+                  <strong>{{ notif.title }}</strong>
+                  <p>{{ notif.message }}</p>
                 </div>
-
-                <!-- 👤 User -->
-                <span class="user-chip">{{ user.first_name }} {{ user.last_name }}</span>
+                {% empty %}
+                <div class="notif-item">No notifications</div>
+                {% endfor %}
+              </div>
             </div>
-        </div>
 
+            <!-- 👤 User -->
+            <span class="user-chip"
+              >{{ user.first_name }} {{ user.last_name }}</span
+            >
+          </div>
+        </div>
 
         <div id="content-area">
+          <!-- DASHBOARD -->
+          <section id="dashboard-content" class="content-section active">
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <h3>{{ uploads|length }}</h3>
+                <p>Total Contributions</p>
+              </div>
+              <div class="kpi-card">
+                <h3>{{ recommended_courses|length }}</h3>
+                <p>Recommended Subjects</p>
+              </div>
+            </div>
 
-            <!-- DASHBOARD -->
-            <section id="dashboard-content" class="content-section active">
+            <section class="flat-section">
+              <h2 class="section-heading">
+                Recommended Subjects
+                <span class="section-subtext">Based on your expertise</span>
+              </h2>
 
-                <div class="kpi-grid">
-                    <div class="kpi-card"><h3>{{ uploads|length }}</h3><p>Total Contributions</p></div>
-                    <div class="kpi-card"><h3>{{ recommended_courses|length }}</h3><p>Recommended Subjects</p></div>
+              <div class="course-grid">
+                {% for course in recommended_courses %}
+                <div
+                  class="course-card"
+                  data-course-id="{{ course.id }}"
+                  data-course-name="{{ course.course_name }}"
+                >
+                  <!--                            <span class="status approved">Recommended</span>-->
+                  <h4>{{ course.course_name }}</h4>
+                  <p>Curriculum-aligned subject</p>
+                  <button
+                    class="primary-btn view-chapters-btn"
+                    data-course-id="{{ course.id }}"
+                    data-course-name="{{ course.course_name }}"
+                  >
+                    Browse Chapters
+                  </button>
                 </div>
-
-                <section class="flat-section">
-                    <h2 class="section-heading">
-                        Recommended Subjects
-                        <span class="section-subtext">Based on your expertise</span>
-                    </h2>
-
-                    <div class="course-grid">
-                        {% for course in recommended_courses %}
-                        <div class="course-card" data-course-id="{{ course.id }}" data-course-name="{{ course.course_name }}">
-<!--                            <span class="status approved">Recommended</span>-->
-                            <h4>{{ course.course_name }}</h4>
-                            <p>Curriculum-aligned subject</p>
-                            <button
-                                    class="primary-btn view-chapters-btn"
-                                    data-course-id="{{ course.id }}"
-                                    data-course-name="{{ course.course_name }}">
-                                Browse Chapters
-                            </button>
-
-                        </div>
-                        {% empty %}
-                        <p>No recommendations available.</p>
-                        {% endfor %}
-                    </div>
-                </section>
-
+                {% empty %}
+                <p>No recommendations available.</p>
+                {% endfor %}
+              </div>
             </section>
 
-        </div>
-    </main>
-</div>
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <h3>{{ uploads_count }}</h3>
+                <p>Total Contributions</p>
+              </div>
+              <div class="kpi-card">
+                <h3>{{ recommended_courses|length }}</h3>
+                <p>Recommended Subjects</p>
+              </div>
+            </div>
 
-<!-- CHAPTERS DRAWER -->
-<div id="chapters-drawer" class="chapters-drawer">
-    <div class="drawer-header">
+            <section class="flat-section">
+              <h2 class="section-heading">
+                Submission Timeline
+                <span class="section-subtext"
+                  >Course → Semester → Subject • Chapter-wise targets &
+                  deadlines</span
+                >
+              </h2>
+
+              <div class="timeline-layout">
+                <!-- LEFT: Course → Sem → Subject -->
+                <aside class="timeline-left">
+                  {% for node in course_tree %}
+                  <div class="tree-group">
+                    <div class="tree-title">{{ node.dept.dept_name }}</div>
+
+                    {% for sem in node.sems %}
+                    <div class="tree-sem">
+                      <details open>
+                        <summary>Semester {{ sem.semester }}</summary>
+
+                        <div class="tree-links">
+                          {% for c in sem.courses %}
+                          <a
+                            class="tree-link {% if selected_course and c.id == selected_course.id %}active{% endif %}"
+                            href="{% url 'contributor_dashboard' %}?course_id={{ c.id }}"
+                          >
+                            {{ c.course_name }}
+                          </a>
+                          {% endfor %}
+                        </div>
+                      </details>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% empty %}
+                  <div class="muted">
+                    No courses mapped to your expertise yet.
+                  </div>
+                  {% endfor %}
+                </aside>
+
+                <!-- RIGHT: Chapters timeline -->
+                <section class="timeline-right">
+                  {% if selected_course %}
+                  <div class="timeline-header">
+                    <h3>{{ selected_course.course_name }}</h3>
+                    {% if is_approved_contributor %}
+                    <span class="pill">Approved contributor</span>
+                    {% else %}
+                    <span class="pill">Not approved</span>
+                    {% endif %}
+                  </div>
+
+                  <div class="muted" style="margin-bottom: 10px">
+                    Department: {{ selected_course.department.dept_name }} •
+                    Scheme: {{ selected_course.scheme.name }}
+                  </div>
+
+                  <table class="timeline-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 34%">Chapter</th>
+                        <th>Deadline</th>
+                        <th>Extensions</th>
+                        <th>Min</th>
+                        <th>Contrib</th>
+                        <th style="width: 140px">Action</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {% for ch in chapters %}
+                      <tr>
+                        <td>
+                          <div style="font-weight: 700">
+                            Ch {{ ch.chapter_number }}: {{ ch.chapter_name }}
+                          </div>
+                          {% if ch.user_submitted %}
+                          <div class="muted">You already submitted</div>
+                          {% endif %}
+                        </td>
+
+                        <td>
+                          {% if ch.deadline %} {{ ch.deadline|date:"M d, Y H:i"
+                          }} {% if not ch.is_open %}
+                          <div class="muted">Closed</div>
+                          {% endif %} {% else %}
+                          <span class="muted">—</span>
+                          {% endif %}
+                        </td>
+
+                        <td>
+                          {{ ch.extensions_used }} / {{ ch.max_extensions }}
+                        </td>
+
+                        <td>
+                          {% if ch.min_contributions is not None %} {{
+                          ch.min_contributions }} {% else %}
+                          <span class="muted">—</span>
+                          {% endif %}
+                        </td>
+
+                        <td>
+                          {{ ch.contributions_total }}
+                          <span class="muted"
+                            >(ok: {{ ch.contributions_evaluated }})</span
+                          >
+                        </td>
+
+                        <td>
+                          {% if ch.can_submit %}
+                          <a
+                            class="primary-btn"
+                            href="{% url 'contributor_submit_content_view' %}?course_id={{ selected_course.id }}&chapter_id={{ ch.id }}"
+                          >
+                            Submit
+                          </a>
+                          {% elif ch.user_submitted %}
+                          <span class="pill">Submitted</span>
+                          {% elif not is_approved_contributor %}
+                          <span class="pill">Approval required</span>
+                          {% else %}
+                          <span class="pill">Closed</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="6" class="muted">
+                          No chapters found for this subject.
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  {% else %}
+                  <div class="muted">
+                    Select a subject from the left to see chapters.
+                  </div>
+                  {% endif %}
+                </section>
+              </div>
+            </section>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- CHAPTERS DRAWER -->
+    <div id="chapters-drawer" class="chapters-drawer">
+      <div class="drawer-header">
         <h3 id="drawer-course-title">Chapters</h3>
         <button id="close-drawer-btn">&times;</button>
+      </div>
+      <ul id="drawer-chapters-list"></ul>
     </div>
-    <ul id="drawer-chapters-list"></ul>
-</div>
 
-<div id="drawer-overlay"></div>
+    <div id="drawer-overlay"></div>
 
-<script id="chapters-data" type="application/json">
-    {{ chapters_json|safe }}
-</script>
+    <script id="chapters-data" type="application/json">
+      {{ chapters_json|safe }}
+    </script>
 
-<script>
-    function toggleNotifications() {
-        document.getElementById("notifDropdown")
-            .classList.toggle("show");
-    }
-</script>
+    <script>
+      function toggleNotifications() {
+        document.getElementById("notifDropdown").classList.toggle("show");
+      }
+    </script>
 
-<script>
-
-    document.addEventListener('DOMContentLoaded', function () {
-
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
         const chaptersData = JSON.parse(
-            document.getElementById('chapters-data')?.textContent || '{}'
+          document.getElementById("chapters-data")?.textContent || "{}",
         );
 
-        const drawer = document.getElementById('chapters-drawer');
-        const drawerTitle = document.getElementById('drawer-course-title');
-        const drawerList = document.getElementById('drawer-chapters-list');
-        const closeBtn = document.getElementById('close-drawer-btn');
-        const overlay = document.getElementById('drawer-overlay');
+        const drawer = document.getElementById("chapters-drawer");
+        const drawerTitle = document.getElementById("drawer-course-title");
+        const drawerList = document.getElementById("drawer-chapters-list");
+        const closeBtn = document.getElementById("close-drawer-btn");
+        const overlay = document.getElementById("drawer-overlay");
         const body = document.body;
 
         function openDrawer(courseId, courseName) {
-            drawerTitle.textContent = `Chapters for ${courseName}`;
-            drawerList.innerHTML = '';
+          drawerTitle.textContent = `Chapters for ${courseName}`;
+          drawerList.innerHTML = "";
 
-            const chapters = chaptersData[courseId] || [];
+          const chapters = chaptersData[courseId] || [];
 
-            if (chapters.length > 0) {
-                chapters.forEach(chap => {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
+          if (chapters.length > 0) {
+            chapters.forEach((chap) => {
+              const li = document.createElement("li");
+              const a = document.createElement("a");
 
-                    a.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_name}`;
-                    a.href = `/dashboard/contributor/submit_content/?course_id=${courseId}&chapter_id=${chap.id}`;
+              a.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_name}`;
+              a.href = `/dashboard/contributor/submit_content/?course_id=${courseId}&chapter_id=${chap.id}`;
 
-                    li.appendChild(a);
-                    drawerList.appendChild(li);
-                });
-            } else {
-                drawerList.innerHTML = '<li>No chapters available.</li>';
-            }
+              li.appendChild(a);
+              drawerList.appendChild(li);
+            });
+          } else {
+            drawerList.innerHTML = "<li>No chapters available.</li>";
+          }
 
-            body.classList.add('drawer-open');
+          body.classList.add("drawer-open");
         }
 
         function closeDrawer() {
-            body.classList.remove('drawer-open');
+          body.classList.remove("drawer-open");
         }
 
         // ENTERPRISE EVENT DELEGATION
-        document.body.addEventListener('click', function (e) {
-            const btn = e.target.closest('.view-chapters-btn');
-            if (!btn) return;
+        document.body.addEventListener("click", function (e) {
+          const btn = e.target.closest(".view-chapters-btn");
+          if (!btn) return;
 
-            openDrawer(btn.dataset.courseId, btn.dataset.courseName);
+          openDrawer(btn.dataset.courseId, btn.dataset.courseName);
         });
 
-        closeBtn.addEventListener('click', closeDrawer);
-        overlay.addEventListener('click', closeDrawer);
-
-    });
-</script>
-
-
-</body>
+        closeBtn.addEventListener("click", closeDrawer);
+        overlay.addEventListener("click", closeDrawer);
+      });
+    </script>
+  </body>
 </html>
