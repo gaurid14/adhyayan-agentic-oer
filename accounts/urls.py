@@ -2,13 +2,30 @@ from django.urls import path
 from .views import views
 from django.contrib.auth import views as auth_views
 from .views.contributor import generate_expertise
-from .views.contributor.contributor_dashboard import contributor_dashboard_view, contributor_submit_content_view, \
-    contributor_profile, contributor_submissions
-from .views.contributor.submit_content import upload_files, load_file, contributor_editor, delete_drive_file, \
-    confirm_submission, gemini_chat, contributor_upload_file, \
-    generate_assessment, after_submission, generated_assessment_form
+
+from .views.contributor.contributor_dashboard import (
+    contributor_dashboard_view,
+    contributor_submit_content_view,
+    contributor_profile,
+    contributor_submissions,
+)
+
+from .views.contributor.submit_content import (
+    upload_files,
+    load_file,
+    contributor_editor,
+    delete_drive_file,
+    confirm_submission,
+    gemini_chat,
+    contributor_upload_file,
+    generate_assessment,
+    after_submission,
+    generated_assessment_form,
+)
+
 from .views.home.home import about, contact
 from .views.home.subjects import subject_view, chapter_view
+
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
