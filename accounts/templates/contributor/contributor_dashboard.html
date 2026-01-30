@@ -934,15 +934,13 @@
         <div id="content-area">
           <!-- DASHBOARD -->
           <section id="dashboard-content" class="content-section active">
-            <div class="kpi-grid">
-              <div class="kpi-card">
-                <h3>{{ uploads|length }}</h3>
-                <p>Total Contributions</p>
-              </div>
-              <div class="kpi-card">
-                <h3>{{ recommended_courses|length }}</h3>
-                <p>Recommended Subjects</p>
-              </div>
+            <div class="kpi-card">
+              <h3>{{ uploads|length }}</h3>
+              <p>Total Contributions</p>
+            </div>
+            <div class="kpi-card">
+              <h3>{{ recommended_courses|length }}</h3>
+              <p>Recommended Subjects</p>
             </div>
 
             <section class="flat-section">
@@ -1049,11 +1047,9 @@
                     <thead>
                       <tr>
                         <th style="width: 34%">Chapter</th>
-                        <th>Deadline</th>
-                        <th>Extensions</th>
-                        <th>Min</th>
-                        <th>Contrib</th>
-                        <th style="width: 140px">Action</th>
+<th>Deadline</th>
+<th style="width: 140px">Action</th>
+
                       </tr>
                     </thead>
 
@@ -1078,32 +1074,16 @@
                           {% endif %}
                         </td>
 
-                        <td>
-                          {{ ch.extensions_used }} / {{ ch.max_extensions }}
-                        </td>
-
-                        <td>
-                          {% if ch.min_contributions is not None %} {{
-                          ch.min_contributions }} {% else %}
-                          <span class="muted">—</span>
-                          {% endif %}
-                        </td>
-
-                        <td>
-                          {{ ch.contributions_total }}
-                          <span class="muted"
-                            >(ok: {{ ch.contributions_evaluated }})</span
-                          >
-                        </td>
-
+                      
                         <td>
                           {% if ch.can_submit %}
                           <a
                             class="primary-btn"
-                            href="{% url 'contributor_submit_content_view' %}?course_id={{ selected_course.id }}&chapter_id={{ ch.id }}"
+                            href="{% url 'contributor_submit_content' selected_course.id ch.id %}"
                           >
                             Submit
                           </a>
+
                           {% elif ch.user_submitted %}
                           <span class="pill">Submitted</span>
                           {% elif not is_approved_contributor %}
@@ -1115,7 +1095,7 @@
                       </tr>
                       {% empty %}
                       <tr>
-                        <td colspan="6" class="muted">
+                        <td colspan="3" class="muted">
                           No chapters found for this subject.
                         </td>
                       </tr>
