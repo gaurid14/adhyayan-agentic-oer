@@ -1,3 +1,10 @@
+import asyncio
+import sys
+
+if sys.platform.startswith("win"):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os

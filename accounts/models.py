@@ -182,6 +182,9 @@ class ContentCheck(models.Model):
     video = models.BooleanField(default=False)
     assessment = models.BooleanField(default=False)
 
+    extraction_status = models.BooleanField(default=False)
+    extraction_updated_at = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         return f"Content Check for Upload {self.upload.id} | PDF:{self.pdf} Video:{self.video} Assessment:{self.assessment}"
 
@@ -193,10 +196,11 @@ class ContentScore(models.Model):
         UploadCheck, on_delete=models.CASCADE,
         related_name="content_score"
     )
-    completeness = models.FloatField(blank=True, null=True)
-    enagagement = models.FloatField(blank=True, null=True)
+    engagement = models.FloatField(blank=True, null=True)
     clarity = models.FloatField(blank=True, null=True)
-    accuracy = models.FloatField(blank=True, null=True)
+    coherence = models.FloatField(blank=True, null=True)
+    relevance = models.FloatField(blank=True, null=True)
+    completeness = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return f"Scores for Upload {self.upload.id}"

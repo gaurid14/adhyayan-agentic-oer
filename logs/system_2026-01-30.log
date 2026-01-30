@@ -1,0 +1,28 @@
+[WARNING] 2026-01-30 12:19:20,258 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-30 12:19:20,260 | django.server | "GET /favicon.ico HTTP/1.1" 404 12763
+[INFO] 2026-01-30 12:19:22,201 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:19:23,042 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:19:41,338 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:19:41,778 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:20:02,388 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:02,401 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:20:02,771 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:20:04,798 | mcp.server.lowlevel.server | Processing request of type ListToolsRequest
+[INFO] 2026-01-30 12:20:17,518 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:17,778 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:17,788 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:20:18,128 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:20:19,453 | mcp.server.lowlevel.server | Processing request of type ListToolsRequest
+[INFO] 2026-01-30 12:20:19,458 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:19,468 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:20:19,979 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:20:21,334 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:21,334 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:20:21,816 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:20:23,640 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:23,648 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-30 12:20:24,070 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[INFO] 2026-01-30 12:20:38,924 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:39,148 | mcp.server.lowlevel.server | Processing request of type ListToolsRequest
+[INFO] 2026-01-30 12:20:40,348 | mcp.server.lowlevel.server | Processing request of type CallToolRequest
+[INFO] 2026-01-30 12:20:41,535 | mcp.server.lowlevel.server | Processing request of type CallToolRequest

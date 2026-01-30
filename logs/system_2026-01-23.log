@@ -1,0 +1,50 @@
+[INFO] 2026-01-23 11:22:58,736 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-23 11:22:59,425 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2026-01-23 11:23:09,261 | django.request | Not Found: /favicon.ico
+[WARNING] 2026-01-23 11:23:09,263 | django.server | "GET /favicon.ico HTTP/1.1" 404 11636
+[INFO] 2026-01-23 11:23:11,729 | googleapiclient.discovery_cache | file_cache is only supported with oauth2client<4.0.0
+[INFO] 2026-01-23 11:23:12,227 | google_auth_httplib2 | Refreshing credentials due to a 401 response. Attempt 1/2.
+[WARNING] 2026-01-23 11:48:30,200 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[ERROR] 2026-01-23 11:48:42,219 | django.request | Internal Server Error: /password-reset/
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 47, in select_template
+    raise TemplateDoesNotExist(", ".join(template_name_list), chain=chain)
+django.template.exceptions.TemplateDoesNotExist: auth/password_reset.html
+[ERROR] 2026-01-23 11:48:42,255 | django.server | "GET /password-reset/ HTTP/1.1" 500 85820
+[WARNING] 2026-01-23 11:51:57,309 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[ERROR] 2026-01-23 11:52:24,509 | django.request | Internal Server Error: /password-reset/done/
+Traceback (most recent call last):
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+  File "C:\Users\gauri\AppData\Local\Programs\Python\Python310\lib\site-packages\django\template\loader.py", line 47, in select_template
+    raise TemplateDoesNotExist(", ".join(template_name_list), chain=chain)
+django.template.exceptions.TemplateDoesNotExist: auth/password_reset_done.html
+[ERROR] 2026-01-23 11:52:24,519 | django.server | "GET /password-reset/done/ HTTP/1.1" 500 86105
+[WARNING] 2026-01-23 11:59:16,555 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 11:59:18,832 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:15:48,969 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:37:53,146 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:38:02,872 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:44:37,414 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:44:44,054 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:44:46,588 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:44:52,458 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880
+[WARNING] 2026-01-23 12:45:20,740 | django.server | "GET /static/frontend/css/style.css HTTP/1.1" 404 1880

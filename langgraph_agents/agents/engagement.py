@@ -1,361 +1,217 @@
 import json
-
-from asgiref.sync import sync_to_async
+import os
+import re
 from langchain.tools import tool
 
-from accounts.models import ContentScore, UploadCheck, Assessment
-from langgraph_agents.services.drive_service import GoogleDriveAuthService
 from langgraph_agents.services.gemini_service import llm
-from langgraph_agents.services.pdf_service import download_and_read_pdf
-import tempfile
-from googleapiclient.http import MediaIoBaseDownload
 
 
-from langgraph_agents.services.video_service import transcribe_audio_or_video
+# ------------------------------
+# PATH SETTINGS
+# ------------------------------
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+EXTRACTED_JSON_DIR = os.path.join(BASE_DIR, "storage", "extracted_content")
 
 
-def extract_all_pdf_texts(folder_id):
-    service = GoogleDriveAuthService.get_service()
-    results = service.files().list(
-        q=f"'{folder_id}' in parents and mimeType='application/pdf' and trashed=false",
-        fields="files(id, name)"
-    ).execute()
+def load_extracted_json(upload_id: int) -> dict:
+    json_path = os.path.join(EXTRACTED_JSON_DIR, f"upload_{upload_id}.json")
 
-    pdf_texts = []
-    for f in results.get("files", []):
-        content = download_and_read_pdf(f["id"])
-        pdf_texts.append(content)
-    return pdf_texts
+    if not os.path.exists(json_path):
+        return {}
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def extract_all_video_transcripts(folder_id):
+# ------------------------------
+# SAFE JSON EXTRACTION (Gemini)
+# ------------------------------
+def safe_extract_json(text: str) -> dict:
     """
-    Extracts transcripts from all video files in a Drive folder.
-    Downloads each video temporarily to transcribe with Whisper.
+    Gemini sometimes returns extra lines.
+    Extract first JSON object safely.
     """
-    service = GoogleDriveAuthService.get_service()
-    results = service.files().list(
-        q=f"'{folder_id}' in parents and trashed=false",
-        fields="files(id, name, mimeType)"
-    ).execute()
+    if not text:
+        return {}
 
-    transcripts = []
+    # 1) exact json parse
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
 
-    for f in results.get("files", []):
-        if f["mimeType"].startswith("video/"):
-            print(f"[INFO] Processing video: {f['name']}")
+    # 2) json inside text
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except Exception:
+            return {}
 
-            # Create a temporary file
-            import os
-            import tempfile
-
-            # Create temp file WITHOUT keeping it open
-            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-            tmp_path = tmp_file.name
-            tmp_file.close()   # IMPORTANT: close file handle before ffmpeg reads it
-
-            # Download video from Google Drive
-            request = service.files().get_media(fileId=f["id"])
-            with open(tmp_path, "wb") as out:
-                downloader = MediaIoBaseDownload(out, request)
-                done = False
-                while not done:
-                    status, done = downloader.next_chunk()
-
-            # Now transcribe using Whisper
-            state = {"file_path": tmp_path}
-            state = transcribe_audio_or_video(state)
-            transcripts.append(state.get("transcript", ""))
-
-            # Delete file afterwards
-            os.remove(tmp_path)
+    return {}
 
 
-    return transcripts
+# ------------------------------
+# ENGAGEMENT LEVEL SETTINGS (Scaled)
+# ------------------------------
+ENGAGEMENT_LEVELS = {
+    # small kids need more cues and activities to be engaging
+    "preschool": {"case_w": 2.5, "scenario_w": 2.0, "assessment_w": 2.5, "bonus_assessment": 3.0},
+    "primary": {"case_w": 2.3, "scenario_w": 2.0, "assessment_w": 2.2, "bonus_assessment": 2.5},
+    "middle": {"case_w": 2.0, "scenario_w": 1.8, "assessment_w": 2.0, "bonus_assessment": 2.0},
+    "secondary": {"case_w": 1.8, "scenario_w": 1.6, "assessment_w": 1.8, "bonus_assessment": 1.8},
+    "hsc": {"case_w": 1.8, "scenario_w": 1.5, "assessment_w": 1.8, "bonus_assessment": 1.6},
+
+    # college students: fewer case studies are okay, engagement can be technical too
+    "undergrad": {"case_w": 1.6, "scenario_w": 1.4, "assessment_w": 1.6, "bonus_assessment": 1.5},
+    "postgrad": {"case_w": 1.4, "scenario_w": 1.2, "assessment_w": 1.4, "bonus_assessment": 1.3},
+    "phd": {"case_w": 1.2, "scenario_w": 1.0, "assessment_w": 1.2, "bonus_assessment": 1.0},
+
+    "default": {"case_w": 1.6, "scenario_w": 1.4, "assessment_w": 1.6, "bonus_assessment": 1.5},
+}
 
 
-def extract_all_pdf_texts_recursive(folder_id):
+# ------------------------------
+# GEMINI ENGAGEMENT ANALYSIS
+# ------------------------------
+async def analyze_engagement_with_gemini(content: str, target_level: str = "undergrad") -> dict:
     """
-    Recursively scans a folder and ALL its subfolders for PDFs.
-    Returns a list of all extracted text.
-    """
-    service = GoogleDriveAuthService.get_service()
-
-    pdf_texts = []
-
-    def scan_folder(folder_id):
-        # Fetch all files & subfolders
-        results = service.files().list(
-            q=f"'{folder_id}' in parents and trashed=false",
-            fields="files(id, name, mimeType)"
-        ).execute()
-
-        for f in results.get("files", []):
-            mime = f["mimeType"]
-
-            # If PDF -> extract content
-            if mime == "application/pdf":
-                print(f"[INFO] Reading PDF: {f['name']}")
-                content = download_and_read_pdf(f["id"])
-                if content:
-                    pdf_texts.append(content)
-
-            # If folder -> scan it recursively
-            elif mime == "application/vnd.google-apps.folder":
-                print(f"[INFO] Entering folder: {f['name']}")
-                scan_folder(f["id"])
-
-    scan_folder(folder_id)
-    return pdf_texts
-
-
-def extract_all_video_transcripts_recursive(folder_id):
-    """
-    Recursively scans all folders and extracts transcripts from all video files.
-    """
-    service = GoogleDriveAuthService.get_service()
-    transcripts = []
-
-    def scan_folder(folder_id):
-        results = service.files().list(
-            q=f"'{folder_id}' in parents and trashed=false",
-            fields="files(id, name, mimeType)"
-        ).execute()
-
-        for f in results.get("files", []):
-            mime = f["mimeType"]
-
-            # If video → download + transcribe
-            if mime.startswith("video/"):
-                print(f"[INFO] Processing video: {f['name']}")
-
-                import os
-                import tempfile
-
-                # Create temp file WITHOUT keeping it open
-                tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-                tmp_path = tmp_file.name
-                tmp_file.close()   # IMPORTANT: close file handle before ffmpeg reads it
-
-                # Download video from Google Drive
-                request = service.files().get_media(fileId=f["id"])
-                with open(tmp_path, "wb") as out:
-                    downloader = MediaIoBaseDownload(out, request)
-                    done = False
-                    while not done:
-                        status, done = downloader.next_chunk()
-
-                # Now transcribe using Whisper
-                state = {"file_path": tmp_path}
-                state = transcribe_audio_or_video(state)
-                transcripts.append(state.get("transcript", ""))
-
-                # Delete file afterwards
-                os.remove(tmp_path)
-
-# If folder → recursive scan
-            elif mime == "application/vnd.google-apps.folder":
-                scan_folder(f["id"])
-
-    scan_folder(folder_id)
-    return transcripts
-
-
-
-async def analyze_engagement_with_gemini(content: str) -> dict:
-    """
-    Uses Gemini to count engagement elements in content.
+    Uses Gemini to identify engagement elements.
     """
     prompt = f"""
-    You are an educational content evaluator.
+You are an educational content evaluator for student level: {target_level}.
 
-    Analyze the following material and return the COUNT of:
-    - Case studies (explicit or implied)
-    - Assessments (questions, exercises, or activities)
-    - Scenario cues or examples (real-world, what-if, role-play)
+Count engagement signals inside the content:
+- Case studies (explicit OR implied)
+- Assessments/exercises/questions/activities
+- Scenario cues/examples/real-world what-if situations
 
-    Respond ONLY in pure JSON:
-    {{
-      "case_studies": <int>,
-      "assessments": <int>,
-      "scenario_cues": <int>
-    }}
+IMPORTANT RULES:
+- Technical content is allowed.
+- Do NOT reduce counts because of technical words.
+- Only count meaningful engagement items.
 
-    Content:
-    {content}
-    """
+Return JSON ONLY:
+{{
+  "case_studies": <int>,
+  "assessments": <int>,
+  "scenario_cues": <int>
+}}
+
+Content:
+{content}
+"""
 
     response = llm.invoke(prompt)
-    try:
-        return json.loads(response.content)
-    except Exception as e:
-        print("[ERROR] Gemini JSON parsing failed:", e)
+    raw = getattr(response, "content", "") or ""
+
+    data = safe_extract_json(raw)
+
+    if not data:
+        print("[ERROR] Gemini JSON parsing failed:", raw[:300])
         return {"case_studies": 0, "assessments": 0, "scenario_cues": 0}
 
-# @tool
-# async def evaluate_engagement(contributor_id: int, chapter_id: int, drive_folders: dict, **kwargs) -> dict:
-#     """
-#     Evaluates the engagement level of uploaded content using Gemini + assessment DB check.
-#     """
-#
-#     # ORM in async → wrap it
-#     upload = await sync_to_async(
-#         lambda: UploadCheck.objects.filter(
-#             contributor_id=contributor_id, chapter_id=chapter_id
-#         ).order_by('-timestamp').first()
-#     )()
-#
-#     if not upload:
-#         return {"status": "no_upload_found"}
-#
-#     # Get or create ContentScore entry
-#     score_obj, _ = ContentScore.objects.get_or_create(upload=upload)
-#
-#     # Extract content from PDFs and videos
-#     pdf_texts = extract_all_pdf_texts(drive_folders.get("pdf"))
-#     video_texts = extract_all_video_transcripts(drive_folders.get("videos"))
-#     full_text = "\n\n".join(pdf_texts + video_texts)
-#
-#     if not full_text.strip():
-#         return {"status": "no_content_found"}
-#
-#     # Run Gemini analysis
-#     gemini_result = await analyze_engagement_with_gemini(full_text)
-#     case_studies = gemini_result["case_studies"]
-#     assessments = gemini_result["assessments"]
-#     scenario_cues = gemini_result["scenario_cues"]
-#
-#     # Check if contributor uploaded assessments for this chapter
-#     has_assessment = Assessment.objects.filter(
-#         chapter_id=chapter_id,
-#         course_id=upload.chapter.course_id,
-#         contributor_id=contributor_id
-#     ).exists()
-#
-#     # Compute engagement score (weighted 0–10)
-#     engagement_score = (
-#             (case_studies * 2) +
-#             (scenario_cues * 1.5) +
-#             (assessments * 1.5) +
-#             (5 if has_assessment else 0)
-#     )
-#
-#     # Cap the score at 10
-#     engagement_score = min(10, round(engagement_score, 2))
-#
-#     # Save the score
-#     score_obj.engagement = engagement_score
-#     score_obj.save()
-#
-#     # Check if all four parameters are filled → mark evaluation complete
-#     if all([
-#         score_obj.completeness,
-#         score_obj.clarity,
-#         score_obj.accuracy,
-#         score_obj.engagement
-#     ]):
-#         upload.evaluation_status = True
-#         upload.save()
-#
-#     return {
-#         "status": "engagement_evaluated",
-#         "details": {
-#             "case_studies": case_studies,
-#             "scenario_cues": scenario_cues,
-#             "assessments_found": assessments,
-#             "assessment_uploaded": has_assessment
-#         },
-#         "score": engagement_score
-#     }
-
-
-from asgiref.sync import sync_to_async
-from langchain.tools import tool
-
-@tool
-async def evaluate_engagement(contributor_id: int, chapter_id: int, drive_folders: dict, **kwargs) -> dict:
-    """
-    Evaluates the engagement level of uploaded content using Gemini + assessment DB check.
-    """
-
-    # ✅ ORM in async → wrap it
-    upload = await sync_to_async(
-        lambda: UploadCheck.objects.filter(
-            contributor_id=contributor_id, chapter_id=chapter_id
-        ).order_by('-timestamp').first()
-    )()
-
-    if not upload:
-        return {"status": "no_upload_found"}
-
-    # ✅ Wrap get_or_create
-    score_obj, _ = await sync_to_async(
-        lambda: ContentScore.objects.get_or_create(upload=upload)
-    )()
-
-    # ✅ If your PDF / video extractors are synchronous — wrap them too
-    pdf_texts = await sync_to_async(extract_all_pdf_texts_recursive)(drive_folders.get("pdf"))
-    video_texts = await sync_to_async(extract_all_video_transcripts_recursive)(drive_folders.get("videos"))
-    full_text = "\n\n".join(pdf_texts + video_texts)
-
-    if not full_text.strip():
-        return {"status": "no_content_found"}
-
-    # ✅ Gemini analysis (already async)
-    gemini_result = await analyze_engagement_with_gemini(full_text)
-    case_studies = gemini_result["case_studies"]
-    assessments = gemini_result["assessments"]
-    scenario_cues = gemini_result["scenario_cues"]
-
-    # ✅ ORM existence check
-    has_assessment = await sync_to_async(
-        lambda: Assessment.objects.filter(
-            chapter_id=chapter_id,
-            course_id=upload.chapter.course_id,
-            contributor_id=contributor_id
-        ).exists()
-    )()
-
-    # Compute engagement score (weighted 0–10)
-    engagement_score = (
-            (case_studies * 2) +
-            (scenario_cues * 1.5) +
-            (assessments * 1.5) +
-            (5 if has_assessment else 0)
-    )
-
-    engagement_score = min(10, round(engagement_score, 2))
-
-    # ✅ Save the score safely
-    await sync_to_async(lambda: _save_score(score_obj, engagement_score))()
-
-    # ✅ Check if all parameters filled and mark complete
-    # await sync_to_async(lambda: _finalize_upload(upload, score_obj))()
-
     return {
-        "status": "engagement_evaluated",
-        "details": {
-            "case_studies": case_studies,
-            "scenario_cues": scenario_cues,
-            "assessments_found": assessments,
-            "assessment_uploaded": has_assessment
-        },
-        "score": engagement_score
+        "case_studies": int(data.get("case_studies", 0)),
+        "assessments": int(data.get("assessments", 0)),
+        "scenario_cues": int(data.get("scenario_cues", 0)),
     }
 
 
-# Helper functions (run synchronously)
-def _save_score(score_obj, engagement_score):
-    score_obj.engagement = engagement_score
-    score_obj.save()
+# ------------------------------
+# SCORING FUNCTION (0–10)
+# ------------------------------
+def compute_engagement_score(
+        case_studies: int,
+        assessments: int,
+        scenario_cues: int,
+        has_assessment_upload: bool,
+        target_level: str = "undergrad"
+) -> float:
+    """
+    Converts counts → engagement score (0–10)
+    Scaled based on education level.
+    """
+    cfg = ENGAGEMENT_LEVELS.get(target_level, ENGAGEMENT_LEVELS["default"])
+
+    raw_score = (
+            (case_studies * cfg["case_w"]) +
+            (scenario_cues * cfg["scenario_w"]) +
+            (assessments * cfg["assessment_w"]) +
+            (cfg["bonus_assessment"] if has_assessment_upload else 0)
+    )
+
+    # compress large raw score to max 10 safely
+    return round(min(10.0, raw_score), 2)
 
 
-# def _finalize_upload(upload, score_obj):
-#     if all([
-#         score_obj.completeness,
-#         score_obj.clarity,
-#         score_obj.accuracy,
-#         score_obj.engagement
-#     ]):
-#         upload.evaluation_status = True
-#         upload.save()
+# ------------------------------
+# ENGAGEMENT AGENT TOOL (STATE IN / STATE OUT)
+# ------------------------------
+@tool
+async def evaluate_engagement(state: dict) -> dict:
+    """
+    Engagement Agent:
+    - Reads extracted JSON from: storage/extracted_content/upload_{upload_id}.json
+    - Uses Gemini to count case_studies, assessments, scenario_cues
+    - Computes engagement score (0–10), scaled by target_level
+    - Saves via MCP tool db_save_scores_generic
+    """
+
+    upload_id = state.get("upload_id")
+    target_level = state.get("target_level", "undergrad")
+
+    if not upload_id:
+        return {**state, "status": "engagement_failed", "reason": "upload_id missing"}
+
+    extracted_data = load_extracted_json(upload_id)
+    if not extracted_data:
+        return {**state, "status": "engagement_failed", "reason": "json missing"}
+
+    combined_text = (extracted_data.get("content", {}).get("combined_text") or "").strip()
+    if not combined_text:
+        return {**state, "status": "engagement_failed", "reason": "combined_text empty"}
+
+    # find if assessment file uploaded (from extracted json only)
+    # NOTE: if your extracted_json has "drive_folders" and you store assessments folder
+    # you can later add assessment extraction here, but for now:
+    has_assessment_upload = bool(extracted_data.get("drive_folders", {}).get("assessments"))
+
+    # gemini
+    gemini_result = await analyze_engagement_with_gemini(combined_text, target_level=target_level)
+
+    case_studies = gemini_result.get("case_studies", 0)
+    assessments = gemini_result.get("assessments", 0)
+    scenario_cues = gemini_result.get("scenario_cues", 0)
+
+    engagement_score = compute_engagement_score(
+        case_studies=case_studies,
+        assessments=assessments,
+        scenario_cues=scenario_cues,
+        has_assessment_upload=has_assessment_upload,
+        target_level=target_level,
+    )
+
+    # Save using MCP session from graph state
+    session = state.get("mcp_session")
+    if session:
+        save_resp = await session.call_tool(
+            "db_save_scores_generic",
+            {"upload_id": upload_id, "scores": {"engagement": engagement_score}}
+        )
+        print("✅ MCP saved engagement:", save_resp.content[0].text)
+    else:
+        print("⚠️ mcp_session missing in state")
+
+    return {
+        **state,
+        "status": "engagement_evaluated",
+        "engagement_score": engagement_score,
+        "details": {
+            "case_studies": case_studies,
+            "assessments_found": assessments,
+            "scenario_cues": scenario_cues,
+            "assessment_uploaded": has_assessment_upload,
+        },
+        "gemini": gemini_result,
+    }

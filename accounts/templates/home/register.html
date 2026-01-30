@@ -217,6 +217,101 @@
         }
     }
 
+    /* ---------- Social Signup (Contributor only) ---------- */
+    .social-auth {
+        margin-bottom: 28px;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fafafa;
+    }
+
+    .social-auth h4 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .social-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        background: #fff;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .social-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+
+    .social-btn img {
+        width: 28px;
+        height: 28px;
+    }
+
+    /* LinkedIn button */
+    .linkedin-btn {
+        border-color: #0A66C2;
+        color: #0A66C2;
+    }
+
+    .linkedin-btn:hover {
+        background: rgba(10, 102, 194, 0.06);
+    }
+
+    /* Divider */
+    .or-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 18px 0;
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    /* Website autofill row */
+    .website-autofill {
+        display: flex;
+        gap: 10px;
+    }
+
+    .website-autofill input {
+        flex: 1;
+    }
+
+    .website-autofill button {
+        width: 180px;
+        padding: 12px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .website-autofill button:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+
 </style>
 
 <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css"/>
@@ -233,7 +328,7 @@
                 {% csrf_token %}
                 <input type="email" name="email" placeholder="Email" required>
                 <input type="password" name="password" placeholder="Password" required>
-                <a href="#" class="forgot">Forgot your password?</a>
+                <a href="{% url 'password_reset' %}" class="forgot">Forgot your password?</a>
                 <button type="submit" class="login-btn">Login</button>
             </form>
             <div class="illustration">
@@ -285,6 +380,31 @@
                     </div>
 
                     <div class="role-form" id="contributor-form">
+                        <!-- Contributor Auto-fill Section -->
+                        <div class="form-group full-width">
+                            <div class="social-auth">
+                                <h4>Quick setup (optional)</h4>
+
+                                <!-- LinkedIn Button -->
+                                <button type="button" class="social-btn linkedin-btn" id="linkedin-signup-btn">
+                                    <img src="{% static 'images/linkedin.png' %}" alt="LinkedIn">
+                                    Continue with LinkedIn
+                                </button>
+
+<!--                                <div class="or-divider">OR</div>-->
+
+                                <!-- Personal Website Input -->
+<!--                                <div class="website-autofill">-->
+<!--                                    <input type="url" id="portfolio-url" placeholder="Personal Website / Portfolio URL (optional)">-->
+<!--                                    <button type="button" id="website-autofill-btn">Auto-fill</button>-->
+<!--                                </div>-->
+
+<!--                                <small style="display:block; margin-top:10px; color: var(&#45;&#45;muted);">-->
+<!--                                    If auto-fill is not available, please fill the details manually below.-->
+<!--                                </small>-->
+                            </div>
+                        </div>
+
                         <div class="form-group"><label>First Name</label><input type="text" name="contrib-fname"
                                                                                 required></div>
                         <div class="form-group"><label>Last Name</label><input type="text" name="contrib-lname"
@@ -326,6 +446,7 @@
                         <!--                            <div id="expertise-checkboxes">-->
                         <!--                                &lt;!&ndash; Dynamically filled based on selected program &ndash;&gt;-->
                         <!--                            </div>-->
+                        <!--                        </div>-->
                         <!--                        </div>-->
                         <div class="form-group full-width">
                             <label for="domain-input-tagify">Key Skills / Expertise involved</label>
@@ -466,6 +587,30 @@ if (domainInput) {
         domainInput.required = e.detail.value.length === 0;
     });
 }
+
+    // LinkedIn UI button (for now redirect / later OAuth)
+    const linkedinBtn = document.getElementById("linkedin-signup-btn");
+    if (linkedinBtn) {
+        linkedinBtn.addEventListener("click", () => {
+            alert("LinkedIn signup will be enabled soon (OAuth). For now please fill manually.");
+            // Later you will redirect here:
+            // window.location.href = "/auth/linkedin/";
+        });
+    }
+
+    // Website autofill (placeholder for now)
+    const websiteBtn = document.getElementById("website-autofill-btn");
+    if (websiteBtn) {
+        websiteBtn.addEventListener("click", () => {
+            const url = document.getElementById("portfolio-url").value.trim();
+            if (!url) {
+                alert("Please enter your website / portfolio URL.");
+                return;
+            }
+            alert("Website auto-fill will be integrated soon. For now please fill manually.");
+        });
+    }
+
 
     });
 </script>

@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import views
+from django.contrib.auth import views as auth_views
 from .views.contributor import generate_expertise
 from .views.contributor.contributor_dashboard import contributor_dashboard_view, contributor_submit_content_view, \
     contributor_profile, contributor_submissions
@@ -11,7 +12,7 @@ from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
-    dm_inbox, dm_thread,     # <-- ADD THIS IMPORT
+    dm_inbox, dm_thread,  # <-- ADD THIS IMPORT
 )
 
 urlpatterns = [
@@ -28,12 +29,15 @@ urlpatterns = [
     path('dashboard/contributor/', contributor_dashboard_view, name='contributor_dashboard'),
     path('dashboard/contributor/profile/', contributor_profile, name='contributor_profile'),
     path('dashboard/contributor/submissions/', contributor_submissions, name='contributor_submissions'),
-    path('dashboard/contributor/submit_content/', contributor_submit_content_view, name='contributor_submit_content_view'),
-    path('dashboard/contributor/submit_content/upload/submission', contributor_upload_file, name='contributor_upload_file'),
+    path('dashboard/contributor/submit_content/', contributor_submit_content_view,
+         name='contributor_submit_content_view'),
+    path('dashboard/contributor/submit_content/upload/submission', contributor_upload_file,
+         name='contributor_upload_file'),
     path('dashboard/contributor/submit_content/upload', upload_files, name='upload_files'),
     path('dashboard/contributor/submit_content/uploadDraft', contributor_editor, name='contributor_editor'),
     path('dashboard/contributor/submit_content/load_file', load_file, name='load_file'),  # needed for JS
-    path('dashboard/contributor/submit_content/delete_file', delete_drive_file, name='delete_drive_file'),  # needed for JS
+    path('dashboard/contributor/submit_content/delete_file', delete_drive_file, name='delete_drive_file'),
+    # needed for JS
     # path('dashboard/contributor/submit_content/submit_assessment', submit_assessment, name='submit_assessment'),
     path('dashboard/contributor/submit_content/gemini_chat', gemini_chat, name='gemini_chat'),
     path('dashboard/contributor/submit_content/after_submission/', after_submission, name='after_submission'),
@@ -49,16 +53,51 @@ urlpatterns = [
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
-
-
     # --- Redirect/Display Pages ---
     # path('contributor/submission-complete/', after_submission_view, name='after_submission'), # Thank you page
     # Assessment page (might need chapter_id or upload_id)
     path('contributor/generate_assessment', generate_assessment, name='generate_assessment'),
-    path('contributor/generated_assessment/<int:assessment_id>/', generated_assessment_form, name='generated_assessment_form'),
+    path('contributor/generated_assessment/<int:assessment_id>/', generated_assessment_form,
+         name='generated_assessment_form'),
     path("contributor/confirm_submission", confirm_submission, name="confirm_submission"),
 
     # DMs
     path("messages/", dm_inbox, name="dm_inbox"),
     path("messages/<int:user_id>/", dm_thread, name="dm_thread"),
+
+    # Password reset
+    path(
+        'password-reset/',
+        auth_views.PasswordResetView.as_view(
+            template_name='auth/password_reset.html',
+            email_template_name='emails/password_reset_email.txt',  # plain text fallback
+            html_email_template_name='emails/password_reset_email.html',  # HTML email
+            subject_template_name='emails/password_reset_subject.txt'
+        ),
+        name = 'password_reset'
+    ),
+
+    path(
+        'password-reset/done/',
+        auth_views.PasswordResetDoneView.as_view(
+            template_name='auth/password_reset_done.html'
+        ),
+        name='password_reset_done'
+    ),
+
+    path(
+        'reset/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='auth/password_reset_confirm.html'
+        ),
+        name='password_reset_confirm'
+    ),
+
+    path(
+        'reset/done/',
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name='auth/password_reset_complete.html'
+        ),
+        name='password_reset_complete'
+    ),
 ]

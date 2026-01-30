@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from PyPDF2 import PdfReader
 from docx import Document
+from exceptiongroup import ExceptionGroup
 from google.auth.exceptions import RefreshError
 from xhtml2pdf import pisa
 from googleapiclient.http import (
@@ -132,39 +133,225 @@ class ContributorEditorService:
         ).execute()
 
 
+import time
+from accounts.models import ContentCheck
+from asgiref.sync import sync_to_async
+
+import asyncio
+import threading
+import time
+import sys
+import os
+
+from asgiref.sync import sync_to_async
+from accounts.models import ContentCheck
+
+from mcp.client.session import ClientSession
+from mcp.client.stdio import stdio_client, StdioServerParameters
+
+# ✅ Set MCP_PATH correctly (same as your submission agent)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MCP_PATH = os.path.join(BASE_DIR, "langgraph_agents", "services", "mcp_server.py")
+
+
+import asyncio
+import threading
+import sys
+import traceback
+
+from asgiref.sync import sync_to_async
+from mcp.client.session import ClientSession
+from mcp.client.stdio import stdio_client, StdioServerParameters
+
+from accounts.models import ContentCheck
+
+# MCP_PATH should be defined globally already
+
+
+import asyncio
+import threading
+import traceback
+import sys
+
+from asgiref.sync import sync_to_async
+from mcp.client.session import ClientSession
+from mcp.client.stdio import stdio_client, StdioServerParameters
+
+from accounts.models import ContentCheck
+PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
+MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
+
+
 class SubmissionOrchestrator:
     @staticmethod
     def submit_and_evaluate(state: dict):
-        # ---- RUN SUBMISSION AGENT (SYNC SAFE) ----
+
+        # ✅ 1) submission agent sync safe
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-
         try:
             result = loop.run_until_complete(
-                submission_agent.ainvoke(state)
+                submission_agent.ainvoke({
+                    "contributor_id": state["contributor_id"],
+                    "chapter_id": state["chapter_id"],
+                    "drive_folders": state["drive_folders"],
+                })
             )
+            print("✅ Submission agent invoked!!")
         finally:
             loop.close()
 
-        # ---- RUN EVALUATION GRAPH IN BACKGROUND ----
-        if result.get("status") == "submission_recorded":
+        if result.get("status") != "success":
+            return result
 
-            def run_graph_background():
-                bg_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(bg_loop)
-                try:
-                    bg_loop.run_until_complete(
-                        compiled_graph.ainvoke(state)
-                    )
-                finally:
-                    bg_loop.close()
+        upload_id = result["upload_id"]
 
-            threading.Thread(
-                target=run_graph_background,
-                daemon=True  # 🔥 THIS FIXES CTRL+C
-            ).start()
+        # ✅ 2) evaluation graph in background thread
+        def run_graph_background():
+            bg_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(bg_loop)
+
+            async def wait_for_extraction():
+                max_wait_seconds = 300
+                interval = 5
+                waited = 0
+
+                while waited < max_wait_seconds:
+                    status = await sync_to_async(
+                        lambda: ContentCheck.objects.filter(upload_id=upload_id)
+                        .values_list("extraction_status", flat=True)
+                        .first()
+                    )()
+
+                    print("🔎 extraction_status =", status)
+
+                    if status is True:   # ✅ correct boolean check
+                        print("✅ Extraction confirmed. Starting evaluation graph...")
+                        return True
+
+                    await asyncio.sleep(interval)
+                    waited += interval
+
+                print("❌ Extraction timeout. Evaluation graph NOT started.")
+                return False
+
+            async def runner():
+                ok = await wait_for_extraction()
+                if not ok:
+                    return
+
+                assert os.path.exists(MCP_PATH), f"MCP_PATH missing: {MCP_PATH}"
+
+                server_params = StdioServerParameters(
+                    command=sys.executable,
+                    args=[MCP_PATH],
+                    env={
+                        **os.environ,
+                        "DJANGO_SETTINGS_MODULE": "oer.settings",
+                        "PYTHONPATH": PROJECT_ROOT,
+                    }
+                )
+
+                # ✅ start MCP session ONCE
+                async with stdio_client(server_params) as (read, write):
+                    async with ClientSession(read, write) as session:
+                        await session.initialize()
+                        print("✅ MCP session initialized")
+
+                        graph_input = {**state, **result}
+                        graph_input["mcp_session"] = session   # ✅ shared for all agents
+
+                        await compiled_graph.ainvoke(graph_input)
+
+                print("✅ Evaluation graph invoked!! ✅✅✅")
+
+            try:
+                bg_loop.run_until_complete(runner())
+            except Exception as e:
+                print("❌ Error in evaluation background thread:", repr(e))
+                traceback.print_exception(type(e), e, e.__traceback__)
+            finally:
+                bg_loop.close()
+
+        threading.Thread(target=run_graph_background, daemon=True).start()
 
         return result
+
+
+
+@csrf_exempt
+def confirm_submission(request):
+    contributor_id = request.session.get("contributor_id")
+    course_id = request.session.get("course_id")
+    chapter_id = request.session.get("chapter_id")
+
+    if not all([contributor_id, course_id, chapter_id]):
+        return JsonResponse({"error": "Missing session data"}, status=400)
+
+    chapter = Chapter.objects.get(id=chapter_id)
+    chapter_number = chapter.chapter_number
+
+    # -------------------------------
+    # Google Drive (OOP)
+    # -------------------------------
+    service = GoogleDriveAuthService.get_service()
+    folder_service = GoogleDriveFolderService(service)
+
+    oer_root_id = folder_service.get_or_create_folder("oer_content")
+
+    # Root folders
+    pdf_root_id = folder_service.get_or_create_folder(
+        settings.GOOGLE_DRIVE_FOLDERS["pdf"], oer_root_id
+    )
+    video_root_id = folder_service.get_or_create_folder(
+        settings.GOOGLE_DRIVE_FOLDERS["videos"], oer_root_id
+    )
+    assess_root_id = folder_service.get_or_create_folder(
+        settings.GOOGLE_DRIVE_FOLDERS["assessments"], oer_root_id
+    )
+
+    base_folder = f"{contributor_id}_{course_id}_{chapter_number}"
+
+    # Contributor folders
+    pdf_folder_id = folder_service.get_or_create_folder(base_folder, pdf_root_id)
+    video_folder_id = folder_service.get_or_create_folder(base_folder, video_root_id)
+    assess_folder_id = folder_service.get_or_create_folder(base_folder, assess_root_id)
+
+    # -------------------------------
+    # REQUIRED LangGraph State
+    # -------------------------------
+    state = {
+        "contributor_id": contributor_id,
+        "course_id": course_id,
+        "chapter_id": chapter_id,
+        "chapter_name": chapter.chapter_name,
+        "drive_folders": {
+            "pdf": pdf_folder_id,
+            "videos": video_folder_id,
+            "assessments": assess_folder_id,
+        },
+    }
+
+    print("Reached till submission orchestrator")
+
+    # -------------------------------
+    # Run Submission + Evaluation
+    # -------------------------------
+    result = SubmissionOrchestrator.submit_and_evaluate(state)
+
+    if result.get("status") == "success":
+        contributor = User.objects.get(id=contributor_id)
+
+        ContributionSuccessEmail(
+            contributor.email,
+            contributor.first_name,
+            chapter.course.course_name,
+            chapter.chapter_name
+        ).send()
+
+        return render(request, "contributor/final_submission.html")
+
+    return JsonResponse({"error": "Submission failed"}, status=500)
 
 
 def contributor_upload_file(request):
@@ -387,80 +574,6 @@ def upload_files(request):
         f"chapter_id={request.session.get('chapter_id')}&"
         f"topic={topic or ''}"
     )
-
-
-
-@csrf_exempt
-def confirm_submission(request):
-    contributor_id = request.session.get("contributor_id")
-    course_id = request.session.get("course_id")
-    chapter_id = request.session.get("chapter_id")
-
-    if not all([contributor_id, course_id, chapter_id]):
-        return JsonResponse({"error": "Missing session data"}, status=400)
-
-    chapter = Chapter.objects.get(id=chapter_id)
-    chapter_number = chapter.chapter_number
-
-    # -------------------------------
-    # Google Drive (OOP)
-    # -------------------------------
-    service = GoogleDriveAuthService.get_service()
-    folder_service = GoogleDriveFolderService(service)
-
-    oer_root_id = folder_service.get_or_create_folder("oer_content")
-
-    # Root folders
-    pdf_root_id = folder_service.get_or_create_folder(
-        settings.GOOGLE_DRIVE_FOLDERS["pdf"], oer_root_id
-    )
-    video_root_id = folder_service.get_or_create_folder(
-        settings.GOOGLE_DRIVE_FOLDERS["videos"], oer_root_id
-    )
-    assess_root_id = folder_service.get_or_create_folder(
-        settings.GOOGLE_DRIVE_FOLDERS["assessments"], oer_root_id
-    )
-
-    base_folder = f"{contributor_id}_{course_id}_{chapter_number}"
-
-    # Contributor folders
-    pdf_folder_id = folder_service.get_or_create_folder(base_folder, pdf_root_id)
-    video_folder_id = folder_service.get_or_create_folder(base_folder, video_root_id)
-    assess_folder_id = folder_service.get_or_create_folder(base_folder, assess_root_id)
-
-    # -------------------------------
-    # REQUIRED LangGraph State
-    # -------------------------------
-    state = {
-        "contributor_id": contributor_id,
-        "course_id": course_id,
-        "chapter_id": chapter_id,
-        "chapter_name": chapter.chapter_name,
-        "drive_folders": {
-            "pdf": pdf_folder_id,
-            "videos": video_folder_id,
-            "assessments": assess_folder_id,
-        },
-    }
-
-    # -------------------------------
-    # Run Submission + Evaluation
-    # -------------------------------
-    result = SubmissionOrchestrator.submit_and_evaluate(state)
-
-    if result.get("status") == "submission_recorded":
-        contributor = User.objects.get(id=contributor_id)
-
-        ContributionSuccessEmail(
-            contributor.email,
-            contributor.first_name,
-            chapter.course.course_name,
-            chapter.chapter_name
-        ).send()
-
-        return render(request, "contributor/final_submission.html")
-
-    return JsonResponse({"error": "Submission failed"}, status=500)
 
 
 # ---------------- EDITOR / DRAFT ---------------- #

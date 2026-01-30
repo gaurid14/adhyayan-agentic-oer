@@ -215,3 +215,4 @@ EMAIL_HOST_USER = "societyhub18@gmail.com"
 EMAIL_HOST_PASSWORD = "pqoq okex osoh riry"  # NOT your regular Gmail password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+
