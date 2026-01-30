@@ -100,4 +100,5 @@ urlpatterns = [
         ),
         name='password_reset_complete'
     ),
+    path('pending-approval/', views.pending_approval_view, name='pending_approval'),
 ]

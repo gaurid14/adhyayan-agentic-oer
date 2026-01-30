@@ -7,15 +7,12 @@ from .models import User
 class EmailBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            # FIX: We now use the directly imported User model
             user = User.objects.get(email__iexact=username)
-            print("User " ,user)
         except User.DoesNotExist:
-            print("Not found")
             return None
 
-        if user.check_password(password):
-            print("Password ", password)
+        # ✅ Respect is_active and Django auth rules
+        if user.check_password(password) and self.user_can_authenticate(user):
             return user
 
         return None

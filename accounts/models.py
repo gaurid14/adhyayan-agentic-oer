@@ -3,6 +3,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import UniqueConstraint
+from django.utils import timezone
 
 # Syllabus
 class Program(models.Model):
@@ -56,6 +57,70 @@ class Chapter(models.Model):
     def __str__(self):
         return f"{self.course.course_name} | Ch {self.chapter_number}: {self.chapter_name}"
 
+# ---------- Chapter timeline / policy -------------------------------------------------
+
+class ChapterPolicy(models.Model):
+    """Admin-controlled timeline & contribution targets for a chapter."""
+
+    chapter = models.OneToOneField(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name="policy",
+    )
+
+    # timeline
+    deadline = models.DateTimeField(null=True, blank=True)
+    current_deadline = models.DateTimeField(null=True, blank=True)
+
+    # contribution targets
+    min_contributions = models.PositiveIntegerField(default=1)
+
+    # extension policy
+    max_extensions = models.PositiveIntegerField(default=0)
+    max_days_per_extension = models.PositiveIntegerField(default=0)
+    extensions_used = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        # initialize current_deadline the first time
+        if self.deadline and not self.current_deadline:
+            self.current_deadline = self.deadline
+        super().save(*args, **kwargs)
+
+    @property
+    def is_open(self) -> bool:
+        if not self.current_deadline:
+            return True
+        return timezone.now() <= self.current_deadline
+
+    def __str__(self):
+        return f"Policy: {self.chapter}"
+
+
+class ChapterDeadlineExtension(models.Model):
+    policy = models.ForeignKey(
+        ChapterPolicy,
+        on_delete=models.CASCADE,
+        related_name="extensions",
+    )
+    extended_by = models.ForeignKey(
+        "User",  # ✅ string ref so it works even if User is declared later
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="chapter_deadline_extensions",
+    )
+    extended_at = models.DateTimeField(auto_now_add=True)
+
+    days_extended = models.PositiveIntegerField()
+    old_deadline = models.DateTimeField()
+    new_deadline = models.DateTimeField()
+    note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-extended_at"]
+
+    def __str__(self):
+        return f"{self.policy.chapter} +{self.days_extended}d"
 
 class CourseObjective(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="objectives")
@@ -123,6 +188,10 @@ class User(AbstractUser):
         ('PHD', 'PhD'),
         ('OTHER', 'Other'),
     ]
+    class ContributorApprovalStatus(models.TextChoices):
+        APPROVED = "APPROVED", "Approved"
+        PENDING = "PENDING", "Pending"
+        REJECTED = "REJECTED", "Rejected"
 
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.STUDENT)
 
@@ -148,6 +217,15 @@ class User(AbstractUser):
 
     groups = models.ManyToManyField('auth.Group', related_name='custom_user_set', blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name='custom_user_permission_set', blank=True)
+
+    contributor_approval_status = models.CharField(
+        max_length=20,
+        choices=ContributorApprovalStatus.choices,
+        default=ContributorApprovalStatus.APPROVED,   # students & existing users unaffected
+    )
+    contributor_approved_at = models.DateTimeField(null=True, blank=True)
+    contributor_rejected_at = models.DateTimeField(null=True, blank=True)
+    contributor_rejection_reason = models.TextField(blank=True)
 
     def __str__(self):
         return self.username

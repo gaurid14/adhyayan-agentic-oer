@@ -14,6 +14,13 @@ from ..models import (
 )
 from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
 
+def _clean_forum_text(text: str) -> str:
+    text = (text or "").strip()
+    # Block accidental Django template syntax being stored in DB
+    if "{%" in text or "{{" in text:
+        return ""
+    return text
+
 
 def _top_level_answers_qs():
     return ForumAnswer.objects.filter(parent__isnull=True).select_related("author")
@@ -121,7 +128,13 @@ def post_answer(request, question_id):
     question = get_object_or_404(ForumQuestion, pk=question_id)
     form = ForumAnswerForm(request.POST)
     if form.is_valid():
+        content = _clean_forum_text(form.cleaned_data.get("content"))
+        if not content:
+            messages.error(request, "Invalid content.")
+            return redirect("forum_detail", pk=question.pk)
+
         ans = form.save(commit=False)
+        ans.content = content
         ans.author = request.user
         ans.question = question
         ans.parent = None
@@ -129,7 +142,6 @@ def post_answer(request, question_id):
     return redirect("forum_detail", pk=question.pk)
 
 
-# ---------- REPLY (nested) ----------
 @login_required
 @require_POST
 def post_reply(request, question_id, parent_id):
@@ -137,13 +149,18 @@ def post_reply(request, question_id, parent_id):
     parent = get_object_or_404(ForumAnswer, pk=parent_id, question=question)
     form = ForumAnswerForm(request.POST)
     if form.is_valid():
+        content = _clean_forum_text(form.cleaned_data.get("content"))
+        if not content:
+            messages.error(request, "Invalid content.")
+            return redirect("forum_detail", pk=question.pk)
+
         reply = form.save(commit=False)
+        reply.content = content
         reply.author = request.user
         reply.question = question
         reply.parent = parent
         reply.save()
     return redirect("forum_detail", pk=question.pk)
-
 
 # ---------- UPVOTES (toggle) ----------
 @login_required
