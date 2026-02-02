@@ -20,6 +20,27 @@ from django.utils import timezone
 
 from ...models import Course, Chapter, UploadCheck
 
+
+from collections import defaultdict
+import json
+
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+
+from accounts.models import Course, Chapter, ChapterPolicy, UploadCheck, User
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+# make sure ChapterPolicy is importable in this file (if you have it)
+from accounts.models import Course, Chapter, ChapterPolicy, User
+
+from django.db.models import Prefetch, Exists, OuterRef
+from django.utils.dateparse import parse_datetime
+
 # ==============================
 # Authorization Guard
 # ==============================
@@ -343,7 +364,6 @@ def contributor_dashboard_view(request):
 
     return render(request, "contributor/contributor_dashboard.html", context)
 
-
 @login_required
 def contributor_submissions(request):
     user = request.user
@@ -398,11 +418,11 @@ def contributor_profile(request):
     return render(request, "contributor/profile.html", {"contributor": user})
 
 
-
 @login_required
-def contributor_submit_content_view(request):
-    course_id = request.GET.get("course_id")
-    chapter_id = request.GET.get("chapter_id")
+def contributor_submit_content_view(request, course_id=None, chapter_id=None):
+    # ✅ Accept IDs from URL kwargs OR query params OR POST (safe + backward compatible)
+    course_id = course_id or request.GET.get("course_id") or request.POST.get("course_id")
+    chapter_id = chapter_id or request.GET.get("chapter_id") or request.POST.get("chapter_id")
 
     print("Course:", course_id)
     print("Chapter:", chapter_id)
@@ -411,9 +431,28 @@ def contributor_submit_content_view(request):
         messages.error(request, "Invalid access. Please select a course & chapter.")
         return redirect("contributor_dashboard")
 
+    # ✅ Load course + chapter correctly (chapter must belong to this course)
     course = get_object_or_404(Course, id=course_id)
-    chapter = get_object_or_404(Chapter, id=chapter_id)
+    chapter = get_object_or_404(Chapter, id=chapter_id, course=course)
+
     contributor_id = request.user.id
+
+    # ✅ Contributor approval check (required feature)
+    # If your project allows students too, keep this check strictly for contributors
+    if getattr(request.user, "role", None) == User.Role.CONTRIBUTOR:
+        if request.user.contributor_approval_status != User.ContributorApprovalStatus.APPROVED:
+            messages.warning(request, "Your contributor account is not approved yet.")
+            return redirect("contributor_dashboard")
+
+    # ✅ Deadline check (required feature)
+    policy = getattr(chapter, "policy", None)
+    deadline = None
+    if policy:
+        deadline = policy.current_deadline or policy.deadline
+
+    if deadline and timezone.now() > deadline:
+        messages.warning(request, "Deadline has passed for this chapter.")
+        return redirect("contributor_dashboard")
 
     # ---- Prevent duplicate submission ----
     if ContributorSubmissionService.has_existing_submission(contributor_id, chapter_id):
@@ -554,7 +593,7 @@ def contributor_submit_content_view(request):
         "chapter": chapter,
         "files": files,
         "topics": topics,
+        "deadline": deadline,  # ✅ optional: use in template if you want
     }
 
     return render(request, "contributor/submit_content.html", context)
-

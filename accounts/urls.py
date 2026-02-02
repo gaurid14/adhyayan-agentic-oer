@@ -9,6 +9,7 @@ from .views.contributor.submit_content import upload_files, load_file, contribut
     generate_assessment, after_submission, generated_assessment_form, list_resources, add_resource, delete_resource
 from .views.home.home import about, contact
 from .views.home.subjects import subject_view, chapter_view
+
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
