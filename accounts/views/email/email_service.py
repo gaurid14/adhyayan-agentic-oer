@@ -30,7 +30,16 @@ class BaseEmailService:
 
 class RegistrationSuccessEmail(BaseEmailService):
     template_name = "emails/registration_success.html"
-    subject = "🎓 Welcome to Adhyayan!!!"
+    subject = "🎓 Welcome to Adhyayan- Approval Pending!!!"
+
+    def __init__(self, to_email, user_name):
+        super().__init__(to_email, {
+            "name": user_name
+        })
+
+class AccountApprovedEmail(BaseEmailService):
+    template_name = "emails/account_approved.html"
+    subject = "🎉 Your Adhyayan Contributor Account is Approved!!!"
 
     def __init__(self, to_email, user_name):
         super().__init__(to_email, {

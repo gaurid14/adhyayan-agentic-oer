@@ -6,7 +6,7 @@ from .views.contributor.contributor_dashboard import contributor_dashboard_view,
     contributor_profile, contributor_submissions
 from .views.contributor.submit_content import upload_files, load_file, contributor_editor, delete_drive_file, \
     confirm_submission, gemini_chat, contributor_upload_file, \
-    generate_assessment, after_submission, generated_assessment_form
+    generate_assessment, after_submission, generated_assessment_form, list_resources, add_resource, delete_resource
 from .views.home.home import about, contact
 from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
@@ -101,4 +101,9 @@ urlpatterns = [
         name='password_reset_complete'
     ),
     path('pending-approval/', views.pending_approval_view, name='pending_approval'),
+
+    # External resources
+    path("dashboard/contributor/submit_content/resources/list/", list_resources, name="list_resources"),
+    path("dashboard/contributor/submit_content/resources/add/", add_resource, name="add_resource"),
+    path("dashboard/contributor/submit_content/resources/delete/", delete_resource, name="delete_resource"),
 ]

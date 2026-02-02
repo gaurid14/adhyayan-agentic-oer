@@ -5,7 +5,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 
+from .contributor.expertise_service import save_user_expertise
 from .contributor.generate_expertise import generate_expertise
+from .contributor.recommendation_service import recommend_courses_for_contributor, \
+    save_expertise_and_generate_course_links
 from .email.email_service import RegistrationSuccessEmail
 from ..models import User
 from ..forms import ProfilePictureForm # Add this new import at the top
@@ -23,7 +26,7 @@ def home_view(request):
     print("Home view called")
     # generate_expertise()
     # Clear all session data safely
-    request.session.flush()  # ✅ deletes session data and session cookie
+    request.session.flush()  # deletes session data and session cookie
     return render(request, 'home/index.html')
 
 def login_view(request):
@@ -34,7 +37,7 @@ def login_view(request):
         user = authenticate(request, username=email, password=password)
 
         if user is not None:
-            # ✅ If contributor is approved, is_active will be True (backend already blocks inactive)
+            # If contributor is approved, is_active will be True (backend already blocks inactive)
             login(request, user)
             request.session['user_id'] = user.id
             request.session['role'] = user.role
@@ -50,7 +53,7 @@ def login_view(request):
             u = User.objects.get(email__iexact=email)
             if u.role == User.Role.CONTRIBUTOR:
                 if u.contributor_approval_status == User.ContributorApprovalStatus.PENDING:
-                    messages.info(request, "Your contributor account is pending admin approval.")
+                    messages.info(request, "Your contributor account is pending approval.")
                     return redirect("pending_approval")
                 if u.contributor_approval_status == User.ContributorApprovalStatus.REJECTED:
                     msg = "Your contributor account was rejected."
@@ -86,15 +89,13 @@ def logout_view(request):
     logout(request)
     return redirect('login') # Redirect to login page after logout
 
-
 def register_view(request):
     # ---- Handle AJAX request for expertise dropdown ----
     # if request.method == 'GET' and request.GET.get('program'):
-    #     # program_name = request.GET.get('program')
+    #     program_name = request.GET.get('program')
     #     try:
-    #         # program = Program.objects.get(program_name=program_name)
-    #         # expertises = program.expertises.all().values('id', 'name')
-    #         # return JsonResponse(list(expertises), safe=False)
+    #         program = Program.objects.get(program_name=program_name)
+    #
     #     except Program.DoesNotExist:
     #         return JsonResponse([], safe=False)
 
@@ -129,29 +130,32 @@ def register_view(request):
             messages.success(request, "Registration successful. You can log in now.")
             return redirect("login")
 
-
-        elif role == 'contributor':
+        elif role == "contributor":
             user.role = User.Role.CONTRIBUTOR
-            user.first_name = request.POST.get('contrib-fname', '').strip()
-            user.last_name = request.POST.get('contrib-lname', '').strip()
-            user.phone_number = request.POST.get('contrib-phone', '').strip()
-            user.designation = request.POST.get('designation', '').strip()
-            user.current_institution = request.POST.get('institution', '').strip()
-            user.years_of_experience = request.POST.get('exp') or None
-            user.highest_qualification = request.POST.get('qualification')
-            user.date_of_birth = request.POST.get('contrib-dob')
-            user.bio = request.POST.get('bio', '').strip()
+            user.first_name = request.POST.get("contrib-fname", "").strip()
+            user.last_name = request.POST.get("contrib-lname", "").strip()
+            user.phone_number = request.POST.get("contrib-phone", "").strip()
+            user.designation = request.POST.get("designation", "").strip()
+            user.current_institution = request.POST.get("institution", "").strip()
+            user.years_of_experience = request.POST.get("exp") or None
+            user.highest_qualification = request.POST.get("qualification")
+            user.date_of_birth = request.POST.get("contrib-dob")
+            user.bio = request.POST.get("bio", "").strip()
 
-            # ✅ IMPORTANT: contributor must be approved by admin first
             user.contributor_approval_status = User.ContributorApprovalStatus.PENDING
             user.is_active = False
 
             user.save()
 
-            RegistrationSuccessEmail(user.email, user.first_name).send()
-            messages.info(request, "Registration successful. Your contributor account is pending admin approval.")
-            return redirect("pending_approval")
+            raw_expertise = request.POST.get("domain", "")
+            save_expertise_and_generate_course_links(user, raw_expertise)
 
+            recommended = recommend_courses_for_contributor(user)
+            print("Recommended:", list(recommended.values_list("course_name", flat=True)))
+
+            RegistrationSuccessEmail(user.email, user.first_name).send()
+            messages.info(request, "Registration successful. Your contributor account is pending approval.")
+            return redirect("pending_approval")
 
         # Save user
         user.save()

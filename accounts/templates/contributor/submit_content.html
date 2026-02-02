@@ -281,6 +281,82 @@
             color: #111827;
         }
 
+        /* ✅ Topics list (flat rows like chapters panel) */
+        .topics-list{
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 16px;
+        }
+
+        .topic-row{
+          display: grid;
+          grid-template-columns: 1fr 140px;
+          gap: 14px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          background: #ffffff;
+          border-left: 4px solid #e5e7eb;
+          transition: 0.18s ease;
+        }
+
+        .topic-row:hover{
+          border-color: #dbeafe;
+          border-left-color: #1eae98;
+          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+          transform: translateY(-1px);
+        }
+
+        .topic-main{
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .topic-name{
+          font-size: 15px;
+          font-weight: 550;
+          color: #0f172a;
+        }
+
+        .topic-subtext{
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .topic-action{
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+        }
+
+        /* empty state row */
+        .topic-empty-row{
+          padding: 14px 16px;
+          border-radius: 12px;
+          border: 1px dashed #e5e7eb;
+          background: #fafafa;
+          color: #6b7280;
+          font-size: 14px;
+        }
+
+        .topic-guide{
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 14px;
+          margin: 12px 0 18px;
+          border-radius: 12px;
+          background: #f0faf8;
+          border: 1px solid #c7f4e8;
+          color: #0f766e;
+          font-size: 13px;
+          font-weight: 600;
+        }
+        .topic-guide i{
+          margin-top: 2px;
+        }
 
     </style>
 </head>
@@ -307,96 +383,39 @@
 
         </section>
 
-        <!--        <section class="card topics-card">-->
-        <!--            <h2 class="card-title">Chapter Topics</h2>-->
-
-        <!--            <table class="topics-table">-->
-        <!--                <thead>-->
-        <!--                <tr>-->
-        <!--                    <th>Topic Name</th>-->
-        <!--                    <th class="action-column">View Submission</th>-->
-        <!--                    <th class="action-column">Upload New</th>-->
-        <!--                </tr>-->
-        <!--                </thead>-->
-        <!--                <tbody>-->
-        <!--                <tr data-topic-id="1" data-topic-name="Introduction to Topic A">-->
-        <!--                    <td>Introduction to Topic A</td>-->
-        <!--                    <td class="action-column">-->
-        <!--                        <a href="#" class="action-button view-past-button">-->
-        <!--                            <i class="fas fa-history"></i> View </a>-->
-        <!--                    </td>-->
-        <!--                    <td class="action-column">-->
-        <!--                            <i class="fas fa-upload"></i> Upload-->
-        <!--                        </a>-->
-        <!--                    </td>-->
-        <!--                </tr>-->
-        <!--                <tr data-topic-id="2" data-topic-name="Core Concepts of Topic B">-->
-        <!--                    <td>Core Concepts of Topic B</td>-->
-        <!--                    <td class="action-column">-->
-        <!--                        <a href="#" class="action-button view-past-button">-->
-        <!--                            <i class="fas fa-history"></i> View-->
-        <!--                        </a>-->
-        <!--                    </td>-->
-        <!--                    <td class="action-column">-->
-        <!--                            <i class="fas fa-upload"></i> Upload-->
-        <!--                        </a>-->
-        <!--                    </td>-->
-        <!--                </tr>-->
-        <!--                <tr data-topic-id="3" data-topic-name="Advanced Applications of Topic C">-->
-        <!--                    <td>Advanced Applications of Topic C</td>-->
-        <!--                    <td class="action-column">-->
-        <!--                        <a href="#" class="action-button view-past-button">-->
-        <!--                            <i class="fas fa-history"></i> View-->
-        <!--                        </a>-->
-        <!--                    </td>-->
-        <!--                    <td class="action-column">-->
-        <!--                            <i class="fas fa-upload"></i> Upload-->
-        <!--                        </a>-->
-        <!--                    </td>-->
-        <!--                </tr>-->
-        <!--                </tbody>-->
-        <!--            </table>-->
-        <!--        </section>-->
         <section class="card topics-card">
             <h2 class="card-title">Chapter Topics</h2>
 
-            <table class="topics-table">
-                <thead>
-                <tr>
-                    <th>Topic Name</th>
-                    <!--                    <th class="action-column">View Submission</th>-->
-                    <th class="action-column">Upload New</th>
-                </tr>
-                </thead>
-                <tbody>
+            <div class="topic-guide">
+                <i class="fa-solid fa-circle-info"></i>
+                Upload PDF, PPT, or Video for the selected topic.
+            </div>
+
+            <!-- Replace table with this -->
+            <div class="topics-list">
                 {% for topic in topics %}
                 {% if topic %}
-                <tr data-topic-id="{{ forloop.counter }}" data-topic-name="{{ topic }}">
-                    <td>{{ topic }}</td>
-                    <!--                    <td class="action-column">-->
-                    <!--                        <a href="#" class="action-button view-past-button">-->
-                    <!--                            <i class="fas fa-history"></i> View-->
-                    <!--                        </a>-->
-                    <!--                    </td>-->
-                    <td class="action-column">
-                        <a href="{% url 'contributor_upload_file' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}&topic={{ topic|urlencode }}">
+                <div class="topic-row">
+                    <div class="topic-main">
+                        <div class="topic-name">{{ topic }}</div>
+                    </div>
+
+                    <div class="topic-action">
+                        <a class="action-button upload-button"
+                           href="{% url 'contributor_upload_file' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}&topic={{ topic|urlencode }}">
                             <i class="fas fa-upload"></i> Upload
                         </a>
-                    </td>
-                </tr>
+                    </div>
+                </div>
                 {% else %}
-                <tr>
-                    <td colspan="3" style="color:red;">⚠️ Empty topic found</td>
-                </tr>
+                <div class="topic-empty-row">⚠️ Empty topic found</div>
                 {% endif %}
                 {% empty %}
-                <tr>
-                    <td colspan="3" style="text-align:center;">No topics found for this chapter.</td>
-                </tr>
+                <div class="topic-empty-row">No topics found for this chapter.</div>
                 {% endfor %}
-                </tbody>
-            </table>
+            </div>
         </section>
+
 
 
         <section class="final-submission-section">

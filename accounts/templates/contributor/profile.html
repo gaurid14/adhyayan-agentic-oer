@@ -326,9 +326,17 @@
                             <input class="edit-mode" name="phone_number" value="{{ contributor.phone_number }}">
                         </div>
                         <div class="profile-item">
-                            <label>Qualification</label>
-                            <span class="read-mode">{{ contributor.get_highest_qualification_display }}</span>
-                            <input class="edit-mode" name="highest_qualification" value="{{ contributor.highest_qualification }}">
+
+                                <label>Qualification</label>
+                                <span class="read-mode">{{ contributor.get_highest_qualification_display }}</span>
+
+                                <select class="edit-mode" name="highest_qualification">
+                                    {% for key, val in contributor.HIGHEST_QUALIFICATION_CHOICES %}
+                                    <option value="{{ key }}" {% if contributor.highest_qualification == key %}selected{% endif %}>
+                                        {{ val }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                         </div>
                         <div class="profile-item">
                             <label>Experience (years)</label>
@@ -354,7 +362,7 @@
             </section>
 
             <div class="actions edit-mode">
-                <button class="btn-primary">Save Changes</button>
+                <button type="submit" class="btn-primary">Save Changes</button>
                 <button type="button" class="btn-secondary" onclick="cancelEdit()">Cancel</button>
             </div>
 

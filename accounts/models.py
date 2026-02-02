@@ -151,15 +151,11 @@ class OutcomeChapterMapping(models.Model):
 
 # Contributor's expertise
 class Expertise(models.Model):
-    program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name="expertises")
-    name = models.CharField(max_length=150)  # generic expertise
+    name = models.CharField(max_length=150, unique=True)  # generic expertise
     courses = models.ManyToManyField('Course', related_name='expertises', blank=True)  # automatically linked
 
-    class Meta:
-        unique_together = ('program', 'name')
-
     def __str__(self):
-        return f"{self.name} ({self.program.program_name})"
+        return f"{self.name}"
 
 
 class User(AbstractUser):
@@ -427,6 +423,83 @@ class DmMessage(models.Model):
 
     def __str__(self):
         return f"DM msg by {self.sender.username} at {self.created_at:%Y-%m-%d %H:%M}"
+
+# External Resources
+class ExternalResource(models.Model):
+    course = models.ForeignKey("Course", on_delete=models.CASCADE)
+    chapter = models.ForeignKey("Chapter", on_delete=models.CASCADE)
+    topic = models.CharField(max_length=255)
+
+    title = models.CharField(max_length=255)
+    url = models.URLField()
+
+    resource_type = models.CharField(
+        max_length=50,
+        choices=[
+            ("youtube", "YouTube"),
+            ("article", "Article"),
+            ("docs", "Docs/Notes"),
+            ("other", "Other"),
+        ],
+        default="youtube"
+    )
+
+    created_by = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "CONTRIBUTOR"},
+        related_name="external_resources"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.resource_type})"
+
+
+# For auto-submission, track contributor's progress
+class ChapterContributionProgress(models.Model):
+    """
+    Tracks upload progress of a contributor for a chapter.
+    Created on first file upload.
+    Used for auto-submit & deadline handling.
+    """
+
+    contributor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "CONTRIBUTOR"},
+        related_name="chapter_progress"
+    )
+
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name="contributor_progress"
+    )
+
+    # ---- upload tracking ----
+    pdf_count = models.PositiveIntegerField(default=0)
+    video_count = models.PositiveIntegerField(default=0)
+    draft_count = models.PositiveIntegerField(default=0)
+
+    # ---- lifecycle flags ----
+    has_any_upload = models.BooleanField(default=False)
+    auto_submitted = models.BooleanField(default=False)
+
+    first_upload_at = models.DateTimeField(auto_now_add=True)
+    last_upload_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("contributor", "chapter")
+
+    def __str__(self):
+        return f"{self.contributor.username} → {self.chapter}"
+
+    @property
+    def total_uploads(self):
+        return self.pdf_count + self.video_count
+
 
 # python manage.py makemigrations
 # python manage.py migrate

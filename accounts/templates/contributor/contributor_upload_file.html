@@ -514,7 +514,15 @@
             grid-template-columns: 2fr 1fr; /* ~65% / 35% */
             gap: 30px;
             align-items: stretch;
+            overflow: hidden;
         }
+
+        .primary-column,
+        .secondary-column {
+          overflow-y: auto;
+          padding-right: 6px;
+        }
+
 
         .primary-column .card {
           border: 1px solid var(--border-light);
@@ -650,6 +658,128 @@
             background-color: #9ca3af;
         }
 
+        /* ✅ Expandable Guidelines (accordion) */
+        .guidelines-card {
+          padding: 18px 20px;
+          border: 1px solid var(--border-light);
+          background: #ffffff;
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+
+        .guidelines-toggle {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+
+          background: transparent;
+          border: none;
+          cursor: pointer;
+
+          padding: 0;
+        }
+
+        .guidelines-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          font-size: 15px;
+          font-weight: 650;
+          color: var(--text-primary);
+        }
+
+        .guidelines-title i {
+          color: var(--brand);
+          font-size: 15px;
+        }
+
+        .guidelines-toggle .arrow {
+          font-size: 14px;
+          color: #64748b;
+          transition: transform 0.25s ease;
+        }
+
+        .guidelines-body {
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid #eef2f7;
+
+          display: none;
+        }
+
+        .guidelines-body.show {
+          display: block;
+          animation: fadeGuidelines 0.22s ease;
+        }
+
+        @keyframes fadeGuidelines {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0px);
+          }
+        }
+
+        .guideline-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .guideline-item {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+
+          font-size: 13.5px;
+          color: var(--text-secondary);
+          line-height: 1.5;
+        }
+
+        .guideline-item i {
+          margin-top: 3px;
+          color: var(--brand);
+          font-size: 12px;
+        }
+
+        .guideline-note {
+          margin-top: 12px;
+          font-size: 13px;
+          color: #64748b;
+          background: #f8fafc;
+          border: 1px dashed #cbd5e1;
+          padding: 10px 12px;
+          border-radius: 10px;
+        }
+
+        #chat-attach-btn {
+          background: #eef1f1 !important;
+          color: #374151 !important;
+          border: 1px solid #d1d5db !important;
+        }
+
+        #chat-attach-btn:hover {
+          background: #e5e7eb !important;
+        }
+
+        #chat-attach-btn i {
+          color: #374151 !important;
+        }
+
+        .chat-input-area {
+          display: flex;
+          gap: 10px;
+          padding: 15px 20px;
+          border-top: 1px solid #eee;
+          background-color: #fff;
+          align-items: center;
+        }
     </style>
 </head>
 
@@ -715,6 +845,63 @@
 
             <!-- ===== LEFT: PRIMARY WORK AREA ===== -->
             <div class="primary-column">
+
+                <section class="guidelines-card" style="margin-bottom:18px;">
+                    <button type="button" class="guidelines-toggle" id="guidelinesToggle">
+                        <div class="guidelines-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Content Guidelines (Recommended)
+                        </div>
+
+                        <i class="fas fa-chevron-down arrow" id="guidelinesArrow"></i>
+                    </button>
+
+                    <div class="guidelines-body" id="guidelinesBody">
+                        <div class="guideline-list">
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Keep the language simple and easy for students.
+                            </div>
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Include examples to explain the concept clearly.
+                            </div>
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Cover all sub-topics as per syllabus.
+                            </div>
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Maintain a clear flow: headings → explanation → example.
+                            </div>
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Add scenario-based explanation or real-world use case if possible.
+                            </div>
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Upload supporting files if needed (PDF / PPT / Video).
+                            </div>
+
+                            <div class="guideline-item">
+                                <i class="fas fa-check-circle"></i>
+                                Generate assessment after uploading PDF notes (optional but recommended).
+                            </div>
+
+                        </div>
+
+                        <div class="guideline-note">
+                            ✅ Your content will be evaluated on: relevance, completeness, clarity, coherence, and engagement.
+                        </div>
+                    </div>
+                </section>
+
                 <section class="card editor-card">
                     <h2 class="card-title">Content Editor</h2>
                     <form id="editorForm" method="POST" action="{% url 'contributor_editor' %}">
@@ -744,6 +931,43 @@
 
             <!-- ===== RIGHT: SUPPORTING AREA ===== -->
             <div class="secondary-column">
+
+                <section class="card editor-card">
+                    <h2 class="card-title">External Resources</h2>
+
+                    <form id="resourceForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
+                        <input type="hidden" name="topic" value="{{ topic }}">
+
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <input type="text" id="resTitle" placeholder="Resource title (e.g., DNS Explained)"
+                                   style="padding:10px; border:1px solid #d1d5db; border-radius:8px;" required>
+
+                            <input type="url" id="resUrl" placeholder="Paste link (YouTube / Website)"
+                                   style="padding:10px; border:1px solid #d1d5db; border-radius:8px;" required>
+
+                            <select id="resType"
+                                    style="padding:10px; border:1px solid #d1d5db; border-radius:8px;">
+                                <option value="youtube">YouTube</option>
+                                <option value="article">Article</option>
+                                <option value="docs">Docs/Notes</option>
+                                <option value="other">Other</option>
+                            </select>
+
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                + Add Resource
+                            </button>
+                        </div>
+                    </form>
+
+                    <div style="margin-top:15px;">
+                        <h3 style="margin-bottom:10px;">Added Links</h3>
+                        <ul id="resourceList" style="display:flex; flex-direction:column; gap:10px;"></ul>
+                    </div>
+                </section>
+
 
                 <!-- File list -->
                 <section class="card editor-card">
@@ -949,9 +1173,19 @@
     <div class="chat-messages" id="chat-messages">
         <div class="message bot">Hello! How can I assist you?</div>
     </div>
-    <div class="chat-input-area"><input type="text" id="chat-input" placeholder="Type your message...">
+    <div class="chat-input-area">
+        <input type="file" id="chat-file" multiple style="display:none" />
+
+        <button type="button" id="chat-attach-btn"
+                style="background:#eef1f1; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer;">
+            <i class="fas fa-paperclip"></i>
+        </button>
+
+        <input type="text" id="chat-input" placeholder="Type your message...">
+
         <button id="chat-send-btn"><i class="fas fa-paper-plane"></i></button>
     </div>
+
 </div>
 <div id="chat-overlay" class="overlay"></div>
 
@@ -1056,26 +1290,165 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-        async function handleChatSend() {
-            const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
-            addChatMessage(userMessage, 'user');
-            chatInput.value = '';
-            try {
-                const res = await fetch("{% url 'gemini_chat' %}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-                    body: JSON.stringify({ message: userMessage })
-                });
-                const data = await res.json();
-                if(data.reply) { addChatMessage(data.reply, 'bot'); }
-                else if(data.error) { addChatMessage(`Error: ${data.error}`, 'bot'); }
-            } catch(err) {
-                addChatMessage(`Error: ${err.message}`, 'bot');
-            }
+
+        const chatFileInput = document.getElementById("chat-file");
+        const chatAttachBtn = document.getElementById("chat-attach-btn");
+
+        if (chatAttachBtn) {
+          chatAttachBtn.addEventListener("click", () => {
+            chatFileInput.click();
+          });
         }
+
+        async function handleChatSend() {
+          const userMessage = chatInput.value.trim();
+          const files = chatFileInput.files;
+
+          if (!userMessage && (!files || files.length === 0)) return;
+
+          // Show user message
+          if (userMessage) addChatMessage(userMessage, "user");
+
+          // Show file names
+          if (files && files.length > 0) {
+            let fileNames = Array.from(files).map(f => `📎 ${f.name}`).join("<br>");
+            addChatMessage(fileNames, "user");
+          }
+
+          try {
+            const formData = new FormData();
+            formData.append("message", userMessage);
+
+            if (files && files.length > 0) {
+              Array.from(files).forEach(file => formData.append("files", file));
+            }
+
+            const res = await fetch("{% url 'gemini_chat' %}", {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+              },
+              body: formData
+            });
+
+            const data = await res.json();
+
+            if (data.reply) addChatMessage(data.reply, "bot");
+            else if (data.error) addChatMessage(`Error: ${data.error}`, "bot");
+
+            chatInput.value = "";
+            chatFileInput.value = "";
+
+          } catch (err) {
+            addChatMessage(`Error: ${err.message}`, "bot");
+          }
+        }
+
         if (chatSendBtn) chatSendBtn.addEventListener('click', handleChatSend);
         if (chatInput) chatInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { handleChatSend(); } });
+
+
+        // ✅ Guidelines toggle
+        const guidelinesToggle = document.getElementById("guidelinesToggle");
+        const guidelinesBody = document.getElementById("guidelinesBody");
+        const guidelinesArrow = document.getElementById("guidelinesArrow");
+
+        if (guidelinesToggle && guidelinesBody && guidelinesArrow) {
+          guidelinesToggle.addEventListener("click", () => {
+            guidelinesBody.classList.toggle("show");
+
+            if (guidelinesBody.classList.contains("show")) {
+              guidelinesArrow.style.transform = "rotate(180deg)";
+            } else {
+              guidelinesArrow.style.transform = "rotate(0deg)";
+            }
+          });
+        }
+
+        const resourceForm = document.getElementById("resourceForm");
+        const resourceList = document.getElementById("resourceList");
+
+        async function loadResources() {
+          const courseId = "{{ course.id }}";
+          const chapterId = "{{ chapter.id }}";
+          const topic = "{{ topic }}";
+
+          const res = await fetch(`{% url 'list_resources' %}?course_id=${courseId}&chapter_id=${chapterId}&topic=${encodeURIComponent(topic)}`);
+          const data = await res.json();
+
+          resourceList.innerHTML = "";
+
+          (data.resources || []).forEach(r => {
+            const li = document.createElement("li");
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.style.alignItems = "center";
+            li.style.padding = "10px";
+            li.style.border = "1px solid #e5e7eb";
+            li.style.borderRadius = "8px";
+
+            li.innerHTML = `
+              <div>
+                <a href="${r.url}" target="_blank" style="font-weight:600; color:#111827;">
+                  ${r.title}
+                </a>
+                <div style="font-size:12px; color:#6b7280;">${r.type.toUpperCase()}</div>
+              </div>
+              <button class="delete-icon-btn" data-id="${r.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            `;
+
+            resourceList.appendChild(li);
+          });
+
+          document.querySelectorAll("#resourceList .delete-icon-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+              const id = btn.dataset.id;
+
+              await fetch("{% url 'delete_resource' %}", {
+                method: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                body: new URLSearchParams({ id })
+              });
+
+              loadResources();
+            });
+          });
+        }
+
+        if (resourceForm) {
+          resourceForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById("resTitle").value.trim();
+            const url = document.getElementById("resUrl").value.trim();
+            const type = document.getElementById("resType").value;
+
+            const formData = new FormData();
+            formData.append("course_id", "{{ course.id }}");
+            formData.append("chapter_id", "{{ chapter.id }}");
+            formData.append("topic", "{{ topic }}");
+            formData.append("title", title);
+            formData.append("url", url);
+            formData.append("type", type);
+
+            await fetch("{% url 'add_resource' %}", {
+              method: "POST",
+              headers: { "X-CSRFToken": "{{ csrf_token }}" },
+              body: formData
+            });
+
+            document.getElementById("resTitle").value = "";
+            document.getElementById("resUrl").value = "";
+            document.getElementById("resType").value = "youtube";
+
+            loadResources();
+          });
+        }
+
+        loadResources();
+
 
     }); // End DOMContentLoaded
 
@@ -1161,6 +1534,7 @@
         }
 
     });
+
 });
 
 </script>

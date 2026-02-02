@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ course.name }} | Chapters</title>
+
+    <style>
+        body {
+          margin: 0;
+          font-family: "Segoe UI", sans-serif;
+          background: #f5f7fb;
+        }
+
+        .container {
+          width: 90%;
+          max-width: 1200px;
+          margin: 30px auto;
+        }
+
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .back-btn {
+          text-decoration: none;
+          color: #00796b;
+          font-weight: 700;
+        }
+
+        .course-title {
+          font-size: 22px;
+          font-weight: 800;
+          margin: 5px 0;
+        }
+
+        .course-subtitle {
+          color: #666;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .summary-card {
+          background: linear-gradient(90deg, #00796b, #26a69a);
+          color: white;
+          padding: 18px 22px;
+          border-radius: 18px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 25px;
+          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .summary-card h2 {
+          margin: 0;
+          font-size: 18px;
+        }
+
+        .summary-card p {
+          margin: 6px 0 0;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+
+        .progress-badge {
+          background: rgba(255, 255, 255, 0.22);
+          padding: 10px 16px;
+          border-radius: 14px;
+          font-weight: 800;
+          font-size: 14px;
+          white-space: nowrap;
+        }
+
+        .chapters-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+          .chapters-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .chapter-card {
+          background: white;
+          border-radius: 18px;
+          padding: 18px;
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+          border: 1px solid #eef1f5;
+          transition: 0.2s;
+        }
+
+        .chapter-card:hover {
+          transform: translateY(-2px);
+        }
+
+        .chapter-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 12px;
+          gap: 10px;
+        }
+
+        .chapter-title {
+          font-size: 16px;
+          font-weight: 800;
+          margin: 0;
+        }
+
+        .chapter-status {
+          font-size: 12px;
+          padding: 6px 10px;
+          border-radius: 999px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .status-notstarted {
+          background: #f1f3f5;
+          color: #555;
+        }
+
+        .status-inprogress {
+          background: #fff3cd;
+          color: #8a6d00;
+        }
+
+        .status-completed {
+          background: #d4edda;
+          color: #1e7e34;
+        }
+
+        .chapter-desc {
+          color: #666;
+          font-size: 13px;
+          margin: 0 0 12px;
+          line-height: 1.4;
+        }
+
+        .progress-bar {
+          width: 100%;
+          height: 10px;
+          background: #e9ecef;
+          border-radius: 999px;
+          overflow: hidden;
+          margin-bottom: 14px;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: #00796b;
+          border-radius: 999px;
+          width: 0%;
+        }
+
+        .chapter-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .btn {
+          border: none;
+          cursor: pointer;
+          padding: 10px 14px;
+          border-radius: 12px;
+          font-weight: 800;
+          font-size: 13px;
+          transition: 0.2s;
+          text-decoration: none;
+          display: inline-block;
+          text-align: center;
+        }
+
+        .btn-primary {
+          background: #00796b;
+          color: white;
+          flex: 1;
+        }
+
+        .btn-primary:hover {
+          opacity: 0.92;
+        }
+
+        .btn-outline {
+          background: transparent;
+          border: 1.5px solid #00796b;
+          color: #00796b;
+          width: 120px;
+        }
+
+        .btn-outline:hover {
+          background: #e0f2f1;
+        }
+
+        .small-info {
+          font-size: 12px;
+          color: #888;
+          font-weight: 700;
+        }
+
+        .empty-state {
+          background: white;
+          border-radius: 18px;
+          border: 1px dashed #d7dde6;
+          padding: 20px;
+          color: #666;
+          font-weight: 600;
+          text-align: center;
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- Top bar -->
+    <div class="topbar">
+        <a class="back-btn" href="{% url 'student_courses' %}">← Back to My Courses</a>
+        <div class="small-info">Student Dashboard</div>
+    </div>
+
+    <!-- Course Heading -->
+    <div style="margin-bottom: 15px;">
+        <div class="course-title">{{ course.name }}</div>
+
+        <div class="course-subtitle">
+            {% if course.code %}{{ course.code }}{% endif %}
+            {% if course.semester %} • Semester {{ course.semester }}{% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="summary-card">
+        <div>
+            <h2>Course Progress</h2>
+            <p>
+                {% if course_progress_message %}
+                {{ course_progress_message }}
+                {% else %}
+                You're doing great! Complete the next chapter to keep the streak alive 🔥
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="progress-badge">
+            {% if course_progress_percent is not None %}
+            {{ course_progress_percent }}% Completed
+            {% else %}
+            0% Completed
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chapters list -->
+    {% if chapters %}
+    <div class="chapters-grid">
+
+        {% for chapter in chapters %}
+        <div class="chapter-card">
+
+            <div class="chapter-top">
+                <div>
+                    <p class="chapter-title">
+                        {% if chapter.order %}
+                        Chapter {{ chapter.order }}:
+                        {% else %}
+                        Chapter {{ forloop.counter }}:
+                        {% endif %}
+                        {{ chapter.name }}
+                    </p>
+                </div>
+
+                <!-- Status Badge -->
+                {% if chapter.status == "completed" %}
+                <span class="chapter-status status-completed">✅ Completed</span>
+                {% elif chapter.status == "in_progress" %}
+                <span class="chapter-status status-inprogress">⏳ In Progress</span>
+                {% else %}
+                <span class="chapter-status status-notstarted">📌 Not Started</span>
+                {% endif %}
+            </div>
+
+            <p class="chapter-desc">
+                {% if chapter.description %}
+                {{ chapter.description }}
+                {% else %}
+                No description available for this chapter.
+                {% endif %}
+            </p>
+
+            <div class="progress-bar">
+                <div class="progress-fill"
+                     style="width: {% if chapter.progress_percent is not None %}{{ chapter.progress_percent }}{% else %}0{% endif %}%;">
+                </div>
+            </div>
+
+            <div class="chapter-actions">
+
+                <!-- Left small button -->
+                {% if chapter.status == "completed" %}
+                <a class="btn btn-outline"
+                   href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}">
+                    View
+                </a>
+
+                <a class="btn btn-primary"
+                   href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}">
+                    Revise
+                </a>
+
+                {% elif chapter.status == "in_progress" %}
+                <a class="btn btn-outline"
+                   href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}">
+                    Notes
+                </a>
+
+                <a class="btn btn-primary"
+                   href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}">
+                    Continue
+                </a>
+
+                {% else %}
+                <a class="btn btn-outline"
+                   href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}">
+                    Preview
+                </a>
+
+                <a class="btn btn-primary"
+                   href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}">
+                    Start
+                </a>
+                {% endif %}
+
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        No chapters found for this course.
+    </div>
+    {% endif %}
+
+</div>
+</body>
+</html>

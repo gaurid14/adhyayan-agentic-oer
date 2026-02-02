@@ -11,6 +11,7 @@ from django.contrib import messages
 from google.auth.exceptions import RefreshError
 
 from langgraph_agents.services.drive_service import GoogleDriveAuthService, GoogleDriveFolderService
+from .expertise_service import save_user_expertise
 from ...models import Course, Chapter, UploadCheck
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
@@ -20,7 +21,7 @@ from django.utils import timezone
 from ...models import Course, Chapter, UploadCheck
 
 # ==============================
-# 🔒 Authorization Guard
+# Authorization Guard
 # ==============================
 class ContributorAccessGuard:
     @staticmethod
@@ -29,7 +30,7 @@ class ContributorAccessGuard:
 
 
 # ==============================
-# 📚 Course Recommendation Service
+# Course Recommendation Service
 # ==============================
 class ContributorCourseService:
     @staticmethod
@@ -42,19 +43,43 @@ class ContributorCourseService:
         )
 
     @staticmethod
-    def get_chapters_by_course(courses) -> Dict[int, List[dict]]:
-        return {
-            course.id: list(
-                course.chapters.values(
-                    "id", "chapter_number", "chapter_name"
-                )
-            )
-            for course in courses
-        }
+    def get_chapters_by_course(courses):
+        chapters_map = {}
+
+        for course in courses:
+            chapters = Chapter.objects.filter(course=course).select_related("course")
+            chapters = chapters.select_related("course__scheme", "course__department", "course__department__program")
+
+
+            chapter_list = []
+            for ch in chapters:
+                policy = getattr(ch, "policy", None)
+
+                deadline = None
+                is_open = True
+
+                if policy:
+                    # use current_deadline if exists else deadline
+                    deadline_dt = policy.current_deadline or policy.deadline
+                    if deadline_dt:
+                        deadline = deadline_dt.isoformat()
+                        is_open = timezone.now() <= deadline_dt
+
+                chapter_list.append({
+                    "id": ch.id,
+                    "chapter_number": ch.chapter_number,
+                    "chapter_name": ch.chapter_name,
+                    "deadline": deadline,         # string OR null
+                    "is_open": is_open,           # bool
+                })
+
+            chapters_map[str(course.id)] = chapter_list
+
+        return chapters_map
 
 
 # ==============================
-# 📦 Submission Query Service
+# Submission Query Service
 # ==============================
 class ContributorSubmissionService:
     @staticmethod
@@ -81,7 +106,7 @@ class ContributorSubmissionService:
 
 
 # ==============================
-# ☁️ Contributor Drive Facade
+# Contributor Drive Facade
 # ==============================
 class ContributorDriveFacade:
     """
@@ -170,7 +195,7 @@ class ContributorDriveFacade:
 
 
 # ==============================
-# 🧠 Topic Extraction Utility
+# Topic Extraction Utility
 # ==============================
 class TopicExtractor:
     @staticmethod
@@ -185,118 +210,139 @@ class TopicExtractor:
 
 
 # ==============================
-# 🌐 Views (Thin Controllers)
+# Views (Thin Controllers)
 # ==============================
+# @login_required
+# def contributor_dashboard_view(request):
+#     user = request.user
+#
+#     # ensure contributor
+#     if user.role != "CONTRIBUTOR":
+#         return render(request, "403.html", status=403)
+#
+#     # recommended/available subjects
+#     courses_qs = (
+#         Course.objects
+#         .filter(expertises__in=user.domain_of_expertise.all())
+#         .distinct()
+#         .select_related("department", "department__program", "scheme")
+#         .order_by("department__dept_name", "semester", "course_name")
+#     )
+#
+#     courses = list(courses_qs)
+#     uploads_count = UploadCheck.objects.filter(contributor=user).count()
+#
+#     if not courses:
+#         return render(
+#             request,
+#             "contributor/contributor_dashboard.html",
+#             {
+#                 "uploads_count": uploads_count,
+#                 "recommended_courses": [],
+#                 "course_tree": [],
+#                 "selected_course": None,
+#                 "chapters": [],
+#                 "is_approved_contributor": getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED",
+#             },
+#         )
+#
+#     # LEFT panel hierarchy: Course(stream/department) -> Sem -> Subject(Course)
+#     tree = {}
+#     for c in courses:
+#         dept = c.department
+#         tree.setdefault(dept.id, {"dept": dept, "sems": {}})
+#         tree[dept.id]["sems"].setdefault(c.semester or 0, [])
+#         tree[dept.id]["sems"][c.semester or 0].append(c)
+#
+#     course_tree = []
+#     for _, node in sorted(tree.items(), key=lambda kv: kv[1]["dept"].dept_name.lower()):
+#         sem_list = []
+#         for sem, sem_courses in sorted(node["sems"].items(), key=lambda kv: kv[0]):
+#             sem_list.append({
+#                 "semester": sem,
+#                 "courses": sorted(sem_courses, key=lambda x: x.course_name.lower()),
+#             })
+#         course_tree.append({"dept": node["dept"], "sems": sem_list})
+#
+#     # selected subject
+#     selected_course_id = request.GET.get("course_id")
+#     selected_course = None
+#     if selected_course_id:
+#         selected_course = next((c for c in courses if str(c.id) == str(selected_course_id)), None)
+#     if not selected_course:
+#         selected_course = courses[0]
+#
+#     # RIGHT: chapters + policy + contribution counts (single query)
+#     now = timezone.now()
+#
+#     chapters_qs = (
+#         Chapter.objects
+#         .filter(course=selected_course)
+#         .select_related("course", "policy")
+#         .annotate(
+#             contributions_total=Count("uploads", distinct=True),
+#             contributions_evaluated=Count("uploads", filter=Q(uploads__evaluation_status=True), distinct=True),
+#         )
+#         .order_by("chapter_number")
+#     )
+#
+#     # which chapters current contributor has already submitted (single query)
+#     submitted_ids = set(
+#         UploadCheck.objects
+#         .filter(contributor=user, chapter__course=selected_course)
+#         .values_list("chapter_id", flat=True)
+#     )
+#
+#     is_approved = (getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED") and user.is_active
+#
+#     chapters = list(chapters_qs)
+#     for ch in chapters:
+#         policy = getattr(ch, "policy", None)
+#         deadline = getattr(policy, "current_deadline", None)
+#
+#         ch.deadline = deadline
+#         ch.extensions_used = getattr(policy, "extensions_used", 0) if policy else 0
+#         ch.max_extensions = getattr(policy, "max_extensions", 0) if policy else 0
+#         ch.min_contributions = getattr(policy, "min_contributions", None) if policy else None
+#
+#         ch.is_open = (deadline is None) or (deadline >= now)
+#         ch.user_submitted = ch.id in submitted_ids
+#         ch.can_submit = bool(is_approved and ch.is_open and not ch.user_submitted)
+#
+#     return render(
+#         request,
+#         "contributor/contributor_dashboard.html",
+#         {
+#             "uploads_count": uploads_count,
+#             "recommended_courses": courses,
+#             "course_tree": course_tree,
+#             "selected_course": selected_course,
+#             "chapters": chapters,
+#             "is_approved_contributor": is_approved,
+#             "now": now,
+#         },
+#     )
+
 @login_required
 def contributor_dashboard_view(request):
     user = request.user
 
-    # ensure contributor
-    if user.role != "CONTRIBUTOR":
+    if not ContributorAccessGuard.ensure_contributor(user):
         return render(request, "403.html", status=403)
 
-    # recommended/available subjects
-    courses_qs = (
-        Course.objects
-        .filter(expertises__in=user.domain_of_expertise.all())
-        .distinct()
-        .select_related("department", "department__program", "scheme")
-        .order_by("department__dept_name", "semester", "course_name")
+    courses = ContributorCourseService.get_recommended_courses(user).select_related(
+        "scheme", "department", "department__program"
     )
 
-    courses = list(courses_qs)
-    uploads_count = UploadCheck.objects.filter(contributor=user).count()
+    chapters_map = ContributorCourseService.get_chapters_by_course(courses)
 
-    if not courses:
-        return render(
-            request,
-            "contributor/contributor_dashboard.html",
-            {
-                "uploads_count": uploads_count,
-                "recommended_courses": [],
-                "course_tree": [],
-                "selected_course": None,
-                "chapters": [],
-                "is_approved_contributor": getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED",
-            },
-        )
+    context = {
+        "recommended_courses": courses,  # send objects
+        "chapters_json": json.dumps(chapters_map),
+    }
 
-    # LEFT panel hierarchy: Course(stream/department) -> Sem -> Subject(Course)
-    tree = {}
-    for c in courses:
-        dept = c.department
-        tree.setdefault(dept.id, {"dept": dept, "sems": {}})
-        tree[dept.id]["sems"].setdefault(c.semester or 0, [])
-        tree[dept.id]["sems"][c.semester or 0].append(c)
+    return render(request, "contributor/contributor_dashboard.html", context)
 
-    course_tree = []
-    for _, node in sorted(tree.items(), key=lambda kv: kv[1]["dept"].dept_name.lower()):
-        sem_list = []
-        for sem, sem_courses in sorted(node["sems"].items(), key=lambda kv: kv[0]):
-            sem_list.append({
-                "semester": sem,
-                "courses": sorted(sem_courses, key=lambda x: x.course_name.lower()),
-            })
-        course_tree.append({"dept": node["dept"], "sems": sem_list})
-
-    # selected subject
-    selected_course_id = request.GET.get("course_id")
-    selected_course = None
-    if selected_course_id:
-        selected_course = next((c for c in courses if str(c.id) == str(selected_course_id)), None)
-    if not selected_course:
-        selected_course = courses[0]
-
-    # RIGHT: chapters + policy + contribution counts (single query)
-    now = timezone.now()
-
-    chapters_qs = (
-        Chapter.objects
-        .filter(course=selected_course)
-        .select_related("course", "policy")
-        .annotate(
-            contributions_total=Count("uploads", distinct=True),
-            contributions_evaluated=Count("uploads", filter=Q(uploads__evaluation_status=True), distinct=True),
-        )
-        .order_by("chapter_number")
-    )
-
-    # which chapters current contributor has already submitted (single query)
-    submitted_ids = set(
-        UploadCheck.objects
-        .filter(contributor=user, chapter__course=selected_course)
-        .values_list("chapter_id", flat=True)
-    )
-
-    is_approved = (getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED") and user.is_active
-
-    chapters = list(chapters_qs)
-    for ch in chapters:
-        policy = getattr(ch, "policy", None)
-        deadline = getattr(policy, "current_deadline", None)
-
-        ch.deadline = deadline
-        ch.extensions_used = getattr(policy, "extensions_used", 0) if policy else 0
-        ch.max_extensions = getattr(policy, "max_extensions", 0) if policy else 0
-        ch.min_contributions = getattr(policy, "min_contributions", None) if policy else None
-
-        ch.is_open = (deadline is None) or (deadline >= now)
-        ch.user_submitted = ch.id in submitted_ids
-        ch.can_submit = bool(is_approved and ch.is_open and not ch.user_submitted)
-
-    return render(
-        request,
-        "contributor/contributor_dashboard.html",
-        {
-            "uploads_count": uploads_count,
-            "recommended_courses": courses,
-            "course_tree": course_tree,
-            "selected_course": selected_course,
-            "chapters": chapters,
-            "is_approved_contributor": is_approved,
-            "now": now,
-        },
-    )
 
 @login_required
 def contributor_submissions(request):
@@ -328,11 +374,29 @@ def contributor_profile(request):
     if not ContributorAccessGuard.ensure_contributor(user):
         return render(request, "403.html", status=403)
 
-    return render(
-        request,
-        "contributor/profile.html",
-        {"contributor": user}
-    )
+    if request.method == "POST":
+        user.designation = request.POST.get("designation", "").strip()
+        user.current_institution = request.POST.get("current_institution", "").strip()
+        user.phone_number = request.POST.get("phone_number", "").strip()
+        user.bio = request.POST.get("bio", "").strip()
+
+        years = request.POST.get("years_of_experience", "").strip()
+        user.years_of_experience = int(years) if years.isdigit() else None
+
+        hq = request.POST.get("highest_qualification", "").strip()
+        if hq in dict(user.HIGHEST_QUALIFICATION_CHOICES):
+            user.highest_qualification = hq
+
+        user.save()
+
+        raw_expertise = request.POST.get("expertise", "")
+        save_user_expertise(user, raw_expertise)
+
+        messages.success(request, "Profile updated successfully!")
+        return redirect("contributor_profile")
+
+    return render(request, "contributor/profile.html", {"contributor": user})
+
 
 
 @login_required
@@ -414,7 +478,7 @@ def contributor_submit_content_view(request):
 
             chapter_folder_id = folders[0]["id"]
 
-            # 🔥 STEP 1: Fetch topic folders
+            # STEP 1: Fetch topic folders
             topic_folders = (
                 service.files()
                 .list(
@@ -435,7 +499,7 @@ def contributor_submit_content_view(request):
 
                 print(f"📂 TOPIC FOLDER: {topic_name}")
 
-                # 🔥 STEP 2: Fetch actual files inside topic folder
+                # STEP 2: Fetch actual files inside topic folder
                 files_result = (
                     service.files()
                     .list(
@@ -453,7 +517,7 @@ def contributor_submit_content_view(request):
                         "name": f["name"],
                         "mimeType": f["mimeType"],
                         "type": folder_type,
-                        "topic": topic_name,   # 🔥 useful in UI
+                        "topic": topic_name,
                     })
 
             return collected_files

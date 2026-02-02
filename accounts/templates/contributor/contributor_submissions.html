@@ -124,8 +124,8 @@
         }
 
         .meta {
-            font-size: 12px;
-            color: #777;
+            font-size: 13px;
+            color: #6B7280;
             margin-top: 4px;
         }
 
@@ -164,6 +164,16 @@
             margin-bottom: 14px;
             color: #1EAE98;
         }
+
+        tbody tr {
+            border-left: 3px solid transparent;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+            border-left-color: #1EAE98;
+        }
+
     </style>
 </head>
 
@@ -198,6 +208,28 @@
         <!-- SUBMISSIONS TABLE -->
         <div class="card">
 
+            <div style="display:flex; gap:12px; margin-bottom:16px; align-items:center; flex-wrap:wrap;">
+
+                <input id="searchInput" type="text" placeholder="Search by course or chapter..."
+                       style="flex:1; min-width:240px; padding:10px 12px; border-radius:10px; border:1px solid #E5E7EB; outline:none;">
+
+                <select id="statusFilter"
+                        style="padding:10px 12px; border-radius:10px; border:1px solid #E5E7EB; font-weight:600;">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="evaluated">Evaluated</option>
+                </select>
+
+                <select id="sortFilter"
+                        style="padding:10px 12px; border-radius:10px; border:1px solid #E5E7EB; font-weight:600;">
+                    <option value="latest">Latest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+
+            </div>
+
+
+
             {% if uploads %}
             <table>
                 <thead>
@@ -210,8 +242,10 @@
                 </thead>
                 <tbody>
                 {% for upload in uploads %}
-                <tr>
-                    <td>
+                <tr data-status="{% if upload.evaluation_status %}evaluated{% else %}pending{% endif %}"
+                    data-date="{{ upload.timestamp|date:'U' }}">
+
+                <td>
                         <div class="course-title">
                             {{ upload.chapter.course.course_code }} – {{ upload.chapter.course.course_name }}
                         </div>
@@ -241,6 +275,15 @@
                 </tbody>
             </table>
 
+            <!-- ✅ No matching results (hidden by default) -->
+            <div id="noResults" class="empty-state" style="display:none; padding:40px 20px;">
+                <i class="fas fa-search"></i>
+                <p style="font-weight:600; color:#111827;">No matching submissions found</p>
+                <p style="margin-top:6px; font-size:13px; color:#6B7280;">
+                    Try changing the filters or clearing the search.
+                </p>
+            </div>
+
             {% else %}
             <div class="empty-state">
                 <i class="fas fa-folder-open"></i>
@@ -253,6 +296,74 @@
     </main>
 
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const searchInput = document.getElementById("searchInput");
+        const statusFilter = document.getElementById("statusFilter");
+        const sortFilter = document.getElementById("sortFilter");
+
+        const tbody = document.querySelector("tbody");
+        const noResults = document.getElementById("noResults");
+
+        if (!tbody) return;
+
+        // Get all rows as array
+        let rows = Array.from(tbody.querySelectorAll("tr"));
+
+        function applyFilters() {
+            const query = (searchInput.value || "").toLowerCase().trim();
+            const selectedStatus = statusFilter.value;
+            const selectedSort = sortFilter.value;
+
+            let visibleCount = 0;
+
+            // ✅ Filtering
+            rows.forEach(row => {
+                const rowText = row.innerText.toLowerCase();
+                const rowStatus = row.dataset.status;
+
+                let matchesSearch = query === "" || rowText.includes(query);
+                let matchesStatus = selectedStatus === "all" || rowStatus === selectedStatus;
+
+                const isVisible = matchesSearch && matchesStatus;
+                row.style.display = isVisible ? "" : "none";
+
+                if (isVisible) visibleCount++;
+            });
+
+            // ✅ Show/Hide "No results"
+            if (noResults) {
+                noResults.style.display = (visibleCount === 0) ? "block" : "none";
+            }
+
+            // ✅ Sorting (only visible rows)
+            let visibleRows = rows.filter(r => r.style.display !== "none");
+
+            visibleRows.sort((a, b) => {
+                const dateA = parseInt(a.dataset.date || "0");
+                const dateB = parseInt(b.dataset.date || "0");
+
+                if (selectedSort === "oldest") {
+                    return dateA - dateB;
+                }
+                return dateB - dateA; // latest first default
+            });
+
+            // ✅ Re-append sorted visible rows
+            visibleRows.forEach(r => tbody.appendChild(r));
+        }
+
+        // ✅ Events
+        searchInput.addEventListener("input", applyFilters);
+        statusFilter.addEventListener("change", applyFilters);
+        sortFilter.addEventListener("change", applyFilters);
+
+        // ✅ Default apply (latest first)
+        applyFilters();
+    });
+</script>
 
 </body>
 </html>

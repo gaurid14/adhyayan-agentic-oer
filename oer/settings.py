@@ -217,3 +217,9 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 LOGIN_URL = "login"               # uses your named URL: path('login/', ..., name='login')
 LOGIN_REDIRECT_URL = "home"       # fallback
 LOGOUT_REDIRECT_URL = "home"      # optional
+
+
+os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "false")
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY", "")
+os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT", "adhyayan")
+os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")

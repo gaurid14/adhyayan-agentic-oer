@@ -96,7 +96,7 @@ def generate_expertise(min_courses=3, similarity_threshold=0.45):
     Generate program-wise expertise clusters using semantic similarity of
     course names + objectives + outcomes.
     """
-    print("🚀 Starting smart expertise generation...")
+    print("Starting smart expertise generation...")
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
     for program in Program.objects.all():
@@ -149,7 +149,7 @@ def generate_expertise(min_courses=3, similarity_threshold=0.45):
             rep_name = clean_title(rep_course.course_name)
             expertise = Expertise.objects.create(program=program, name=rep_name)
             expertise.courses.add(*grouped_courses)
-            print(f"✅ Expertise: {rep_name} ({len(grouped_courses)} courses)")
+            print(f"Expertise: {rep_name} ({len(grouped_courses)} courses)")
 
         # Add miscellaneous expertise for unclustered courses
         all_clustered = {c.id for group in clusters.values() for c in group}
@@ -157,8 +157,8 @@ def generate_expertise(min_courses=3, similarity_threshold=0.45):
         if unclustered:
             misc = Expertise.objects.create(program=program, name="Miscellaneous")
             misc.courses.add(*unclustered)
-            print(f"➕ Added {len(unclustered)} unclustered courses to Miscellaneous.")
+            print(f"Added {len(unclustered)} unclustered courses to Miscellaneous.")
 
-    print("\n🎯 Expertise generation complete!")
+    print("\nExpertise generation complete!")
 
 

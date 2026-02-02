@@ -13,12 +13,14 @@ from django.contrib.admin.utils import unquote
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib import messages
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from PyPDF2 import PdfReader
 from docx import Document
 from exceptiongroup import ExceptionGroup
 from google.auth.exceptions import RefreshError
+from langchain_core.messages import HumanMessage
 from xhtml2pdf import pisa
 from googleapiclient.http import (
     MediaFileUpload,
@@ -28,7 +30,7 @@ from googleapiclient.http import (
 
 from accounts.models import (
     Chapter, UploadCheck, Assessment,
-    Question, Option, Course, User
+    Question, Option, Course, User, ExternalResource, ChapterContributionProgress, ChapterPolicy
 )
 from accounts.views.email.email_service import ContributionSuccessEmail
 
@@ -40,6 +42,24 @@ from langgraph_agents.services.drive_service import (
 from langgraph_agents.agents.submission_agent import submission_agent
 from langgraph_agents.graph.workflow import compiled_graph
 from langgraph_agents.services.gemini_service import llm
+
+import asyncio
+import threading
+import traceback
+import sys
+
+from asgiref.sync import sync_to_async
+from mcp.client.session import ClientSession
+from mcp.client.stdio import stdio_client, StdioServerParameters
+
+from accounts.models import ContentCheck
+
+PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
+MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# MCP_PATH = os.path.join(BASE_DIR, "langgraph_agents", "services", "mcp_server.py")
 
 
 class ContributorSessionService:
@@ -133,60 +153,11 @@ class ContributorEditorService:
         ).execute()
 
 
-import time
-from accounts.models import ContentCheck
-from asgiref.sync import sync_to_async
-
-import asyncio
-import threading
-import time
-import sys
-import os
-
-from asgiref.sync import sync_to_async
-from accounts.models import ContentCheck
-
-from mcp.client.session import ClientSession
-from mcp.client.stdio import stdio_client, StdioServerParameters
-
-# ✅ Set MCP_PATH correctly (same as your submission agent)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MCP_PATH = os.path.join(BASE_DIR, "langgraph_agents", "services", "mcp_server.py")
-
-
-import asyncio
-import threading
-import sys
-import traceback
-
-from asgiref.sync import sync_to_async
-from mcp.client.session import ClientSession
-from mcp.client.stdio import stdio_client, StdioServerParameters
-
-from accounts.models import ContentCheck
-
-# MCP_PATH should be defined globally already
-
-
-import asyncio
-import threading
-import traceback
-import sys
-
-from asgiref.sync import sync_to_async
-from mcp.client.session import ClientSession
-from mcp.client.stdio import stdio_client, StdioServerParameters
-
-from accounts.models import ContentCheck
-PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
-MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
-
-
 class SubmissionOrchestrator:
     @staticmethod
     def submit_and_evaluate(state: dict):
 
-        # ✅ 1) submission agent sync safe
+        # 1) submission agent sync safe
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
@@ -197,7 +168,7 @@ class SubmissionOrchestrator:
                     "drive_folders": state["drive_folders"],
                 })
             )
-            print("✅ Submission agent invoked!!")
+            print("Submission agent invoked!!")
         finally:
             loop.close()
 
@@ -206,7 +177,7 @@ class SubmissionOrchestrator:
 
         upload_id = result["upload_id"]
 
-        # ✅ 2) evaluation graph in background thread
+        # 2) evaluation graph in background thread
         def run_graph_background():
             bg_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(bg_loop)
@@ -225,14 +196,14 @@ class SubmissionOrchestrator:
 
                     print("🔎 extraction_status =", status)
 
-                    if status is True:   # ✅ correct boolean check
-                        print("✅ Extraction confirmed. Starting evaluation graph...")
+                    if status is True:
+                        print("Extraction confirmed. Starting evaluation graph...")
                         return True
 
                     await asyncio.sleep(interval)
                     waited += interval
 
-                print("❌ Extraction timeout. Evaluation graph NOT started.")
+                print("Extraction timeout. Evaluation graph NOT started.")
                 return False
 
             async def runner():
@@ -252,23 +223,23 @@ class SubmissionOrchestrator:
                     }
                 )
 
-                # ✅ start MCP session ONCE
+                # start MCP session ONCE
                 async with stdio_client(server_params) as (read, write):
                     async with ClientSession(read, write) as session:
                         await session.initialize()
-                        print("✅ MCP session initialized")
+                        print("MCP session initialized")
 
                         graph_input = {**state, **result}
-                        graph_input["mcp_session"] = session   # ✅ shared for all agents
+                        graph_input["mcp_session"] = session   # shared for all agents
 
                         await compiled_graph.ainvoke(graph_input)
 
-                print("✅ Evaluation graph invoked!! ✅✅✅")
+                print("Evaluation graph invoked!!")
 
             try:
                 bg_loop.run_until_complete(runner())
             except Exception as e:
-                print("❌ Error in evaluation background thread:", repr(e))
+                print("Error in evaluation background thread:", repr(e))
                 traceback.print_exception(type(e), e, e.__traceback__)
             finally:
                 bg_loop.close()
@@ -278,6 +249,22 @@ class SubmissionOrchestrator:
         return result
 
 
+
+def increment_progress(contributor_id, chapter_id, file_type):
+    progress, _ = ChapterContributionProgress.objects.get_or_create(
+        contributor_id=contributor_id,
+        chapter_id=chapter_id
+    )
+
+    if file_type == "pdf":
+        progress.pdf_count += 1
+    elif file_type == "video":
+        progress.video_count += 1
+    elif file_type == "draft":
+        progress.draft_count += 1
+
+    progress.has_any_upload = True
+    progress.save()
 
 @csrf_exempt
 def confirm_submission(request):
@@ -306,16 +293,12 @@ def confirm_submission(request):
     video_root_id = folder_service.get_or_create_folder(
         settings.GOOGLE_DRIVE_FOLDERS["videos"], oer_root_id
     )
-    assess_root_id = folder_service.get_or_create_folder(
-        settings.GOOGLE_DRIVE_FOLDERS["assessments"], oer_root_id
-    )
 
     base_folder = f"{contributor_id}_{course_id}_{chapter_number}"
 
     # Contributor folders
     pdf_folder_id = folder_service.get_or_create_folder(base_folder, pdf_root_id)
     video_folder_id = folder_service.get_or_create_folder(base_folder, video_root_id)
-    assess_folder_id = folder_service.get_or_create_folder(base_folder, assess_root_id)
 
     # -------------------------------
     # REQUIRED LangGraph State
@@ -328,7 +311,6 @@ def confirm_submission(request):
         "drive_folders": {
             "pdf": pdf_folder_id,
             "videos": video_folder_id,
-            "assessments": assess_folder_id,
         },
     }
 
@@ -422,7 +404,7 @@ def contributor_upload_file(request):
             chapter_folder_id = folders[0]["id"]
             collected_files = []
 
-            # 🔥 Fetch topic folders
+            # Fetch topic folders
             topic_folders = (
                 service.files()
                 .list(
@@ -440,7 +422,7 @@ def contributor_upload_file(request):
             for topic_folder in topic_folders:
                 topic_name = topic_folder["name"]
 
-                # ✅ CRITICAL FILTER
+                # CRITICAL FILTER
                 if topic_name != topic:
                     continue
 
@@ -538,7 +520,7 @@ def upload_files(request):
     files = request.FILES.getlist("supporting_files")
 
     for uploaded_file in files:
-        # ✅ READ FILE CONTENT SAFELY
+        # READ FILE CONTENT SAFELY
         file_bytes = uploaded_file.read()
         uploaded_file.seek(0)  # reset pointer (important)
 
@@ -546,18 +528,21 @@ def upload_files(request):
 
         if content_type == "application/pdf":
             folder = drive.ensure_topic_folder(base_folder, "pdf", topic)
+            file_type = "pdf"
 
         elif content_type.startswith("video/"):
             folder = drive.ensure_topic_folder(base_folder, "videos", topic)
+            file_type = "video"
 
         elif uploaded_file.name.endswith((".doc", ".docx")):
             folder = drive.ensure_topic_folder(base_folder, "drafts", topic)
             content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            file_type = "draft"
 
         else:
             continue
 
-        # ✅ PASS BYTES, NOT FILE HANDLE
+        # PASS BYTES, NOT FILE HANDLE
         drive.upload_file_bytes(
             file_bytes=file_bytes,
             filename=uploaded_file.name,
@@ -565,6 +550,9 @@ def upload_files(request):
             content_type=content_type,
             contributor_id=contributor_id
         )
+
+        # DB Progress update
+        increment_progress(contributor_id, chapter_id, file_type)
 
     messages.success(request, "Files uploaded successfully")
 
@@ -661,6 +649,7 @@ def contributor_editor(request):
 
                 file_io = io.BytesIO()
                 doc.save(file_io)
+                increment_progress(contributor_id, request.session.get("chapter_id"), "draft")
                 file_io.seek(0)
 
                 media = MediaIoBaseUpload(
@@ -715,6 +704,8 @@ def contributor_editor(request):
                     media_body=media,
                     fields="id"
                 ).execute()
+
+                increment_progress(contributor_id, request.session.get("chapter_id"), "pdf")
 
                 # Delete old draft if editing existing
                 if file_id:
@@ -855,20 +846,41 @@ def delete_drive_file(request):
 
 @csrf_exempt
 def gemini_chat(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            user_message = data.get('message', '')
-            if not user_message:
-                return JsonResponse({'error': 'No message provided'}, status=400)
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
 
-            # Send to Gemini API
-            response = llm.predict(user_message)
+    try:
+        # multipart/form-data
+        user_message = request.POST.get("message", "").strip()
+        files = request.FILES.getlist("files")  # multiple files
 
-            return JsonResponse({'reply': response})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+        if not user_message and not files:
+            return JsonResponse({"error": "Message or files required"}, status=400)
+
+        content = []
+
+        # add text first
+        if user_message:
+            content.append({"type": "text", "text": user_message})
+
+        # add files (works best for images)
+        for f in files:
+            file_bytes = f.read()
+            mime_type = f.content_type or "application/octet-stream"
+
+            content.append({
+                "type": "media",
+                "mime_type": mime_type,
+                "data": file_bytes
+            })
+
+        # send to Gemini via LangChain
+        response = llm.invoke([HumanMessage(content=content)])
+
+        return JsonResponse({"reply": response.content})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @csrf_exempt
@@ -1047,3 +1059,127 @@ def after_submission(request):
     # generate_expertise()
     # Clear all session data safely
     return render(request, 'contributor/after_submission.html')
+
+
+
+# External Resources
+def list_resources(request):
+    course_id = request.GET.get("course_id")
+    chapter_id = request.GET.get("chapter_id")
+    topic = request.GET.get("topic")
+
+    qs = ExternalResource.objects.filter(
+        course_id=course_id,
+        chapter_id=chapter_id,
+        topic=topic
+    ).order_by("-created_at")
+
+    data = [{
+        "id": r.id,
+        "title": r.title,
+        "url": r.url,
+        "type": r.resource_type
+    } for r in qs]
+
+    return JsonResponse({"resources": data})
+
+
+@csrf_exempt
+def add_resource(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    title = request.POST.get("title")
+    url = request.POST.get("url")
+    resource_type = request.POST.get("type", "youtube")
+
+    course_id = request.POST.get("course_id")
+    chapter_id = request.POST.get("chapter_id")
+    topic = request.POST.get("topic")
+
+    if not title or not url:
+        return JsonResponse({"error": "Title and URL required"}, status=400)
+
+    r = ExternalResource.objects.create(
+        course_id=course_id,
+        chapter_id=chapter_id,
+        topic=topic,
+        title=title,
+        url=url,
+        resource_type=resource_type,
+        created_by=request.user
+    )
+
+    return JsonResponse({"success": True, "id": r.id})
+
+
+@csrf_exempt
+def delete_resource(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    rid = request.POST.get("id")
+    ExternalResource.objects.filter(id=rid, created_by=request.user).delete()
+
+    return JsonResponse({"success": True})
+
+
+def run_auto_submit(contributor_id, chapter_id):
+    chapter = Chapter.objects.get(id=chapter_id)
+    course_id = chapter.course.id
+    chapter_number = chapter.chapter_number
+
+    service = GoogleDriveAuthService.get_service()
+    folder_service = GoogleDriveFolderService(service)
+
+    oer_root_id = folder_service.get_or_create_folder("oer_content")
+
+    pdf_root_id = folder_service.get_or_create_folder(
+        settings.GOOGLE_DRIVE_FOLDERS["pdf"], oer_root_id
+    )
+    video_root_id = folder_service.get_or_create_folder(
+        settings.GOOGLE_DRIVE_FOLDERS["videos"], oer_root_id
+    )
+
+    base_folder = f"{contributor_id}_{course_id}_{chapter_number}"
+
+    pdf_folder_id = folder_service.get_or_create_folder(base_folder, pdf_root_id)
+    video_folder_id = folder_service.get_or_create_folder(base_folder, video_root_id)
+
+    state = {
+        "contributor_id": contributor_id,
+        "course_id": course_id,
+        "chapter_id": chapter_id,
+        "chapter_name": chapter.chapter_name,
+        "drive_folders": {
+            "pdf": pdf_folder_id,
+            "videos": video_folder_id,
+        },
+    }
+
+    result = SubmissionOrchestrator.submit_and_evaluate(state)
+
+    return result
+
+
+def auto_submit_expired_deadlines():
+    expired = ChapterPolicy.objects.filter(
+        current_deadline__isnull=False,
+        current_deadline__lt=timezone.now()
+    )
+
+    for policy in expired:
+        chapter = policy.chapter
+
+        progresses = ChapterContributionProgress.objects.filter(
+            chapter=chapter,
+            has_any_upload=True,
+            auto_submitted=False
+        )
+
+        for progress in progresses:
+            # call same pipeline you use in confirm_submission
+            run_auto_submit(progress.contributor_id, chapter.id)
+
+            progress.auto_submitted = True
+            progress.save()

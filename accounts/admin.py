@@ -27,6 +27,8 @@ from .models import (
     Question,
     Option,
 )
+from .views.email.email_service import AccountApprovedEmail
+
 
 @admin.register(ForumTopic)
 class ForumTopicAdmin(admin.ModelAdmin):
@@ -55,6 +57,8 @@ def approve_contributors(modeladmin, request, queryset):
         contributor_rejection_reason="",
         is_active=True,
     )
+    for user in qs:
+        AccountApprovedEmail(user.email, user.first_name).send()
 
 @admin.action(description="Reject selected contributors")
 def reject_contributors(modeladmin, request, queryset):

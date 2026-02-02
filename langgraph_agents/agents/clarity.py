@@ -212,7 +212,7 @@ Content:
     gem = safe_extract_json(getattr(response, "content", "") or "")
 
     if not gem:
-        print("[ERROR] Gemini JSON parsing failed:", raw[:300])
+        # print("[ERROR] Gemini JSON parsing failed:", raw[:300])
         return {
             "clarity": 5,
             "definition_quality": 2,
