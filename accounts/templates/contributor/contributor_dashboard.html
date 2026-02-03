@@ -1143,6 +1143,88 @@
           align-items: center;
         }
 
+        .task-pill {
+          display: inline-block;
+          margin-left: 10px;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1px solid #e5e7eb;
+          background: #f8fafc;
+          color: #475569;
+        }
+
+        .task-pill.red {
+          background: #fef2f2;
+          border-color: #fecaca;
+          color: #b91c1c;
+        }
+
+        .task-pill.orange {
+          background: #fff7ed;
+          border-color: #fed7aa;
+          color: #c2410c;
+        }
+
+        .task-pill.green {
+          background: #ecfdf5;
+          border-color: #bbf7d0;
+          color: #15803d;
+        }
+
+        .task-pill {
+          margin-left: 8px;
+        }
+
+        .notes-btn{
+          background:#f9fafb;
+          border:1px solid #e5e7eb;
+          border-radius:999px;
+          padding:8px 10px;
+          cursor:pointer;
+          font-size:14px;
+        }
+        .notes-btn:hover{
+          background:#f3f4f6;
+        }
+
+        .notes-btn{
+          display:flex;
+          align-items:center;
+          gap:8px;
+
+          background:#fffdf6;                 /* sticky note vibe */
+          border:1px solid #fde68a;           /* soft yellow border */
+          border-radius:999px;
+          padding:8px 12px;
+
+          cursor:pointer;
+          font-size:13px;
+          font-weight:700;
+          color:#92400e;
+
+          transition: 0.2s ease;
+        }
+
+        .notes-btn i{
+          font-size:16px;
+          color:#f59e0b; /* sticky note icon color */
+        }
+
+        .notes-btn:hover{
+          background:#fffbeb;
+          transform: translateY(-1px);
+        }
+
+        .notes-text{
+          display:inline-block;
+        }
+
+        @media(max-width:700px){
+          .notes-text{ display:none; }   /* only icon on mobile */
+        }
+
     </style>
 </head>
 
@@ -1184,6 +1266,12 @@
                     </div>
                 </div>
 
+                <button class="notes-btn" onclick="openNotesModal()" title="Notes">
+                    <i class="fa-solid fa-note-sticky"></i>
+                    <span class="notes-text">Notes</span>
+                </button>
+
+
                 <!-- 👤 User -->
                 <span class="user-chip"
                 >{{ user.first_name }} {{ user.last_name }}</span
@@ -1205,6 +1293,48 @@
                         <p>Recommended Subjects</p>
                     </div>
                 </div>
+
+                <section class="flat-section">
+                    <h2 class="section-heading">
+                        My Tasks ({{ tasks|length }})
+                        <span class="section-subtext">Complete pending work & meet deadlines</span>
+                    </h2>
+
+                    <div class="card" style="padding:18px;">
+                        {% if tasks %}
+                        <ul style="display:flex; flex-direction:column; gap:12px;">
+                            {% for t in tasks %}
+                            <li style="display:flex; justify-content:space-between; align-items:center; gap:14px; padding:12px 14px; border:1px solid #eef2f7; border-radius:12px; background:#fff;">
+                                <div>
+                                    <div style="font-weight:700; color:#0f172a;">
+                                        {% if t.type == "deadline" %}⏳{% else %}✅{% endif %}
+                                        {{ t.title }}
+
+                                        {% if t.type == "deadline" %}
+                                        <span class="task-pill {{ t.urgency }}">
+                                                    {{ t.urgency_text }}
+                                                </span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="muted" style="margin-top:3px;">
+                                        {{ t.subtitle }}
+                                    </div>
+                                </div>
+
+                                <a class="primary-btn"
+                                   style="text-decoration:none;"
+                                   href="/dashboard/contributor/submit_content/?course_id={{ t.course_id }}&chapter_id={{ t.chapter_id }}">
+                                    Open
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="muted">No pending tasks 🎉</div>
+                        {% endif %}
+                    </div>
+                </section>
 
                 <section class="flat-section">
                     <h2 class="section-heading">
@@ -1266,8 +1396,41 @@
                         {% endfor %}
                     </div>
 
-                </section>
+                    <section class="flat-section">
+                        <h2 class="section-heading">
+                            Recent Activity
+                            <span class="section-subtext">Your latest actions</span>
+                        </h2>
 
+                        <div class="card" style="padding:18px;">
+                            {% if recent_activity %}
+                            <ul style="display:flex; flex-direction:column; gap:12px;">
+                                {% for a in recent_activity %}
+                                <li style="display:flex; justify-content:space-between; align-items:center; gap:14px; padding:12px 14px; border:1px solid #eef2f7; border-radius:12px; background:#fff;">
+
+                                    <div style="display:flex; gap:12px; align-items:flex-start;">
+                                        <div style="font-size:16px;">{{ a.icon }}</div>
+
+                                        <div>
+                                            <div style="font-weight:700; color:#0f172a;">
+                                                {{ a.text }}
+                                            </div>
+                                            <div class="muted" style="margin-top:3px;">
+                                                {{ a.time|date:"d M Y, h:i A" }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <div class="muted">No recent activity yet.</div>
+                            {% endif %}
+                        </div>
+                    </section>
+
+                </section>
 
             </section>
         </div>
@@ -1312,6 +1475,58 @@
         </section>
 
     </main>
+</div>
+
+<div class="modal-overlay" id="notesModal">
+    <div class="modal">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:18px; font-weight:700;">My Notes</h3>
+            <button onclick="closeNotesModal()" style="border:none; background:none; font-size:18px; cursor:pointer;">✖</button>
+        </div>
+
+        <!-- Add note -->
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
+            <input id="noteTitle" placeholder="Title (optional)"
+                   style="padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px;">
+            <textarea id="noteContent" placeholder="Write a note..."
+                      style="padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; min-height:90px;"></textarea>
+
+            <button class="primary-btn" id="noteSaveBtn" onclick="saveNote()">Add Note</button>
+            <button class="secondary-btn" id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">
+                Cancel
+            </button>
+            <input type="hidden" id="editingNoteId">
+        </div>
+
+        <!-- Notes list -->
+        <div id="notesList" style="display:flex; flex-direction:column; gap:10px;">
+            {% if notes %}
+            {% for n in notes %}
+            <div style="border:1px solid #eef2f7; border-radius:12px; padding:12px;">
+                <div style="font-weight:700; color:#0f172a;">
+                    {{ n.title|default:"Untitled" }}
+                </div>
+                <div class="muted" style="margin-top:4px;">
+                    {{ n.content }}
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="secondary-btn" onclick="editNote('{{n.id}}','{{n.title|escapejs}}','{{n.content|escapejs}}')">
+                        Edit
+                    </button>
+
+                    <button class="secondary-btn" style="border-color:#fecaca; background:#fef2f2; color:#b91c1c;"
+                            onclick="deleteNote('{{n.id}}')">
+                        Delete
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="muted">No notes yet.</div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <script id="chapters-data" type="application/json">
@@ -1410,10 +1625,22 @@
             statusText = "Closed";
           }
 
-          // ✅ Button + message
-            let buttonText = "Submit";
+          let buttonText = "Start"; // or "Submit"
             let closedMsg = "";
+            let lockBecauseSubmitted = false;
 
+            // ✅ if already submitted
+            if (ch.submitted === true) {
+              buttonText = "Submitted";
+              lockBecauseSubmitted = true;
+            } else {
+              // ✅ if uploads exist, resume
+              if ((ch.total_uploads || 0) > 0) {
+                buttonText = "Resume";
+              }
+            }
+
+            // keep your closed logic too
             if (!hasDeadline) {
               buttonText = "Not open";
               closedMsg = `
@@ -1429,6 +1656,10 @@
                 </div>
               `;
             }
+
+            // ✅ disable if chapter closed OR submitted
+            const isLocked = isClosed || lockBecauseSubmitted;
+
 
           const row = document.createElement("div");
           row.className = "chapter-row";
@@ -1448,10 +1679,10 @@
             </div>
 
             <div class="chapter-action">
-              <a class="primary-btn pro-submit ${isClosed ? "pro-disabled" : ""}"
-                 ${isClosed ? "" : `href="/dashboard/contributor/submit_content/?course_id=${currentCourseId}&chapter_id=${ch.id}"`}>
-                ${buttonText}
-              </a>
+              <a class="primary-btn pro-submit ${isLocked ? "pro-disabled" : ""}"
+               ${isLocked ? "" : `href="/dashboard/contributor/submit_content/?course_id=${currentCourseId}&chapter_id=${ch.id}"`}>
+              ${buttonText}
+            </a>
             </div>
           `;
 
@@ -1562,6 +1793,108 @@
       });
 
     });
+</script>
+
+<script>
+    function openNotesModal(){
+      document.body.classList.add("modal-open");
+      document.getElementById("notesModal").style.visibility = "visible";
+      document.getElementById("notesModal").style.opacity = "1";
+    }
+
+    function closeNotesModal(){
+      document.body.classList.remove("modal-open");
+      document.getElementById("notesModal").style.visibility = "hidden";
+      document.getElementById("notesModal").style.opacity = "0";
+    }
+
+    document.getElementById("notesModal").addEventListener("click", function(e){
+    if(e.target.id === "notesModal"){
+      closeNotesModal();
+    }
+  });
+</script>
+
+<script>
+    async function addNote(){
+      const title = document.getElementById("noteTitle").value;
+      const content = document.getElementById("noteContent").value;
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+
+      const res = await fetch("/dashboard/contributor/notes/add/", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if(data.success){
+        location.reload();
+      } else {
+        alert(data.error || "Failed to add note");
+      }
+    }
+
+      function editNote(id, title, content){
+        document.getElementById("editingNoteId").value = id;
+        document.getElementById("noteTitle").value = title || "";
+        document.getElementById("noteContent").value = content || "";
+
+        document.getElementById("noteSaveBtn").innerText = "Update Note";
+        document.getElementById("cancelEditBtn").style.display = "inline-block";
+      }
+
+      function cancelEdit(){
+        document.getElementById("editingNoteId").value = "";
+        document.getElementById("noteTitle").value = "";
+        document.getElementById("noteContent").value = "";
+
+        document.getElementById("noteSaveBtn").innerText = "Add Note";
+        document.getElementById("cancelEditBtn").style.display = "none";
+      }
+
+      async function saveNote(){
+        const noteId = document.getElementById("editingNoteId").value;
+        const title = document.getElementById("noteTitle").value;
+        const content = document.getElementById("noteContent").value;
+
+        if(!content.trim()){
+          alert("Note content cannot be empty");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("content", content);
+
+        let url = "/dashboard/contributor/notes/add/";
+        if(noteId){
+          url = `/dashboard/contributor/notes/edit/${noteId}/`;
+        }
+
+        const res = await fetch(url, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+          location.reload();
+        } else {
+          alert(data.error || "Failed to save note");
+        }
+    }
+
+    function deleteNote(id){
+      if(!confirm("Delete this note?")) return;
+
+      fetch(`/dashboard/contributor/notes/delete/${id}/`, {
+        method: "POST"
+      }).then(() => location.reload());
+    }
 </script>
 
 </body>

@@ -500,6 +500,26 @@ class ChapterContributionProgress(models.Model):
     def total_uploads(self):
         return self.pdf_count + self.video_count
 
+# Quick notes for contributor
+class ContributorNote(models.Model):
+    contributor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notes",
+        limit_choices_to={"role": "CONTRIBUTOR"}
+    )
+
+    title = models.CharField(max_length=200, blank=True)
+    content = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"Note by {self.contributor.username}: {self.title or 'Untitled'}"
+
 
 # python manage.py makemigrations
 # python manage.py migrate

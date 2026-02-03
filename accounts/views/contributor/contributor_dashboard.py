@@ -4,6 +4,7 @@ import os
 from typing import List, Dict
 
 from django.conf import settings
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -12,7 +13,7 @@ from google.auth.exceptions import RefreshError
 
 from langgraph_agents.services.drive_service import GoogleDriveAuthService, GoogleDriveFolderService
 from .expertise_service import save_user_expertise
-from ...models import Course, Chapter, UploadCheck
+from ...models import Course, Chapter, UploadCheck, ChapterContributionProgress
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import render
@@ -64,13 +65,24 @@ class ContributorCourseService:
         )
 
     @staticmethod
-    def get_chapters_by_course(courses):
+    def get_chapters_by_course(courses, user):
         chapters_map = {}
+
+        # progress map (chapter_id -> total_uploads)
+        progress_qs = ChapterContributionProgress.objects.filter(contributor=user)
+        progress_map = {p.chapter_id: p.total_uploads for p in progress_qs}
+
+        # submitted map (chapter_id -> upload_id)  (exists = submitted)
+        submitted_qs = UploadCheck.objects.filter(contributor=user).order_by("-timestamp")
+        submitted_map = {}
+        for u in submitted_qs:
+            # keep latest upload per chapter
+            if u.chapter_id not in submitted_map:
+                submitted_map[u.chapter_id] = u.id
 
         for course in courses:
             chapters = Chapter.objects.filter(course=course).select_related("course")
             chapters = chapters.select_related("course__scheme", "course__department", "course__department__program")
-
 
             chapter_list = []
             for ch in chapters:
@@ -80,18 +92,25 @@ class ContributorCourseService:
                 is_open = True
 
                 if policy:
-                    # use current_deadline if exists else deadline
                     deadline_dt = policy.current_deadline or policy.deadline
                     if deadline_dt:
                         deadline = deadline_dt.isoformat()
                         is_open = timezone.now() <= deadline_dt
 
+                total_uploads = progress_map.get(ch.id, 0)
+                upload_id = submitted_map.get(ch.id)  # if exists => submitted
+
                 chapter_list.append({
                     "id": ch.id,
                     "chapter_number": ch.chapter_number,
                     "chapter_name": ch.chapter_name,
-                    "deadline": deadline,         # string OR null
-                    "is_open": is_open,           # bool
+                    "deadline": deadline,
+                    "is_open": is_open,
+
+                    # contributor status fields
+                    "total_uploads": total_uploads,
+                    "submitted": bool(upload_id),
+                    "upload_id": upload_id,  # optional (use later if needed)
                 })
 
             chapters_map[str(course.id)] = chapter_list
@@ -230,119 +249,11 @@ class TopicExtractor:
         ]
 
 
-# ==============================
-# Views (Thin Controllers)
-# ==============================
-# @login_required
-# def contributor_dashboard_view(request):
-#     user = request.user
-#
-#     # ensure contributor
-#     if user.role != "CONTRIBUTOR":
-#         return render(request, "403.html", status=403)
-#
-#     # recommended/available subjects
-#     courses_qs = (
-#         Course.objects
-#         .filter(expertises__in=user.domain_of_expertise.all())
-#         .distinct()
-#         .select_related("department", "department__program", "scheme")
-#         .order_by("department__dept_name", "semester", "course_name")
-#     )
-#
-#     courses = list(courses_qs)
-#     uploads_count = UploadCheck.objects.filter(contributor=user).count()
-#
-#     if not courses:
-#         return render(
-#             request,
-#             "contributor/contributor_dashboard.html",
-#             {
-#                 "uploads_count": uploads_count,
-#                 "recommended_courses": [],
-#                 "course_tree": [],
-#                 "selected_course": None,
-#                 "chapters": [],
-#                 "is_approved_contributor": getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED",
-#             },
-#         )
-#
-#     # LEFT panel hierarchy: Course(stream/department) -> Sem -> Subject(Course)
-#     tree = {}
-#     for c in courses:
-#         dept = c.department
-#         tree.setdefault(dept.id, {"dept": dept, "sems": {}})
-#         tree[dept.id]["sems"].setdefault(c.semester or 0, [])
-#         tree[dept.id]["sems"][c.semester or 0].append(c)
-#
-#     course_tree = []
-#     for _, node in sorted(tree.items(), key=lambda kv: kv[1]["dept"].dept_name.lower()):
-#         sem_list = []
-#         for sem, sem_courses in sorted(node["sems"].items(), key=lambda kv: kv[0]):
-#             sem_list.append({
-#                 "semester": sem,
-#                 "courses": sorted(sem_courses, key=lambda x: x.course_name.lower()),
-#             })
-#         course_tree.append({"dept": node["dept"], "sems": sem_list})
-#
-#     # selected subject
-#     selected_course_id = request.GET.get("course_id")
-#     selected_course = None
-#     if selected_course_id:
-#         selected_course = next((c for c in courses if str(c.id) == str(selected_course_id)), None)
-#     if not selected_course:
-#         selected_course = courses[0]
-#
-#     # RIGHT: chapters + policy + contribution counts (single query)
-#     now = timezone.now()
-#
-#     chapters_qs = (
-#         Chapter.objects
-#         .filter(course=selected_course)
-#         .select_related("course", "policy")
-#         .annotate(
-#             contributions_total=Count("uploads", distinct=True),
-#             contributions_evaluated=Count("uploads", filter=Q(uploads__evaluation_status=True), distinct=True),
-#         )
-#         .order_by("chapter_number")
-#     )
-#
-#     # which chapters current contributor has already submitted (single query)
-#     submitted_ids = set(
-#         UploadCheck.objects
-#         .filter(contributor=user, chapter__course=selected_course)
-#         .values_list("chapter_id", flat=True)
-#     )
-#
-#     is_approved = (getattr(user, "contributor_approval_status", "APPROVED") == "APPROVED") and user.is_active
-#
-#     chapters = list(chapters_qs)
-#     for ch in chapters:
-#         policy = getattr(ch, "policy", None)
-#         deadline = getattr(policy, "current_deadline", None)
-#
-#         ch.deadline = deadline
-#         ch.extensions_used = getattr(policy, "extensions_used", 0) if policy else 0
-#         ch.max_extensions = getattr(policy, "max_extensions", 0) if policy else 0
-#         ch.min_contributions = getattr(policy, "min_contributions", None) if policy else None
-#
-#         ch.is_open = (deadline is None) or (deadline >= now)
-#         ch.user_submitted = ch.id in submitted_ids
-#         ch.can_submit = bool(is_approved and ch.is_open and not ch.user_submitted)
-#
-#     return render(
-#         request,
-#         "contributor/contributor_dashboard.html",
-#         {
-#             "uploads_count": uploads_count,
-#             "recommended_courses": courses,
-#             "course_tree": course_tree,
-#             "selected_course": selected_course,
-#             "chapters": chapters,
-#             "is_approved_contributor": is_approved,
-#             "now": now,
-#         },
-#     )
+from datetime import timedelta
+from django.utils import timezone
+from accounts.models import ChapterContributionProgress, UploadCheck, ChapterPolicy
+from itertools import chain
+from accounts.models import ContributorNote
 
 @login_required
 def contributor_dashboard_view(request):
@@ -355,14 +266,122 @@ def contributor_dashboard_view(request):
         "scheme", "department", "department__program"
     )
 
-    chapters_map = ContributorCourseService.get_chapters_by_course(courses)
+    chapters_map = ContributorCourseService.get_chapters_by_course(courses, user)
+
+    # Build tasks
+    now = timezone.now()
+    soon_deadline = now + timedelta(days=2)
+
+    progress_qs = ChapterContributionProgress.objects.filter(contributor=user).select_related("chapter", "chapter__course")
+    submitted_chapter_ids = set(
+        UploadCheck.objects.filter(contributor=user).values_list("chapter_id", flat=True)
+    )
+
+    tasks = []
+
+    # Task 1: Resume started chapters
+    for p in progress_qs:
+        if p.total_uploads > 0 and p.chapter_id not in submitted_chapter_ids:
+            tasks.append({
+                "type": "resume",
+                "title": f"Resume Chapter {p.chapter.chapter_number}: {p.chapter.chapter_name}",
+                "subtitle": (
+                    f"{p.total_uploads} file(s) uploaded • "
+                    f"PDF: {p.pdf_count} • Video: {p.video_count} • Not submitted yet"
+                ),
+                "chapter_id": p.chapter_id,
+                "course_id": p.chapter.course_id,
+                "priority": 2,
+            })
+
+    # Task 2: Deadline in 2 days
+    policies = ChapterPolicy.objects.filter(
+        chapter__course__in=courses,
+        current_deadline__isnull=False
+    ).select_related("chapter", "chapter__course")
+
+    for policy in policies:
+        deadline = policy.current_deadline or policy.deadline
+        if not deadline:
+            continue
+
+        if now <= deadline:
+            hours_left = (deadline - now).total_seconds() / 3600
+
+            # only show deadlines within 2 days in tasks
+            if hours_left <= 48:
+                if policy.chapter_id in submitted_chapter_ids:
+                    continue
+
+                # urgency label
+                if hours_left <= 24:
+                    urgency = "red"      # 🟥
+                    urgency_text = "URGENT • < 24h"
+                elif hours_left <= 48:
+                    urgency = "orange"   # 🟧
+                    urgency_text = "Soon • < 2 days"
+                else:
+                    urgency = "green"    # 🟩
+                    urgency_text = "On track"
+
+                tasks.append({
+                    "type": "deadline",
+                    "title": f"Deadline soon: Chapter {policy.chapter.chapter_number}: {policy.chapter.chapter_name}",
+                    "subtitle": f"Due on {deadline.strftime('%d %b %Y, %I:%M %p')}",
+                    "chapter_id": policy.chapter_id,
+                    "course_id": policy.chapter.course_id,
+                    "priority": 1,
+
+
+                    "urgency": urgency,
+                    "urgency_text": urgency_text,
+                })
+
+    # sort tasks by priority (deadline first)
+    tasks = sorted(tasks, key=lambda x: x["priority"])[:6]  # show max 6 tasks
+
+    # ----------------------------
+    # Recent Activity (last 3)
+    # ----------------------------
+
+    recent_activity = []
+
+    progress_latest = (
+        ChapterContributionProgress.objects
+        .filter(contributor=user, has_any_upload=True)
+        .select_related("chapter", "chapter__course")
+        .order_by("-last_upload_at")[:3]
+    )
+
+    for p in progress_latest:
+        parts = []
+        if p.pdf_count > 0:
+            parts.append(f"📄 {p.pdf_count} PDF(s)")
+        if p.video_count > 0:
+            parts.append(f"🎥 {p.video_count} Video(s)")
+        if p.draft_count > 0:
+            parts.append(f"📝 {p.draft_count} Draft(s)")
+
+        recent_activity.append({
+            "icon": "⚡",
+            "text": f"Updated Chapter {p.chapter.chapter_number}: {p.chapter.chapter_name} • " + " • ".join(parts),
+            "time": p.last_upload_at,
+        })
+
+    recent_activity = sorted(recent_activity, key=lambda x: x["time"], reverse=True)[:3]
+
+    notes = ContributorNote.objects.filter(contributor=user)[:5]
 
     context = {
-        "recommended_courses": courses,  # send objects
+        "recommended_courses": courses,
         "chapters_json": json.dumps(chapters_map),
+        "tasks": tasks,  # send tasks to template
+        "recent_activity": recent_activity,
+        "notes": notes,
     }
 
     return render(request, "contributor/contributor_dashboard.html", context)
+
 
 @login_required
 def contributor_submissions(request):
@@ -597,3 +616,53 @@ def contributor_submit_content_view(request, course_id=None, chapter_id=None):
     }
 
     return render(request, "contributor/submit_content.html", context)
+
+
+from django.views.decorators.csrf import csrf_exempt
+from accounts.models import ContributorNote
+
+@csrf_exempt
+@login_required
+def add_note(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    title = request.POST.get("title", "").strip()
+    content = request.POST.get("content", "").strip()
+
+    if not content:
+        return JsonResponse({"error": "Content required"}, status=400)
+
+    note = ContributorNote.objects.create(
+        contributor=request.user,
+        title=title,
+        content=content
+    )
+    return JsonResponse({"success": True, "id": note.id})
+
+
+@csrf_exempt
+@login_required
+def edit_note(request, note_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    note = get_object_or_404(ContributorNote, id=note_id, contributor=request.user)
+
+    note.title = request.POST.get("title", "").strip()
+    note.content = request.POST.get("content", "").strip()
+    note.save()
+
+    return JsonResponse({"success": True})
+
+
+@csrf_exempt
+@login_required
+def delete_note(request, note_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    note = get_object_or_404(ContributorNote, id=note_id, contributor=request.user)
+    note.delete()
+
+    return JsonResponse({"success": True})
