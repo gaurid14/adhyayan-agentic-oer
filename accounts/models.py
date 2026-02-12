@@ -267,18 +267,20 @@ class ContentCheck(models.Model):
 
 class ContentScore(models.Model):
     upload = models.OneToOneField(
-        UploadCheck, on_delete=models.CASCADE,
-        related_name="content_score"
+        UploadCheck, on_delete=models.CASCADE, related_name="content_score"
     )
+
     engagement = models.FloatField(blank=True, null=True)
     clarity = models.FloatField(blank=True, null=True)
     coherence = models.FloatField(blank=True, null=True)
     relevance = models.FloatField(blank=True, null=True)
     completeness = models.FloatField(blank=True, null=True)
 
-    def __str__(self):
-        return f"Scores for Upload {self.upload.id}"
+    # ✅ add back
+    accuracy = models.FloatField(blank=True, null=True)
 
+    # ✅ add back (needed by decision maker mark-best feature)
+    is_best = models.BooleanField(default=False)
 
 class ReleasedContent(models.Model):
     upload = models.OneToOneField(
@@ -290,6 +292,49 @@ class ReleasedContent(models.Model):
 
     def __str__(self):
         return f"Released? {self.release_status} for Upload {self.upload.id}"
+
+class DecisionRun(models.Model):
+    """Audit record for a decision-maker run selecting the best upload for a chapter."""
+
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name="decision_runs",
+    )
+    selected_upload = models.ForeignKey(
+        "UploadCheck",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="decision_runs_selected",
+    )
+    decided_by = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="decision_runs_decided",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    status = models.CharField(max_length=32, default="ok")
+    strategy = models.CharField(max_length=64, default="weighted_average")
+    weights = models.JSONField(default=dict, blank=True)
+    thresholds = models.JSONField(default=dict, blank=True)
+
+    composite_score = models.FloatField(null=True, blank=True)
+    ranking = models.JSONField(default=list, blank=True)
+    explanation = models.TextField(blank=True, default="")
+
+    is_latest = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self) -> str:
+        return f"DecisionRun(chapter_id={self.chapter_id}, selected_upload_id={self.selected_upload_id}, score={self.composite_score})"
+
 
 
 # Student Enrollment into Course

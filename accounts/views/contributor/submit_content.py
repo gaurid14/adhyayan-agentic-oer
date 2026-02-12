@@ -54,12 +54,13 @@ from mcp.client.stdio import stdio_client, StdioServerParameters
 
 from accounts.models import ContentCheck
 
-PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
+# PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
+# MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
+# ✅ ALWAYS point to project root (folder that has manage.py)
+PROJECT_ROOT = str(settings.BASE_DIR)
+
+# ✅ MCP server path from project root
 MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
-
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# MCP_PATH = os.path.join(BASE_DIR, "langgraph_agents", "services", "mcp_server.py")
 
 
 class ContributorSessionService:
@@ -233,6 +234,9 @@ class SubmissionOrchestrator:
                         graph_input["mcp_session"] = session   # shared for all agents
 
                         await compiled_graph.ainvoke(graph_input)
+
+                        await sync_to_async(UploadCheck.objects.filter(id=upload_id).update)(evaluation_status=True)
+                        print(f"✅ Marked upload {upload_id} as evaluated.")    
 
                 print("Evaluation graph invoked!!")
 
