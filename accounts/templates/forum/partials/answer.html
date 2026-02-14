@@ -4,7 +4,7 @@
       <!-- IMPORTANT: linebreaks already outputs <p> tags, so don't wrap it in <p> -->
       <div class="mb-1">{{ answer.content|linebreaks }}</div>
 
-      <div class="text-muted" style="font-size:.9rem;">
+      <div class="text-muted" style="font-size: 0.9rem">
         by <strong>{{ answer.author.username }}</strong>
         • {{ answer.created_at|date:"M d, Y H:i" }}
       </div>
@@ -13,23 +13,30 @@
     <form method="post" action="{% url 'forum_answer_upvote' answer.id %}">
       {% csrf_token %}
       <button class="btn btn-outline-success btn-sm">
-        ▲ {{ answer.total_upvotes }}
+        ▲ {{ answer.upvote_count|default:answer.total_upvotes }}
       </button>
     </form>
   </div>
 
   {% if user.is_authenticated %}
-    <details class="mt-2">
-      <summary class="reply-toggle">Reply</summary>
-      <form method="post" action="{% url 'forum_reply' question.id answer.id %}" class="mt-2">
-        {% csrf_token %}
-        <textarea name="content" class="form-control" rows="2" placeholder="Write a reply..."></textarea>
-        <button class="btn btn-sm btn-secondary mt-2">Post reply</button>
-      </form>
-    </details>
-  {% endif %}
-
-  {% for child in answer.children %}
-    {% include "forum/partials/answer.html" with answer=child question=question level=level|add:1 %}
-  {% endfor %}
+  <details class="mt-2">
+    <summary class="reply-toggle">Reply</summary>
+    <form
+      method="post"
+      action="{% url 'forum_reply' question.id answer.id %}"
+      class="mt-2"
+    >
+      {% csrf_token %}
+      <textarea
+        name="content"
+        class="form-control"
+        rows="2"
+        placeholder="Write a reply..."
+      ></textarea>
+      <button class="btn btn-sm btn-secondary mt-2">Post reply</button>
+    </form>
+  </details>
+  {% endif %} {% for child in answer.children %} {% include
+  "forum/partials/answer.html" with answer=child question=question
+  level=level|add:1 %} {% endfor %}
 </div>

@@ -1,97 +1,499 @@
 {% load static %}
 <!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Chat • {{ other.username }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}" />
+
     <style>
-        body {
-          background: #f8f9fa;
-        }
+  :root {
+    --primary: #1eae98;
+    --primary-dark: #178d79;
 
-        .chat-wrapper {
-          max-width: 900px;
-          margin: 40px auto;
-          padding: 0 16px;
-        }
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
 
-        .chat-box {
-          max-height: 60vh;
-          overflow-y: auto;
-        }
+    --text: #0f172a;
+    --muted: #64748b;
 
-        .msg {
-          max-width: 70%;
-          padding: 10px 14px;
-          border-radius: 14px;
-          margin-bottom: 12px;
-          font-size: 14px;
-          line-height: 1.4;
-        }
+    --border: #e5e7eb;
+    --shadow: 0 10px 25px rgba(2, 6, 23, 0.06);
+    --shadow-soft: 0 3px 10px rgba(2, 6, 23, 0.05);
+    --radius: 16px;
+  }
 
-        .msg-me {
-          background: #1EAE98;
-          color: #fff;
-          margin-left: auto;
-        }
+  /* Keep page fixed; only chat box scrolls */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
 
-        .msg-other {
-          background: #eef1f4;
-        }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
+      Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  }
 
-        .msg-meta {
-          font-size: 11px;
-          opacity: 0.7;
-          margin-top: 4px;
-        }
-    </style>
-</head>
-<body>
+  .page-wrapper {
+    margin-left: 260px;
+    padding: 22px 26px; /* equal padding top & bottom */
+    height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-<div class="chat-wrapper">
+  /* Header */
+  .chat-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 fw-semibold">Chat with {{ other.username }}</h5>
-        <a href="{% url 'dm_inbox' %}" class="text-decoration-none small">
-            ← Inbox
-        </a>
+  .chat-title {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .chat-title h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+
+  .chat-title .sub {
+    margin-top: 3px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .chip-user {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .btn-soft {
+    border: 1px solid var(--border) !important;
+    background: #fff !important;
+    color: var(--text) !important;
+  }
+  .btn-soft:hover {
+    background: var(--surface-2) !important;
+  }
+
+  /* Panel */
+  .chat-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+
+    flex: 1;
+    min-height: 0; /* important so chat-box can scroll */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Scroll area */
+  .chat-box {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 16px 10px;
+    background: linear-gradient(
+      180deg,
+      rgba(248, 250, 252, 0.85),
+      rgba(255, 255, 255, 1)
+    );
+
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-content {
+    margin-top: auto; /* keeps messages pinned to bottom */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Message rows */
+  .msg-row {
+    display: flex;
+    margin-bottom: 12px;
+  }
+  .msg-row.me {
+    justify-content: flex-end;
+  }
+  .msg-row.other {
+    justify-content: flex-start;
+  }
+
+  /* Message bubble */
+  .msg {
+    max-width: min(680px, 78%);
+    padding: 10px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 2px 10px rgba(2, 6, 23, 0.06);
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  .msg.me {
+    background: var(--primary);
+    color: #fff;
+    border-top-right-radius: 8px;
+  }
+
+  .msg.other {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-top-left-radius: 8px;
+  }
+
+  /* If you wrap message text in .msg-text, it preserves newlines */
+  .msg-text {
+    white-space: pre-wrap;
+  }
+
+  .msg-meta {
+    margin-top: 6px;
+    font-size: 11px;
+    opacity: 0.9;
+
+    white-space: normal;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .msg-meta .dot {
+    opacity: 0.7;
+  }
+
+  .msg.other .msg-meta {
+    color: var(--muted);
+    opacity: 1;
+  }
+
+  /* Empty state */
+  .empty {
+    height: 52vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--muted);
+    gap: 6px;
+  }
+  .empty .emoji {
+    font-size: 22px;
+  }
+  .empty .hint {
+    font-size: 13px;
+  }
+
+  /* Composer */
+  .composer {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 12px;
+    background: #fff;
+    border-top: 1px solid var(--border);
+  }
+
+  .composer-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px;
+    background: var(--surface);
+  }
+
+  .composer-input {
+    flex: 1;
+    border: 0;
+    outline: none;
+    box-shadow: none;
+    resize: none;
+
+    height: 44px;
+    line-height: 22px;
+    padding: 10px 10px;
+    background: transparent;
+  }
+
+  .composer-send {
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px !important;
+    border-radius: 12px !important;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    border-radius: 12px !important;
+    height: 44px;
+    padding: 0 18px !important;
+    font-weight: 700;
+  }
+  .btn-primary:hover {
+    background: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+  }
+
+  /* Scrollbar */
+  .chat-box::-webkit-scrollbar {
+    width: 10px;
+  }
+  .chat-box::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 999px;
+    border: 2px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+  }
+</style>
+
+  </head>
+
+  <body>
+    {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
+      {% include "contributor/sidebar.html" %}
+    {% else %}
+      {% include "student/sidebar.html" %}
+    {% endif %}
+
+    <div class="page-wrapper">
+  <!-- Header -->
+  <header class="chat-header">
+    <div class="chat-title">
+      <h4>Chat</h4>
+      <div class="sub">
+        with <span class="chip-user">{{ other.username }}</span>
+      </div>
     </div>
 
-    <div class="card shadow-sm mb-3">
-        <div class="card-body chat-box">
+    <nav class="d-flex gap-2" aria-label="Chat navigation">
+      <a class="btn btn-soft btn-sm" href="{% url 'dm_inbox' %}">← Inbox</a>
+      <a class="btn btn-soft btn-sm" href="{% url 'forum_home' %}">Forum</a>
+    </nav>
+  </header>
 
-            {% for m in messages %}
-            <div class="d-flex {% if m.sender == user %}justify-content-end{% endif %}">
-                <div class="msg {% if m.sender == user %}msg-me{% else %}msg-other{% endif %}">
-                    {{ m.content|linebreaks }}
-                    <div class="msg-meta">
-                        {{ m.sender.username }} • {{ m.created_at|date:"H:i" }}
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="text-center text-muted py-4">
-                Say hello 👋
-            </div>
-            {% endfor %}
+  <!-- Panel -->
+  <section class="chat-panel">
+    <div id="chatBox" class="chat-box">
+      <div id="chatContent" class="chat-content">
+        <!-- used by JS polling -->
+        <div id="lastMsgId" data-last-id="{{ last_id }}"></div>
 
-        </div>
+        {% for m in messages %}
+          <div class="msg-row {% if m.sender == user %}me{% else %}other{% endif %}">
+            <div class="msg {% if m.sender == user %}me{% else %}other{% endif %}">
+              {{ m.content }}
+              <div class="msg-meta">
+                {% if m.sender == user %}You{% else %}{{ other.username }}{% endif %}
+                • {{ m.created_at|date:"M d, H:i" }}
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center text-muted py-5">Say hello 👋</div>
+        {% endfor %}
+      </div>
     </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="input-group">
-      <textarea
-              name="content"
-              class="form-control"
-              rows="1"
-              placeholder="Write a message..."></textarea>
-            <button class="btn btn-primary px-4">Send</button>
-        </div>
+    <!-- Composer -->
+    <form id="chatForm" method="post" class="composer">
+      {% csrf_token %}
+      <div class="composer-inner">
+        <textarea
+          id="chatInput"
+          name="content"
+          class="composer-input"
+          rows="1"
+          placeholder="Write a message…"
+        ></textarea>
+        <button type="submit" class="btn btn-primary composer-send">Send</button>
+      </div>
     </form>
-
+  </section>
 </div>
 
-</body>
+
+    <script>
+  const box = document.getElementById("chatBox");
+  const form = document.getElementById("chatForm");
+  const input = document.getElementById("chatInput");
+  const chatContent = document.getElementById("chatContent");
+  const lastMsgEl = document.getElementById("lastMsgId");
+
+  let lastId = parseInt(lastMsgEl?.dataset?.lastId || "0", 10);
+  let sending = false;
+
+  function csrfToken() {
+    return form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || "";
+  }
+
+  function escapeHtml(str) {
+    return (str || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function isNearBottom() {
+    if (!box) return true;
+    return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
+  }
+
+  function scrollToBottom() {
+    if (!box) return;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function appendMessage({ content, sender_id, created_at, id }, myId) {
+    const me = String(sender_id) === String(myId);
+
+    const row = document.createElement("div");
+    row.className = `msg-row ${me ? "me" : "other"}`;
+
+    row.innerHTML = `
+      <div class="msg ${me ? "me" : "other"}">
+        ${escapeHtml(content)}
+        <div class="msg-meta">
+          ${me ? "You" : "{{ other.username|escapejs }}"} • ${escapeHtml(created_at)}
+        </div>
+      </div>
+    `;
+
+    chatContent.appendChild(row);
+    lastId = Math.max(lastId, parseInt(id || "0", 10));
+    if (lastMsgEl) lastMsgEl.dataset.lastId = String(lastId);
+  }
+
+  // initial scroll
+  if (box) requestAnimationFrame(scrollToBottom);
+
+  // IMPORTANT: prevent default submit ALWAYS
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (text) sendMessage(text);
+  });
+
+  // Enter to send, Shift+Enter newline
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (text) sendMessage(text);
+    }
+  });
+
+  async function sendMessage(text) {
+    if (sending) return;
+    sending = true;
+
+    const myId = "{{ user.id }}";
+    const wasAtBottom = isNearBottom();
+
+    input.readOnly = true;
+
+    const fd = new FormData(form);
+    fd.set("content", text);
+
+    try {
+      const res = await fetch(window.location.href, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: fd,
+      });
+
+      if (!res.ok) throw new Error("Send failed: " + res.status);
+
+      const data = await res.json();
+
+      if (data.ok && data.message) {
+        appendMessage(data.message, myId);
+        input.value = "";
+        if (wasAtBottom) scrollToBottom();
+      }
+    } catch (err) {
+      // NO form.submit() here — that’s what causes the whole page jump.
+      console.error(err);
+      alert("Message failed to send. Please try again.");
+    } finally {
+      input.readOnly = false;
+      input.focus();
+      sending = false;
+    }
+  }
+
+  // simple polling
+  async function fetchUpdates() {
+    try {
+      if (document.hidden) return;
+
+      const url = "{% url 'dm_thread_updates' other.id %}" + `?after_id=${lastId}`;
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!res.ok) return;
+
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.messages) && data.messages.length) {
+        const myId = "{{ user.id }}";
+        const wasAtBottom = isNearBottom();
+
+        data.messages.forEach(m => appendMessage(m, myId));
+        if (wasAtBottom) scrollToBottom();
+      }
+    } catch (e) {}
+  }
+
+  setInterval(fetchUpdates, 2000);
+  requestAnimationFrame(() => input?.focus());
+</script>
+
+
+  </body>
 </html>

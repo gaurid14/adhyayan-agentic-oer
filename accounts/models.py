@@ -424,7 +424,9 @@ class ForumAnswer(models.Model):
 
     @property
     def children(self):
-        return self.child_comments.all().select_related("author")
+        # Use prefetched data if available (avoids N+1)
+        return self.child_comments.all()
+
 
 class DmThread(models.Model):
     """

@@ -13,7 +13,7 @@ from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
-    dm_inbox, dm_thread,  # <-- ADD THIS IMPORT
+    dm_inbox, dm_thread,dm_thread_updates, # <-- ADD THIS IMPORT
 )
 
 urlpatterns = [
@@ -65,6 +65,7 @@ urlpatterns = [
     # DMs
     path("messages/", dm_inbox, name="dm_inbox"),
     path("messages/<int:user_id>/", dm_thread, name="dm_thread"),
+    path("dm/<int:user_id>/updates/", dm_thread_updates, name="dm_thread_updates"),
 
     # Password reset
     path(
