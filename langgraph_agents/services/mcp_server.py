@@ -381,7 +381,6 @@ async def db_save_scores_generic(upload_id: int, scores: Dict[str, float]) -> Di
         "clarity": "clarity",
         "coherence": "coherence",
         "completeness": "completeness",
-        "relevance": "relevance",
         "accuracy": "accuracy",
         "engagement": "engagement",  # your DB typo field
     }

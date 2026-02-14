@@ -273,10 +273,7 @@ class ContentScore(models.Model):
     engagement = models.FloatField(blank=True, null=True)
     clarity = models.FloatField(blank=True, null=True)
     coherence = models.FloatField(blank=True, null=True)
-    relevance = models.FloatField(blank=True, null=True)
     completeness = models.FloatField(blank=True, null=True)
-
-    # ✅ add back
     accuracy = models.FloatField(blank=True, null=True)
 
     # ✅ add back (needed by decision maker mark-best feature)
