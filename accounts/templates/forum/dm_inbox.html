@@ -205,6 +205,29 @@
   @media (max-width: 991px){
     .main{ margin-left: 0; padding: 16px; }
   }
+  .thread-unread{
+  background: rgba(30, 174, 152, 0.06);
+  border-left: 4px solid var(--primary);
+}
+
+.thread-unread .thread-name{
+  font-weight: 800;
+}
+
+.unread-badge{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 8px 18px rgba(30,174,152,0.18);
+}
+
 </style>
 
 </head>
@@ -232,30 +255,36 @@
         </div>
 
         {% for t in threads %}
-          <div class="thread">
-            <div class="thread-left">
-              <div class="avatar" aria-hidden="true">
-                {{ t.other.username|slice:":1"|upper }}
-              </div>
+<div class="thread {% if t.unread_count|default:0 > 0 %}thread-unread{% endif %}"
+     data-other-id="{{ t.other.id }}">
+    <div class="thread-left">
+      <div class="avatar" aria-hidden="true">{{ t.other.username|slice:":1"|upper }}</div>
 
-              <div class="thread-text">
-                <div class="thread-name">{{ t.other.username }}</div>
-                <div class="thread-meta">
+      <div class="thread-text">
+        <div class="thread-name">
+  {{ t.other.username }}
+  <span class="badge-slot">
+    {% if t.unread_count > 0 %}
+      <span class="unread-badge">{{ t.unread_count }}</span>
+    {% endif %}
+  </span>
+</div>
+
+
+        <div class="thread-meta" data-meta>
   {% if t.last_text %}
     {{ t.last_text }} • {{ t.last_at|date:"M d, H:i" }}
   {% else %}
     Started: {{ t.started_at|date:"M d, Y • H:i" }}
   {% endif %}
 </div>
-  
-              </div>
-            </div>
 
-            <a class="btn btn-primary btn-sm" href="{% url 'dm_thread' t.other.id %}">
-              Open
-            </a>
-          </div>
-        {% empty %}
+      </div>
+    </div>
+
+    <a class="btn btn-primary btn-sm" href="{% url 'dm_thread' t.other.id %}">Open</a>
+  </div>
+{% empty %}
           <div class="empty">
             <div class="emoji">💬</div>
             <div class="title">No conversations yet</div>
@@ -267,4 +296,49 @@
       </section>
     </main>
 </body>
+<script>
+  async function refreshInbox() {
+    try {
+      if (document.hidden) return;
+
+      const res = await fetch("{% url 'dm_inbox_updates' %}", {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      const data = await res.json();
+      if (!data.ok) return;
+
+      data.threads.forEach(t => {
+        const row = document.querySelector(`.thread[data-other-id="${t.other_id}"]`);
+        if (!row) return;
+
+        // highlight/unhighlight
+        if (t.unread_count > 0) row.classList.add("thread-unread");
+        else row.classList.remove("thread-unread");
+
+        // badge
+        const slot = row.querySelector(".badge-slot");
+        if (slot) {
+          slot.innerHTML = t.unread_count > 0
+            ? `<span class="unread-badge">${t.unread_count}</span>`
+            : "";
+        }
+
+        // last message meta line
+        const meta = row.querySelector("[data-meta]");
+        if (meta && (t.last_text || t.last_at)) {
+          if (t.last_text) meta.textContent = `${t.last_text} • ${t.last_at}`;
+          else meta.textContent = "";
+        }
+      });
+    } catch (e) {
+      // ignore network blips
+    }
+  }
+
+  // refresh quickly so it feels instant
+  setInterval(refreshInbox, 2000);
+  // also refresh when you come back to tab
+  document.addEventListener("visibilitychange", refreshInbox);
+</script>
+
 </html>

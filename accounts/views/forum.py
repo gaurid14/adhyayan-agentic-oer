@@ -1,7 +1,10 @@
 # accounts/views/forum.py
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Q, Prefetch, F, IntegerField, ExpressionWrapper
+from django.db.models import (
+    Count, Q, Prefetch, F, IntegerField, ExpressionWrapper,
+    OuterRef, Subquery
+)
 from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -15,6 +18,8 @@ from ..models import (
     DmThread, DmMessage, User
 )
 from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
+from django.views.decorators.http import require_GET
+from django.db.models import OuterRef, Subquery, Count, Q
 
 def _clean_forum_text(text: str, max_len: int = 10000) -> str:
     text = (text or "").strip()
@@ -303,34 +308,49 @@ def toggle_answer_upvote(request, pk: int):
     return redirect("forum_detail", pk=ans.question_id)
 
 # ===================== Direct Messages (DM) =====================
-
 @login_required
 def dm_inbox(request):
-    """List of DM threads for the current user."""
+    last_msg_qs = (
+        DmMessage.objects
+        .filter(thread=OuterRef("pk"))
+        .order_by("-created_at")
+    )
+
     threads = (
         DmThread.objects
         .filter(Q(user_a=request.user) | Q(user_b=request.user))
         .select_related("user_a", "user_b")
-        .order_by("-started_at")
+        .annotate(
+            # ✅ unread = messages not read AND not sent by me
+            unread_count=Count(
+                "messages",
+                filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user),
+                distinct=True
+            ),
+            last_text=Subquery(last_msg_qs.values("content")[:1]),
+            last_at=Subquery(last_msg_qs.values("created_at")[:1]),
+        )
+        .order_by("-last_at")  # nicer than started_at once chats exist
     )
 
-    # Add computed field: the "other" user for template simplicity
     thread_data = []
     for t in threads:
         other = t.user_b if t.user_a == request.user else t.user_a
-        last_msg = t.messages.order_by("-created_at").first()
+
+        last_text = (t.last_text or "").strip()
+        if len(last_text) > 70:
+            last_text = last_text[:70] + "…"
 
         thread_data.append({
-        "id": t.id,
-        "other": other,
-        "started_at": t.started_at,
-        "last_at": last_msg.created_at if last_msg else t.started_at,
-        "last_text": (last_msg.content[:70] + "…") if (last_msg and len(last_msg.content) > 70) else (last_msg.content if last_msg else ""),
+            "id": t.id,
+            "other": other,
+            "started_at": t.started_at,
+            "last_at": t.last_at or t.started_at,
+            "last_text": last_text,
+            "unread_count": t.unread_count,
         })
 
-
     return render(request, "forum/dm_inbox.html", {"threads": thread_data})
-
 
 @login_required
 def dm_thread(request, user_id: int):
@@ -347,15 +367,21 @@ def dm_thread(request, user_id: int):
         thread = DmThread.objects.get(user_a=a, user_b=b)
 
     msgs = thread.messages.select_related("sender").order_by("created_at")
+
+    # ✅ mark unread incoming messages as read (on GET)
+    if request.method == "GET":
+        thread.messages.filter(
+            sender=other,
+            is_read=False
+        ).update(is_read=True, read_at=timezone.now())
+
     last_msg = msgs.last()
     last_id = last_msg.id if last_msg else 0
 
     if request.method == "POST":
         body = (request.POST.get("content") or "").strip()
-
         if body:
             m = DmMessage.objects.create(thread=thread, sender=request.user, content=body)
-
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({
                     "ok": True,
@@ -366,16 +392,14 @@ def dm_thread(request, user_id: int):
                         "created_at": m.created_at.strftime("%b %d, %H:%M"),
                     }
                 })
-
         return redirect("dm_thread", user_id=other.id)
 
-    return render(
-        request,
-        "forum/dm_thread.html",
-        {"thread": thread, "other": other, "messages": msgs, "last_id": last_id},
-    )
-
-
+    return render(request, "forum/dm_thread.html", {
+        "thread": thread,
+        "other": other,
+        "messages": msgs,
+        "last_id": last_id
+    })
 
 @login_required
 def dm_thread_updates(request, user_id: int):
@@ -395,13 +419,56 @@ def dm_thread_updates(request, user_id: int):
         .order_by("created_at")
     )
 
-    data = []
-    for m in new_msgs:
-        data.append({
-            "id": m.id,
-            "content": m.content,
-            "sender_id": m.sender_id,
-            "created_at": m.created_at.strftime("%b %d, %H:%M"),
-        })
+    # ✅ if user is actively polling this thread, consider them "read"
+    new_msgs.filter(sender=other, is_read=False).update(is_read=True, read_at=timezone.now())
+
+    data = [{
+        "id": m.id,
+        "content": m.content,
+        "sender_id": m.sender_id,
+        "created_at": m.created_at.strftime("%b %d, %H:%M"),
+    } for m in new_msgs]
 
     return JsonResponse({"ok": True, "messages": data})
+
+@require_GET
+@login_required
+def dm_inbox_updates(request):
+    """
+    Returns unread counts + last message meta for inbox rows (AJAX).
+    """
+    last_msg_qs = (
+        DmMessage.objects
+        .filter(thread=OuterRef("pk"))
+        .order_by("-created_at")
+    )
+
+    threads = (
+        DmThread.objects
+        .filter(Q(user_a=request.user) | Q(user_b=request.user))
+        .annotate(
+            unread_count=Count(
+                "messages",
+                filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user),
+                distinct=True
+            ),
+            last_text=Subquery(last_msg_qs.values("content")[:1]),
+            last_at=Subquery(last_msg_qs.values("created_at")[:1]),
+        )
+    )
+
+    payload = []
+    for t in threads:
+        other = t.user_b if t.user_a_id == request.user.id else t.user_a
+        last_text = (t.last_text or "").strip()
+        if len(last_text) > 70:
+            last_text = last_text[:70] + "…"
+
+        payload.append({
+            "other_id": other.id,
+            "unread_count": int(t.unread_count or 0),
+            "last_text": last_text,
+            "last_at": t.last_at.strftime("%b %d, %H:%M") if t.last_at else "",
+        })
+
+    return JsonResponse({"ok": True, "threads": payload})

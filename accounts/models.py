@@ -427,7 +427,6 @@ class ForumAnswer(models.Model):
         # Use prefetched data if available (avoids N+1)
         return self.child_comments.all()
 
-
 class DmThread(models.Model):
     """
     A canonical thread between two users.
@@ -456,17 +455,19 @@ class DmThread(models.Model):
 
 
 class DmMessage(models.Model):
-    thread   = models.ForeignKey(DmThread, on_delete=models.CASCADE, related_name="messages")
-    sender   = models.ForeignKey(User, on_delete=models.CASCADE, related_name="dm_messages_sent")
-    content  = models.TextField()
+    thread = models.ForeignKey("DmThread", related_name="messages", on_delete=models.CASCADE)
+    sender = models.ForeignKey("User", on_delete=models.CASCADE)
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read  = models.BooleanField(default=False)
 
-    class Meta:
-        ordering = ["created_at"]
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"DM msg by {self.sender.username} at {self.created_at:%Y-%m-%d %H:%M}"
+    def mark_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=["is_read", "read_at"])
 
 # External Resources
 class ExternalResource(models.Model):
