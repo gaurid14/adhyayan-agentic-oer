@@ -16,10 +16,62 @@
     .forum-card { border-radius: 14px; border:1px solid #E5E7EB; }
     .meta { color:#6B7280; font-size:.9rem; }
     .chip { display:inline-block; padding:.2rem .55rem; background:#E6F8F7; color:#1EAE98; border-radius:999px; margin-right:.35rem; font-size:.8rem; font-weight:600; }
-    </style>
+      /* ✅ Responsive layout */
+
+      .main{
+  width: calc(100% - 260px);
+  max-width: none;
+}
+
+@media (max-width: 991px){
+  .main{
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding: 16px !important;
+  }
+  body{ overflow-x: hidden; }
+  .sidebar{ display:none !important; }
+}
+
+  </style>
+  <script>
+  (function () {
+    const btn = document.getElementById("sidebarToggle");
+    const overlay = document.getElementById("sidebarOverlay");
+
+    function openSidebar() { document.body.classList.add("sidebar-open"); }
+    function closeSidebar() { document.body.classList.remove("sidebar-open"); }
+    function toggleSidebar() { document.body.classList.toggle("sidebar-open"); }
+
+    btn && btn.addEventListener("click", toggleSidebar);
+    overlay && overlay.addEventListener("click", closeSidebar);
+
+    // close on ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeSidebar();
+    });
+
+    // close after clicking a sidebar link (nice UX)
+    document.addEventListener("click", (e) => {
+      if (!document.body.classList.contains("sidebar-open")) return;
+      const insideSidebar = e.target.closest(".sidebar");
+      if (insideSidebar && e.target.closest("a")) closeSidebar();
+    });
+  })();
+</script>
+
 </head>
 
 <body>
+ <!-- Mobile toggle button -->
+<button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu">
+  ☰ Menu
+</button>
+
+<!-- Dark overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
   {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
     {% include "contributor/sidebar.html" %}
   {% else %}

@@ -1,4 +1,5 @@
 # accounts/views/forum.py
+from concurrent.futures import thread
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import (
@@ -463,12 +464,13 @@ def dm_inbox_updates(request):
         last_text = (t.last_text or "").strip()
         if len(last_text) > 70:
             last_text = last_text[:70] + "…"
+        last_at_display = thread.last_at.astimezone(timezone.get_current_timezone()).strftime("%b %d, %H:%M")
 
         payload.append({
             "other_id": other.id,
             "unread_count": int(t.unread_count or 0),
             "last_text": last_text,
-            "last_at": t.last_at.strftime("%b %d, %H:%M") if t.last_at else "",
+            "last_at_display": last_at_display,
         })
 
     return JsonResponse({"ok": True, "threads": payload})

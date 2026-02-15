@@ -288,11 +288,163 @@
     border: 2px solid rgba(0, 0, 0, 0);
     background-clip: padding-box;
   }
+     /* ✅ Responsive layout */
+     /* ✅ Fix right-gap */
+.page-wrapper{
+  width: calc(100% - 260px);
+  max-width: none;
+}
+
+/* ✅ Tablet & below */
+@media (max-width: 991px){
+  .page-wrapper{
+    width: 100% !important;
+    margin-left: 0 !important;
+    max-width: none !important;
+    padding: 16px !important;
+  }
+  body{ overflow-x: hidden; }
+}
+
+@media (max-width: 576px){
+  .page-wrapper{ padding: 12px !important; }
+}
+/* Desktop stays same */
+.main { margin-left: 260px; }
+
+/* Mobile drawer behavior */
+@media (max-width: 991px){
+  .main{
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 16px !important;
+    padding-top: 62px !important; /* space for hamburger */
+  }
+
+  /* show hamburger on mobile */
+  .sidebar-toggle{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1203;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px 10px;
+    box-shadow: 0 8px 18px rgba(2,6,23,0.08);
+  }
+
+  /* overlay */
+  .sidebar-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.45);
+    z-index: 1200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  /* sidebar becomes drawer */
+  .sidebar{
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-105%);
+    transition: transform 200ms ease;
+    z-index: 1202;
+  }
+
+  body.sidebar-open .sidebar{
+    transform: translateX(0);
+  }
+
+  body.sidebar-open .sidebar-overlay{
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Desktop: hide hamburger */
+.sidebar-toggle{ display:none; }
+/* Desktop: hide hamburger */
+.sidebar-toggle { display:none; }
+
+/* Mobile drawer behavior */
+@media (max-width: 991px){
+  .main{
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 16px !important;
+    padding-top: 62px !important; /* space for hamburger */
+  }
+
+  .sidebar-toggle{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1203;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px 10px;
+    box-shadow: 0 8px 18px rgba(2,6,23,0.08);
+  }
+
+  .sidebar-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.45);
+    z-index: 1200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .sidebar{
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-105%);
+    transition: transform 200ms ease;
+    z-index: 1202;
+  }
+
+  body.sidebar-open .sidebar{
+    transform: translateX(0);
+  }
+
+  body.sidebar-open .sidebar-overlay{
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 </style>
+
 
   </head>
 
   <body>
+    <!-- Mobile toggle button -->
+<button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu">
+  ☰ Menu
+</button>
+
+<!-- Dark overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
     {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
       {% include "contributor/sidebar.html" %}
     {% else %}
@@ -492,6 +644,28 @@
 
   setInterval(fetchUpdates, 2000);
   requestAnimationFrame(() => input?.focus());
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("sidebarToggle");
+  const overlay = document.getElementById("sidebarOverlay");
+
+  function closeSidebar(){ document.body.classList.remove("sidebar-open"); }
+  function toggleSidebar(){ document.body.classList.toggle("sidebar-open"); }
+
+  if (btn) btn.addEventListener("click", toggleSidebar);
+  if (overlay) overlay.addEventListener("click", closeSidebar);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSidebar();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!document.body.classList.contains("sidebar-open")) return;
+    const insideSidebar = e.target.closest(".sidebar");
+    if (insideSidebar && e.target.closest("a")) closeSidebar();
+  });
+});
 </script>
 
 
