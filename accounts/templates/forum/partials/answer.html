@@ -1,42 +1,69 @@
-<div class="{% if level > 0 %}reply-branch{% endif %}">
-  <div class="d-flex justify-content-between">
-    <div>
-      <!-- IMPORTANT: linebreaks already outputs <p> tags, so don't wrap it in <p> -->
-      <div class="mb-1">{{ answer.content|linebreaks }}</div>
+<div id="a{{ answer.id }}" class="{% if level > 0 %}reply-branch{% endif %}">
+  <div class="d-flex justify-content-between gap-3">
+    <div style="min-width:0;">
+      <div class="mb-2">{{ answer.content|linebreaks }}</div>
 
       <div class="text-muted" style="font-size: 0.9rem">
         by <strong>{{ answer.author.username }}</strong>
         • {{ answer.created_at|date:"M d, Y H:i" }}
+        • {{ answer.created_at|timesince }} ago
       </div>
+
+      {% if user.is_authenticated %}
+        <!-- Reply (proper form) -->
+        <details class="mt-2 reply-box" data-reply-box>
+  <summary class="reply-toggle">Reply</summary>
+
+  <form
+    method="post"
+    action="{% url 'forum_reply' question.id answer.id %}"
+    class="reply-form mt-2"
+  >
+    {% csrf_token %}
+    <textarea
+      name="content"
+      class="form-control reply-input"
+      rows="2"
+      placeholder="Write a reply… (Enter to send, Shift+Enter for new line)"
+      data-enter-submit
+      data-reply-input
+    ></textarea>
+
+    <div class="reply-actions">
+      <button class="btn btn-sm btn-outline-secondary" type="submit">
+        Post
+      </button>
+    </div>
+  </form>
+</details>
+
+      {% endif %}
     </div>
 
-    <form method="post" action="{% url 'forum_answer_upvote' answer.id %}">
-      {% csrf_token %}
-      <button class="btn btn-outline-success btn-sm">
-        ▲ {{ answer.upvote_count|default:answer.total_upvotes }}
-      </button>
-    </form>
+    <!-- Upvote (ONLY ONCE) -->
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'forum_answer_upvote' answer.id %}" class="vote-form">
+        {% csrf_token %}
+        <button
+          class="vote-btn"
+          data-upvote-url="{% url 'forum_answer_upvote' answer.id %}"
+          type="submit"
+          title="Upvote"
+        >
+          <span class="vote-icon">▲</span>
+          <span
+            class="vote-count"
+            data-upvote-key="a{{ answer.id }}"
+            data-upvote-count
+          >
+            {{ answer.upvote_count|default:answer.total_upvotes }}
+          </span>
+        </button>
+      </form>
+    {% endif %}
   </div>
 
-  {% if user.is_authenticated %}
-  <details class="mt-2">
-    <summary class="reply-toggle">Reply</summary>
-    <form
-      method="post"
-      action="{% url 'forum_reply' question.id answer.id %}"
-      class="mt-2"
-    >
-      {% csrf_token %}
-      <textarea
-        name="content"
-        class="form-control"
-        rows="2"
-        placeholder="Write a reply..."
-      ></textarea>
-      <button class="btn btn-sm btn-secondary mt-2">Post reply</button>
-    </form>
-  </details>
-  {% endif %} {% for child in answer.children %} {% include
-  "forum/partials/answer.html" with answer=child question=question
-  level=level|add:1 %} {% endfor %}
+  {% for child in answer.tree_children %}
+    {% include "forum/partials/answer.html" with answer=child question=question level=level|add:1 %}
+  {% endfor %}
 </div>

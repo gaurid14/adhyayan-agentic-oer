@@ -13,14 +13,17 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
+from django.urls import reverse
 
 from ..models import (
-    ForumQuestion, ForumAnswer, ForumTopic,
+    Chapter, Course, ForumQuestion, ForumAnswer, ForumTopic,
     DmThread, DmMessage, User
 )
 from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
 from django.views.decorators.http import require_GET
 from django.db.models import OuterRef, Subquery, Count, Q
+from django.db.models import Count
+from django.shortcuts import get_object_or_404, render
 
 def _clean_forum_text(text: str, max_len: int = 10000) -> str:
     text = (text or "").strip()
@@ -32,23 +35,39 @@ def _clean_forum_text(text: str, max_len: int = 10000) -> str:
     return text[:max_len]
 
 
+def _clean_forum_text(text: str, max_len: int = 10000) -> str:
+    text = (text or "").strip()
+    if not text:
+        return ""
+    # prevent accidental template-tag-like storage (optional safety)
+    if "{%" in text:
+        return ""
+    return text[:max_len]
+
 
 def forum_home(request):
     q = request.GET.get("q", "").strip()
     topic_id = request.GET.get("topic")
+    sort = request.GET.get("sort", "new").strip()
     page = request.GET.get("page", 1)
+    course_id = request.GET.get("course")
+    chapter_id = request.GET.get("chapter")
 
     base_qs = (
         ForumQuestion.objects
-        .select_related("author")
+        .select_related("author", "course", "chapter")
         .prefetch_related("topics")
         .annotate(
             upvote_count=Count("upvotes", distinct=True),
-            top_answer_count=Count("answers", filter=Q(answers__parent__isnull=True), distinct=True),
+            top_answer_count=Count(
+                "answers",
+                filter=Q(answers__parent__isnull=True),
+                distinct=True
+            ),
         )
     )
 
-    questions = base_qs.order_by("-created_at")
+    questions = base_qs
 
     if q:
         questions = questions.filter(Q(title__icontains=q) | Q(content__icontains=q))
@@ -56,7 +75,25 @@ def forum_home(request):
     if topic_id:
         questions = questions.filter(topics__id=topic_id).distinct()
 
-    topics = ForumTopic.objects.annotate(num_questions=Count("questions")).order_by("-num_questions", "name")
+    if course_id:
+        questions = questions.filter(course_id=course_id)
+
+    if chapter_id:
+        questions = questions.filter(chapter_id=chapter_id)
+
+    # Sorting (safe, no schema change)
+    if sort == "upvotes":
+        questions = questions.order_by("-upvote_count", "-created_at")
+    elif sort == "answers":
+        questions = questions.order_by("-top_answer_count", "-created_at")
+    else:
+        questions = questions.order_by("-created_at")
+
+    topics = (
+        ForumTopic.objects
+        .annotate(num_questions=Count("questions"))
+        .order_by("-num_questions", "name")
+    )
 
     window = timezone.now() - timedelta(days=7)
     trending = (
@@ -65,7 +102,7 @@ def forum_home(request):
             q_up=Count("upvotes", distinct=True),
             recent_ans=Count("answers", filter=Q(answers__created_at__gte=window), distinct=True),
         )
-        .annotate(score=ExpressionWrapper(F("q_up")*2 + F("recent_ans"), output_field=IntegerField()))
+        .annotate(score=ExpressionWrapper(F("q_up") * 2 + F("recent_ans"), output_field=IntegerField()))
         .order_by("-score", "-created_at")[:5]
     )
 
@@ -87,84 +124,32 @@ def forum_home(request):
     paginator = Paginator(questions, 10)
     page_obj = paginator.get_page(page)
 
+    courses = Course.objects.all().order_by("course_name", "course_code")
+
+    chapters = Chapter.objects.none()
+    if course_id:
+        chapters = Chapter.objects.filter(course_id=course_id).order_by("chapter_number", "chapter_name")
+
     context = {
-        "questions": page_obj.object_list,  # keep old templates working
-        "page_obj": page_obj,              # enable new template
+        "questions": page_obj.object_list,
+        "page_obj": page_obj,
         "topics": topics,
         "selected_topic": int(topic_id) if topic_id else None,
         "q": q,
+        "sort": sort,
         "q_form": ForumQuestionForm(),
         "topic_form": ForumTopicForm(),
         "trending": trending,
         "my_discussions": my_discussions,
         "top_users": top_users,
+        "courses": courses,
+        "chapters": chapters,
+        "selected_course": int(course_id) if course_id else None,
+        "selected_chapter": int(chapter_id) if chapter_id else None,
     }
 
     return render(request, "forum/list.html", context)
 
-
-# # ---------- LIST (All discussions) + sidebar data ----------
-# def forum_home(request):
-#     q = request.GET.get("q", "").strip()
-#     topic_id = request.GET.get("topic")
-
-#     base_qs = (
-#         ForumQuestion.objects
-#         .select_related("author")
-#         .prefetch_related("topics")
-#         .annotate(answer_count=Count("answers"))
-#     )
-
-#     questions = base_qs.order_by("-created_at")
-#     if q:
-#         questions = questions.filter(Q(title__icontains=q) | Q(content__icontains=q))
-#     if topic_id:
-#         questions = questions.filter(topics__id=topic_id)
-
-#     topics = ForumTopic.objects.annotate(num_questions=Count("questions")).order_by("-num_questions", "name")
-
-#     # ---------- Trending (simple, fast heuristic) ----------
-#     # score = 2*upvotes + answers in last 7 days; order by score then recency
-#     window = timezone.now() - timedelta(days=7)
-#     trending = (
-#         base_qs
-#         .annotate(
-#             q_up=Count("upvotes", distinct=True),
-#             recent_ans=Count("answers", filter=Q(answers__created_at__gte=window), distinct=True),
-#         )
-#         .annotate(score=ExpressionWrapper(F("q_up")*2 + F("recent_ans"), output_field=IntegerField()))
-#         .order_by("-score", "-created_at")[:5]
-#     )
-
-#     # ---------- My discussions ----------
-#     my_discussions = None
-#     if request.user.is_authenticated:
-#         my_discussions = base_qs.filter(author=request.user).order_by("-created_at")[:5]
-
-#     # ---------- Top users (by total upvotes on Q + A) ----------
-#     top_users = (
-#         User.objects
-#         .annotate(
-#             q_ups=Count("forum_questions__upvotes", distinct=True),
-#             a_ups=Count("forum_answers__upvotes", distinct=True),
-#         )
-#         .annotate(total_upvotes=F("q_ups") + F("a_ups"))
-#         .filter(total_upvotes__gt=0)
-#         .order_by("-total_upvotes", "username")[:10]
-#     )
-
-#     context = {
-#         "questions": questions,
-#         "topics": topics,
-#         "selected_topic": int(topic_id) if topic_id else None,
-#         "q": q,
-#         "q_form": ForumQuestionForm(),
-#         "topic_form": ForumTopicForm(),
-#         "trending": trending,
-#         "my_discussions": my_discussions,
-#         "top_users": top_users,
-#     }
-#     return render(request, "forum/list.html", context)
 
 def _top_level_answers_qs():
     return (
@@ -175,28 +160,50 @@ def _top_level_answers_qs():
         .order_by("-created_at")
     )
 
-# ---------- DETAIL ----------
+
 def forum_detail(request, pk: int):
     question = (
         ForumQuestion.objects
-        .select_related("author")
-        .prefetch_related(
-            "topics",
-            Prefetch("answers", queryset=_top_level_answers_qs(), to_attr="top_answers"),
-            Prefetch(
-                "answers__child_comments",
-                queryset=ForumAnswer.objects.select_related("author").annotate(
-                    upvote_count=Count("upvotes", distinct=True)
-                ).order_by("created_at"),
-            ),
-        )
+        .select_related("author", "course", "chapter")
+        .prefetch_related("topics")
         .annotate(upvote_count=Count("upvotes", distinct=True))
         .get(pk=pk)
     )
+
+    answers = (
+        ForumAnswer.objects
+        .filter(question=question)
+        .select_related("author")
+        .annotate(upvote_count=Count("upvotes", distinct=True))
+        .order_by("created_at")
+    )
+
+    # parent_id -> [children...]
+    by_parent = {}
+    for a in answers:
+        by_parent.setdefault(a.parent_id, []).append(a)
+
+    top_answers = by_parent.get(None, [])
+
+    # Build groups: each top answer + a flat list of replies with nesting level
+    thread_groups = []
+
+    def walk(parent, level, out):
+        kids = by_parent.get(parent.id, [])
+        for k in kids:
+            out.append({"answer": k, "level": level})
+            walk(k, level + 1, out)
+
+    for top in top_answers:
+        replies = []
+        walk(top, 1, replies)
+        thread_groups.append({"top": top, "replies": replies})
+
+    question.thread_groups = thread_groups
+    question.top_answers = top_answers
+
     return render(request, "forum/detail.html", {"question": question, "a_form": ForumAnswerForm()})
 
-
-# ---------- CREATE QUESTION ----------
 
 @login_required
 @require_POST
@@ -213,9 +220,25 @@ def post_question(request):
         return redirect("forum_home")
 
     qobj = form.save(commit=False)
+    course = form.cleaned_data.get("course")
+    chapter = form.cleaned_data.get("chapter")
+
+    # Require course (makes the feature meaningful)
+    if not course:
+        messages.error(request, "Please select a course.")
+        return redirect("forum_home")
+
+    # If chapter selected, ensure it belongs to selected course
+    if chapter and chapter.course_id != course.id:
+        messages.error(request, "Selected chapter does not belong to that course.")
+        return redirect("forum_home")
+
+    qobj.course = course
+    qobj.chapter = chapter
     qobj.author = request.user
     qobj.title = title
     qobj.content = content
+
     qobj.save()
     form.save_m2m()
 
@@ -223,7 +246,6 @@ def post_question(request):
     return redirect("forum_detail", pk=qobj.pk)
 
 
-# ---------- ANSWER (top-level) ----------
 @login_required
 @require_POST
 def post_answer(request, question_id):
@@ -241,6 +263,7 @@ def post_answer(request, question_id):
         ans.question = question
         ans.parent = None
         ans.save()
+
     return redirect("forum_detail", pk=question.pk)
 
 
@@ -250,10 +273,19 @@ def post_reply(request, question_id, parent_id):
     question = get_object_or_404(ForumQuestion, pk=question_id)
     parent = get_object_or_404(ForumAnswer, pk=parent_id, question=question)
 
-    # only allow replying to top-level answers
-    if parent.parent_id is not None:
-        messages.error(request, "You can only reply to a top-level answer.")
-        return redirect("forum_detail", pk=question.pk)
+    MAX_DEPTH = 10
+
+    def _depth(ans: ForumAnswer) -> int:
+        d = 0
+        cur_id = ans.parent_id
+        while cur_id is not None and d < 50:
+            d += 1
+            cur_id = ForumAnswer.objects.only("id", "parent_id").get(id=cur_id).parent_id
+        return d
+
+    if _depth(parent) >= MAX_DEPTH:
+        messages.error(request, f"Reply limit reached (max depth {MAX_DEPTH}).")
+        return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
 
     form = ForumAnswerForm(request.POST)
     if form.is_valid():
@@ -269,10 +301,9 @@ def post_reply(request, question_id, parent_id):
         reply.parent = parent
         reply.save()
 
-    return redirect("forum_detail", pk=question.pk)
+    return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
 
 
-# ---------- UPVOTES (toggle) ----------
 @login_required
 @require_POST
 def toggle_question_upvote(request, pk: int):
@@ -308,7 +339,7 @@ def toggle_answer_upvote(request, pk: int):
         return JsonResponse({"ok": True, "state": state, "count": ans.upvotes.count()})
     return redirect("forum_detail", pk=ans.question_id)
 
-# ===================== Direct Messages (DM) =====================
+
 @login_required
 def dm_inbox(request):
     last_msg_qs = (
@@ -322,7 +353,6 @@ def dm_inbox(request):
         .filter(Q(user_a=request.user) | Q(user_b=request.user))
         .select_related("user_a", "user_b")
         .annotate(
-            # ✅ unread = messages not read AND not sent by me
             unread_count=Count(
                 "messages",
                 filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user),
@@ -331,7 +361,7 @@ def dm_inbox(request):
             last_text=Subquery(last_msg_qs.values("content")[:1]),
             last_at=Subquery(last_msg_qs.values("created_at")[:1]),
         )
-        .order_by("-last_at")  # nicer than started_at once chats exist
+        .order_by("-last_at")
     )
 
     thread_data = []
@@ -353,6 +383,7 @@ def dm_inbox(request):
 
     return render(request, "forum/dm_inbox.html", {"threads": thread_data})
 
+
 @login_required
 def dm_thread(request, user_id: int):
     other = get_object_or_404(User, pk=user_id)
@@ -369,12 +400,8 @@ def dm_thread(request, user_id: int):
 
     msgs = thread.messages.select_related("sender").order_by("created_at")
 
-    # ✅ mark unread incoming messages as read (on GET)
     if request.method == "GET":
-        thread.messages.filter(
-            sender=other,
-            is_read=False
-        ).update(is_read=True, read_at=timezone.now())
+        thread.messages.filter(sender=other, is_read=False).update(is_read=True, read_at=timezone.now())
 
     last_msg = msgs.last()
     last_id = last_msg.id if last_msg else 0
@@ -402,6 +429,7 @@ def dm_thread(request, user_id: int):
         "last_id": last_id
     })
 
+
 @login_required
 def dm_thread_updates(request, user_id: int):
     other = get_object_or_404(User, pk=user_id)
@@ -420,7 +448,6 @@ def dm_thread_updates(request, user_id: int):
         .order_by("created_at")
     )
 
-    # ✅ if user is actively polling this thread, consider them "read"
     new_msgs.filter(sender=other, is_read=False).update(is_read=True, read_at=timezone.now())
 
     data = [{
@@ -431,6 +458,7 @@ def dm_thread_updates(request, user_id: int):
     } for m in new_msgs]
 
     return JsonResponse({"ok": True, "messages": data})
+
 
 @require_GET
 @login_required
@@ -461,10 +489,13 @@ def dm_inbox_updates(request):
     payload = []
     for t in threads:
         other = t.user_b if t.user_a_id == request.user.id else t.user_a
+
         last_text = (t.last_text or "").strip()
         if len(last_text) > 70:
             last_text = last_text[:70] + "…"
-        last_at_display = thread.last_at.astimezone(timezone.get_current_timezone()).strftime("%b %d, %H:%M")
+
+        last_at = t.last_at or t.started_at
+        last_at_display = timezone.localtime(last_at).strftime("%b %d, %H:%M")
 
         payload.append({
             "other_id": other.id,
@@ -474,3 +505,18 @@ def dm_inbox_updates(request):
         })
 
     return JsonResponse({"ok": True, "threads": payload})
+
+
+@require_GET
+def forum_course_chapters(request, course_id: int):
+    """
+    Public endpoint used by forum.js to populate chapters dropdown.
+    Keeping it public prevents auth-redirect HTML being returned to fetch().
+    """
+    chapters = (
+        Chapter.objects
+        .filter(course_id=course_id)
+        .order_by("chapter_number", "chapter_name")
+        .values("id", "chapter_number", "chapter_name")
+    )
+    return JsonResponse({"ok": True, "chapters": list(chapters)})

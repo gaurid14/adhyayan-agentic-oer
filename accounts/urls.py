@@ -13,7 +13,7 @@ from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
-    dm_inbox, dm_thread,dm_thread_updates,dm_inbox_updates, # <-- ADD THIS IMPORT
+    dm_inbox, dm_thread,dm_thread_updates,dm_inbox_updates,forum_course_chapters, # <-- ADD THIS IMPORT
 )
 
 urlpatterns = [
@@ -52,6 +52,9 @@ urlpatterns = [
     path("forum/<int:question_id>/reply/<int:parent_id>/", post_reply, name="forum_reply"),
     path("forum/<int:pk>/upvote/", toggle_question_upvote, name="forum_question_upvote"),
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
+    path("forum/<int:question_id>/reply/<int:parent_id>/", post_reply, name="forum_reply"),
+    path("forum/course/<int:course_id>/chapters/", forum_course_chapters, name="forum_course_chapters"),
+
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---

@@ -393,7 +393,20 @@ class ForumQuestion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     upvotes = models.ManyToManyField(User, related_name="question_upvotes", blank=True)
-
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        null=True,          # keep null=True so old questions don't break migrations
+        blank=False,
+        related_name="forum_questions",
+    )
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="forum_questions",
+    )
     def __str__(self):
         return self.title
 
