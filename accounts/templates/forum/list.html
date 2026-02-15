@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/sidebar-drawer.css' %}">
+
     <style>
     body { background:#fff; }
     .main { margin-left:260px; padding:24px; }
@@ -27,44 +29,28 @@
   .main{
     width: 100% !important;
     margin-left: 0 !important;
+
     padding: 16px !important;
+    padding-top: 62px !important; /* ✅ add this line */
   }
+
   body{ overflow-x: hidden; }
-  .sidebar{ display:none !important; }
 }
 
+
   </style>
-  <script>
-  (function () {
-    const btn = document.getElementById("sidebarToggle");
-    const overlay = document.getElementById("sidebarOverlay");
-
-    function openSidebar() { document.body.classList.add("sidebar-open"); }
-    function closeSidebar() { document.body.classList.remove("sidebar-open"); }
-    function toggleSidebar() { document.body.classList.toggle("sidebar-open"); }
-
-    btn && btn.addEventListener("click", toggleSidebar);
-    overlay && overlay.addEventListener("click", closeSidebar);
-
-    // close on ESC
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeSidebar();
-    });
-
-    // close after clicking a sidebar link (nice UX)
-    document.addEventListener("click", (e) => {
-      if (!document.body.classList.contains("sidebar-open")) return;
-      const insideSidebar = e.target.closest(".sidebar");
-      if (insideSidebar && e.target.closest("a")) closeSidebar();
-    });
-  })();
-</script>
 
 </head>
 
 <body>
- <!-- Mobile toggle button -->
-<button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu">
+<button
+  class="sidebar-toggle"
+  type="button"
+  id="sidebarToggle"
+  aria-label="Open menu"
+  aria-controls="sidebar"
+  aria-expanded="false"
+>
   ☰ Menu
 </button>
 
@@ -262,6 +248,8 @@
       </div>
     </div>
   </main>
+  <script src="{% static 'accounts/sidebar-drawer.js' %}"></script>
+
 </body>
 
 </html>

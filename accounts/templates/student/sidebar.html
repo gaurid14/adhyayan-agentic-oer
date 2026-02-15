@@ -1,6 +1,6 @@
 {% load static %}
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
 
     <!-- LOGO -->
     <div class="sidebar-logo">
@@ -25,13 +25,13 @@
             </li>
 
             <!-- MY COURSES (student-friendly) -->
-            <li>
+            {% comment %} <li>
                 <a href="{% url 'student_courses' %}"
                    class="{% if request.resolver_match.url_name == 'student_courses' %}active{% endif %}">
                     <i class="fas fa-book"></i>
                     My Courses
                 </a>
-            </li>
+            </li> {% endcomment %}
 
             <!-- DISCUSSION FORUM -->
             <li>
