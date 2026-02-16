@@ -1,0 +1,58 @@
+<div id="a{{ answer.id }}"
+     class="thread-row {% if level > 0 %}thread-child{% endif %}"
+     style="--lvl:{{ level }}">
+
+  <div class="d-flex justify-content-between gap-3">
+    <div style="min-width:0;">
+      <div class="mb-1">{{ answer.content|linebreaks }}</div>
+
+      <div class="text-muted" style="font-size:.9rem;">
+        by <strong>{{ answer.author.username }}</strong>
+        • {{ answer.created_at|date:"M d, Y H:i" }}
+        • {{ answer.created_at|timesince }} ago
+      </div>
+
+      {% if user.is_authenticated %}
+        <details class="mt-2 reply-box" data-reply-box>
+          <summary class="reply-toggle">Reply</summary>
+
+          <form method="post"
+                action="{% url 'forum_reply' question.id answer.id %}"
+                class="reply-form mt-2">
+            {% csrf_token %}
+
+            <textarea
+              name="content"
+              class="form-control reply-input"
+              rows="2"
+              placeholder="Write a reply… (Enter to send, Shift+Enter for new line)"
+              data-enter-submit
+              data-reply-input
+            ></textarea>
+
+            <div class="reply-actions">
+              <button class="btn btn-sm btn-outline-secondary" type="submit">Post</button>
+            </div>
+          </form>
+        </details>
+      {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'forum_answer_upvote' answer.id %}" class="vote-form">
+        {% csrf_token %}
+        <button
+          class="vote-btn"
+          data-upvote-url="{% url 'forum_answer_upvote' answer.id %}"
+          type="submit"
+          title="Upvote"
+        >
+          <span class="vote-icon">▲</span>
+          <span class="vote-count" data-upvote-key="a{{ answer.id }}" data-upvote-count>
+            {{ answer.upvote_count }}
+          </span>
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>

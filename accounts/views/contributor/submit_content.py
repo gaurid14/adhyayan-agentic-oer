@@ -43,8 +43,6 @@ from langgraph_agents.agents.submission_agent import submission_agent
 from langgraph_agents.graph.workflow import compiled_graph
 from langgraph_agents.services.gemini_service import llm
 
-import asyncio
-import threading
 import traceback
 import sys
 
@@ -54,12 +52,14 @@ from mcp.client.stdio import stdio_client, StdioServerParameters
 
 from accounts.models import ContentCheck
 
-PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
+
+# PROJECT_ROOT = r"C:\Users\gauri\IdeaProjects\oer"
+# MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
+# ✅ ALWAYS point to project root (folder that has manage.py)
+PROJECT_ROOT = str(settings.BASE_DIR)
+
+# ✅ MCP server path from project root
 MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
-
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# MCP_PATH = os.path.join(BASE_DIR, "langgraph_agents", "services", "mcp_server.py")
 
 
 class ContributorSessionService:
@@ -68,8 +68,9 @@ class ContributorSessionService:
         request.session.update(kwargs)
 
     @staticmethod
-    def get(key, default=None):
-        return default
+    def get(request, key, default=None):
+        return request.session.get(key, default)
+
 
 
 class ContributorSubmissionService:
@@ -234,7 +235,25 @@ class SubmissionOrchestrator:
 
                         await compiled_graph.ainvoke(graph_input)
 
+                        await sync_to_async(UploadCheck.objects.filter(id=upload_id).update)(evaluation_status=True)
+                        print(f"✅ Marked upload {upload_id} as evaluated.")    
+
                 print("Evaluation graph invoked!!")
+
+                # 🔔 Auto-trigger Decision Maker (event-driven; no polling)
+                # Runs only if: (1) deadline is over AND (2) min contributions met.
+                try:
+                    from accounts.services.auto_decision import trigger_decision_if_due  # local import avoids cycles
+                    chapter_id = int(state["chapter_id"])
+                    dm_run = await sync_to_async(trigger_decision_if_due)(chapter_id)
+                    if dm_run:
+                        status = getattr(dm_run, "status", None) or (dm_run.get("status") if isinstance(dm_run, dict) else "unknown")
+                        selected = getattr(dm_run, "selected_upload_id", None) or (dm_run.get("selected_upload_id") if isinstance(dm_run, dict) else None)
+                        print(f"🏁 Auto DecisionMaker: {status} (chapter_id={chapter_id}, selected_upload_id={selected})")
+
+                except Exception as e:
+                    print(f"[WARN] Auto DecisionMaker trigger failed: {e}")
+
 
             try:
                 bg_loop.run_until_complete(runner())

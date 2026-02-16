@@ -1,68 +1,532 @@
 {% load static %}
 <!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Chat • {{ other.username }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}" />
+
     <style>
-        .chat-wrapper { margin-left:260px; padding:30px; }
-        .chat-box { max-height:60vh; overflow:auto; }
-        .msg {
-          max-width:70%;
-          padding:10px 14px;
-          border-radius:14px;
-          margin-bottom:12px;
+      :root {
+        --primary: #1eae98;
+        --primary-dark: #178d79;
+
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+
+        --text: #0f172a;
+        --muted: #64748b;
+
+        --border: #e5e7eb;
+        --shadow: 0 12px 30px rgba(2, 6, 23, 0.06);
+        --shadow-soft: 0 3px 10px rgba(2, 6, 23, 0.06);
+        --radius: 16px;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial,
+          "Noto Sans",
+          "Liberation Sans",
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+
+      /* Layout */
+      .main {
+        margin-left: 260px;
+        width: calc(100% - 260px);
+        max-width: none;
+        padding: 26px 28px;
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .page-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .page-title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 850;
+        letter-spacing: -0.4px;
+        line-height: 1.15;
+      }
+
+      .page-subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      /* Buttons */
+      .btn-soft {
+        border: 1px solid var(--border) !important;
+        background: #fff !important;
+        color: var(--text) !important;
+        border-radius: 12px !important;
+        padding: 8px 12px !important;
+        box-shadow: 0 1px 0 rgba(2, 6, 23, 0.04);
+      }
+      .btn-soft:hover {
+        background: var(--surface-2) !important;
+      }
+
+      .btn-primary {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        border-radius: 12px !important;
+        padding: 8px 14px !important;
+        font-weight: 800;
+        box-shadow: 0 6px 14px rgba(30, 174, 152, 0.18);
+      }
+      .btn-primary:hover {
+        background: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
+      }
+
+      /* Inbox card */
+      .inbox-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .inbox-top {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(
+          180deg,
+          rgba(248, 250, 252, 0.75),
+          rgba(255, 255, 255, 1)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .inbox-top .label {
+        font-weight: 800;
+        font-size: 14px;
+        letter-spacing: -0.1px;
+      }
+
+      .inbox-top .count {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      /* Threads */
+      .thread {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        transition: background 160ms ease;
+      }
+      .thread:last-child {
+        border-bottom: 0;
+      }
+      .thread:hover {
+        background: rgba(248, 250, 252, 0.8);
+      }
+
+      .thread-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+        color: var(--primary-dark);
+        flex: 0 0 auto;
+        box-shadow: 0 1px 6px rgba(2, 6, 23, 0.06);
+      }
+
+      .thread-text {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .thread-name {
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: -0.15px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .thread-meta {
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Unread */
+      .thread-unread {
+        background: rgba(30, 174, 152, 0.06);
+        border-left: 4px solid var(--primary);
+      }
+      .thread-unread .thread-name {
+        font-weight: 800;
+      }
+
+      .unread-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+        background: var(--primary);
+        box-shadow: 0 8px 18px rgba(30, 174, 152, 0.18);
+      }
+
+      /* Empty state */
+      .empty {
+        padding: 44px 16px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .empty .emoji {
+        font-size: 26px;
+        margin-bottom: 8px;
+      }
+      .empty .title {
+        color: var(--text);
+        font-weight: 900;
+        margin-bottom: 6px;
+        letter-spacing: -0.2px;
+      }
+      .empty .hint {
+        font-size: 13px;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      /* Mobile drawer button/overlay defaults */
+      .sidebar-toggle {
+        display: none;
+      }
+      .sidebar-overlay {
+        display: none;
+      }
+
+      /* Tablet + Mobile */
+      @media (max-width: 991px) {
+        .main {
+          margin-left: 0;
+          width: 100%;
+          padding: 16px;
+          padding-top: 62px; /* space for hamburger */
         }
-        .msg-me {
-          background:#1EAE98;
-          color:#fff;
-          margin-left:auto;
+
+        .sidebar-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          position: fixed;
+          top: 12px;
+          left: 12px;
+          z-index: 1203;
+          border: 1px solid #e5e7eb;
+          background: #fff;
+          border-radius: 12px;
+          padding: 8px 10px;
+          box-shadow: 0 8px 18px rgba(2, 6, 23, 0.08);
         }
-        .msg-other {
-          background:#f1f3f5;
+
+        .sidebar-overlay {
+          display: block;
+          position: fixed;
+          inset: 0;
+          background: rgba(2, 6, 23, 0.45);
+          z-index: 1200;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 180ms ease;
         }
-        .msg-meta {
-          font-size:11px;
-          opacity:.7;
-          margin-top:4px;
+
+        /* Sidebar becomes a drawer */
+        .sidebar {
+          position: fixed !important;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          width: 260px;
+          transform: translateX(-105%);
+          transition: transform 200ms ease;
+          z-index: 1202;
         }
+
+        body.sidebar-open .sidebar {
+          transform: translateX(0);
+        }
+
+        body.sidebar-open .sidebar-overlay {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .main {
+          padding: 12px;
+          padding-top: 62px;
+        }
+
+        .thread {
+          gap: 10px;
+        }
+
+        .btn-primary,
+        .btn-soft {
+          padding: 8px 10px !important;
+        }
+      }
+      /* When drawer is open, don't let the hamburger sit on top of the logo */
+      body.sidebar-open .sidebar-toggle {
+        display: none !important;
+      }
     </style>
-</head>
-<body class="bg-light">
+  </head>
+  <body>
+    <!-- Mobile toggle button -->
+    <button
+      class="sidebar-toggle"
+      type="button"
+      id="sidebarToggle"
+      aria-label="Open menu"
+      aria-controls="sidebar"
+      aria-expanded="false"
+    >
+      ☰ Menu
+    </button>
 
-<div class="chat-wrapper">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Chat with {{ other.username }}</h5>
-        <a href="{% url 'dm_inbox' %}" class="text-decoration-none">← Inbox</a>
-    </div>
+    <!-- Dark overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="card shadow-sm mb-3">
-        <div class="card-body chat-box">
-            {% for m in messages %}
-            <div class="d-flex {% if m.sender == user %}justify-content-end{% endif %}">
-                <div class="msg {% if m.sender == user %}msg-me{% else %}msg-other{% endif %}">
-                    {{ m.content|linebreaks }}
-                    <div class="msg-meta">
-                        {{ m.sender.username }} • {{ m.created_at|date:"H:i" }}
-                    </div>
-                </div>
+    {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
+    {% include "contributor/sidebar.html" %}
+  {% else %}
+    {% include "student/sidebar.html" %}
+  {% endif %}
+
+    <main class="main">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Messages</h1>
+          <div class="page-subtitle">Your direct message threads</div>
+        </div>
+
+        <a class="btn btn-soft btn-sm" href="{% url 'forum_home' %}">
+          ← Back to Forum
+        </a>
+      </div>
+
+      <section class="inbox-card" aria-label="Inbox threads">
+        <div class="inbox-top">
+          <div class="label">Inbox</div>
+          <div class="count">
+            {{ threads|length }} conversation{{ threads|length|pluralize }}
+          </div>
+        </div>
+
+        {% for t in threads %}
+        <div
+          class="thread {% if t.unread_count|default:0 > 0 %}thread-unread{% endif %}"
+          data-other-id="{{ t.other.id }}"
+        >
+          <div class="thread-left">
+            <div class="avatar" aria-hidden="true">
+              {{ t.other.username|slice:":1"|upper }}
             </div>
-            {% empty %}
-            <div class="text-center text-muted">Say hello 👋</div>
-            {% endfor %}
-        </div>
-    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="input-group">
-      <textarea name="content" class="form-control" rows="1"
-                placeholder="Write a message..."></textarea>
-            <button class="btn btn-primary">Send</button>
-        </div>
-    </form>
+            <div class="thread-text">
+              <div class="thread-name">
+                {{ t.other.username }}
+
+                <span class="badge-slot">
+                  {% if t.unread_count > 0 %}
+                  <span class="unread-badge">{{ t.unread_count }}</span>
+                  {% endif %}
+                </span>
+              </div>
+
+              <div
+  class="thread-meta"
+  data-meta
+  data-fallback="{% if t.last_text %}{{ t.last_text }} • {{ t.last_at|date:'M d, H:i' }}{% else %}Started: {{ t.started_at|date:'M d, Y • H:i' }}{% endif %}"
+>
+  {% if t.last_text %}
+    {{ t.last_text }} • {{ t.last_at|date:"M d, H:i" }}
+  {% else %}
+    Started: {{ t.started_at|date:"M d, Y • H:i" }}
+  {% endif %}
 </div>
 
-</body>
+            </div>
+          </div>
+
+          <a
+            class="btn btn-primary btn-sm"
+            href="{% url 'dm_thread' t.other.id %}"
+          >
+            Open
+          </a>
+        </div>
+        {% empty %}
+        <div class="empty">
+          <div class="emoji">💬</div>
+          <div class="title">No conversations yet</div>
+          <div class="hint">
+            Start a conversation from the forum or a user profile, and it’ll
+            appear here.
+          </div>
+        </div>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("sidebarToggle");
+      const overlay = document.getElementById("sidebarOverlay");
+
+      const isOpen = () => document.body.classList.contains("sidebar-open");
+
+      function setExpanded(expanded) {
+        if (btn) btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+      }
+
+      function openSidebar() {
+        document.body.classList.add("sidebar-open");
+        setExpanded(true);
+      }
+
+      function closeSidebar() {
+        document.body.classList.remove("sidebar-open");
+        setExpanded(false);
+      }
+
+      function toggleSidebar() {
+        if (isOpen()) closeSidebar();
+        else openSidebar();
+      }
+
+      // Toggle button
+      if (btn) btn.addEventListener("click", toggleSidebar);
+
+      // Overlay click closes
+      if (overlay) overlay.addEventListener("click", closeSidebar);
+
+      // ESC closes
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeSidebar();
+      });
+
+      // Clicking a link inside the sidebar closes (mobile UX)
+      document.addEventListener("click", (e) => {
+        if (!isOpen()) return;
+        const insideSidebar = e.target.closest(".sidebar");
+        if (insideSidebar && e.target.closest("a")) closeSidebar();
+      });
+
+      // Initial state for accessibility
+      setExpanded(false);
+
+      // ===== Inbox polling =====
+      async function refreshInbox() {
+        try {
+          if (document.hidden) return;
+
+          const res = await fetch("{% url 'dm_inbox_updates' %}", {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          });
+
+          if (!res.ok) return;
+
+          const data = await res.json();
+          if (!data.ok || !Array.isArray(data.threads)) return;
+
+          data.threads.forEach((t) => {
+            const row = document.querySelector(
+              `.thread[data-other-id="${t.other_id}"]`,
+            );
+            if (!row) return;
+
+            // unread highlight
+            row.classList.toggle("thread-unread", (t.unread_count || 0) > 0);
+
+            // unread badge
+            const slot = row.querySelector(".badge-slot");
+            if (slot) {
+              slot.innerHTML =
+                (t.unread_count || 0) > 0
+                  ? `<span class="unread-badge">${t.unread_count}</span>`
+                  : "";
+            }
+
+            // meta line
+            const meta = row.querySelector("[data-meta]");
+            if (meta) {
+              if (t.last_text)
+                meta.textContent = `${t.last_text} • ${t.last_at}`;
+            }
+          });
+        } catch (e) {
+          // ignore network blips
+        }
+      }
+
+      setInterval(refreshInbox, 2000);
+      document.addEventListener("visibilitychange", refreshInbox);
+    });
+  </script>
 </html>

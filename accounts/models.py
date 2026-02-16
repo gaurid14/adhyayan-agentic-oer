@@ -267,18 +267,17 @@ class ContentCheck(models.Model):
 
 class ContentScore(models.Model):
     upload = models.OneToOneField(
-        UploadCheck, on_delete=models.CASCADE,
-        related_name="content_score"
+        UploadCheck, on_delete=models.CASCADE, related_name="content_score"
     )
+
     engagement = models.FloatField(blank=True, null=True)
     clarity = models.FloatField(blank=True, null=True)
     coherence = models.FloatField(blank=True, null=True)
-    relevance = models.FloatField(blank=True, null=True)
     completeness = models.FloatField(blank=True, null=True)
+    accuracy = models.FloatField(blank=True, null=True)
 
-    def __str__(self):
-        return f"Scores for Upload {self.upload.id}"
-
+    # ✅ add back (needed by decision maker mark-best feature)
+    is_best = models.BooleanField(default=False)
 
 class ReleasedContent(models.Model):
     upload = models.OneToOneField(
@@ -290,6 +289,49 @@ class ReleasedContent(models.Model):
 
     def __str__(self):
         return f"Released? {self.release_status} for Upload {self.upload.id}"
+
+class DecisionRun(models.Model):
+    """Audit record for a decision-maker run selecting the best upload for a chapter."""
+
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name="decision_runs",
+    )
+    selected_upload = models.ForeignKey(
+        "UploadCheck",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="decision_runs_selected",
+    )
+    decided_by = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="decision_runs_decided",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    status = models.CharField(max_length=32, default="ok")
+    strategy = models.CharField(max_length=64, default="weighted_average")
+    weights = models.JSONField(default=dict, blank=True)
+    thresholds = models.JSONField(default=dict, blank=True)
+
+    composite_score = models.FloatField(null=True, blank=True)
+    ranking = models.JSONField(default=list, blank=True)
+    explanation = models.TextField(blank=True, default="")
+
+    is_latest = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self) -> str:
+        return f"DecisionRun(chapter_id={self.chapter_id}, selected_upload_id={self.selected_upload_id}, score={self.composite_score})"
+
 
 
 # Student Enrollment into Course
@@ -351,7 +393,20 @@ class ForumQuestion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     upvotes = models.ManyToManyField(User, related_name="question_upvotes", blank=True)
-
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        null=True,          # keep null=True so old questions don't break migrations
+        blank=False,
+        related_name="forum_questions",
+    )
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="forum_questions",
+    )
     def __str__(self):
         return self.title
 
@@ -382,7 +437,8 @@ class ForumAnswer(models.Model):
 
     @property
     def children(self):
-        return self.child_comments.all().select_related("author")
+        # Use prefetched data if available (avoids N+1)
+        return self.child_comments.all()
 
 class DmThread(models.Model):
     """
@@ -412,17 +468,19 @@ class DmThread(models.Model):
 
 
 class DmMessage(models.Model):
-    thread   = models.ForeignKey(DmThread, on_delete=models.CASCADE, related_name="messages")
-    sender   = models.ForeignKey(User, on_delete=models.CASCADE, related_name="dm_messages_sent")
-    content  = models.TextField()
+    thread = models.ForeignKey("DmThread", related_name="messages", on_delete=models.CASCADE)
+    sender = models.ForeignKey("User", on_delete=models.CASCADE)
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read  = models.BooleanField(default=False)
 
-    class Meta:
-        ordering = ["created_at"]
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f"DM msg by {self.sender.username} at {self.created_at:%Y-%m-%d %H:%M}"
+    def mark_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=["is_read", "read_at"])
 
 # External Resources
 class ExternalResource(models.Model):
