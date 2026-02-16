@@ -2,39 +2,54 @@
      class="thread-row {% if level > 0 %}thread-child{% endif %}"
      style="--lvl:{{ level }}">
 
-  <div class="d-flex justify-content-between gap-3">
-    <div style="min-width:0;">
-      <div class="mb-1">{{ answer.content|linebreaks }}</div>
+  <div class="answer-item {% if level > 0 %}answer-item--reply{% endif %}">
+    <div class="answer-avatar" aria-hidden="true">
+      {{ answer.author.username|slice:":1"|upper }}
+    </div>
 
-      <div class="text-muted" style="font-size:.9rem;">
-        by <strong>{{ answer.author.username }}</strong>
-        • {{ answer.created_at|date:"M d, Y H:i" }}
-        • {{ answer.created_at|timesince }} ago
+    <div class="answer-main">
+      <div class="answer-meta">
+        <span class="answer-author">{{ answer.author.username }}</span>
+        <span class="dot">•</span>
+        <span>{{ answer.created_at|date:"M d, Y H:i" }}</span>
+        <span class="dot">•</span>
+        <span>{{ answer.created_at|timesince }} ago</span>
+      </div>
+
+      <div class="answer-body prose">
+        {{ answer.content|linebreaks }}
       </div>
 
       {% if user.is_authenticated %}
-        <details class="mt-2 reply-box" data-reply-box>
-          <summary class="reply-toggle">Reply</summary>
+        <div class="answer-actions">
 
-          <form method="post"
-                action="{% url 'forum_reply' question.id answer.id %}"
-                class="reply-form mt-2">
-            {% csrf_token %}
+          <details class="reply-box" data-reply-box>
+            <summary class="reply-toggle">
+              </i> Reply
+            </summary>
 
-            <textarea
-              name="content"
-              class="form-control reply-input"
-              rows="2"
-              placeholder="Write a reply… (Enter to send, Shift+Enter for new line)"
-              data-enter-submit
-              data-reply-input
-            ></textarea>
+            <form method="post"
+                  action="{% url 'forum_reply' question.id answer.id %}"
+                  class="reply-form mt-2">
+              {% csrf_token %}
 
-            <div class="reply-actions">
-              <button class="btn btn-sm btn-outline-secondary" type="submit">Post</button>
-            </div>
-          </form>
-        </details>
+              <textarea
+                name="content"
+                class="form-control reply-input"
+                rows="2"
+                placeholder="Write a reply… (Enter to send, Shift+Enter for new line)"
+                data-enter-submit
+                data-reply-input
+              ></textarea>
+
+              <div class="reply-actions">
+                <button class="btn btn-sm btn-outline-secondary" type="submit">
+                  Post reply
+                </button>
+              </div>
+            </form>
+          </details>
+        </div>
       {% endif %}
     </div>
 

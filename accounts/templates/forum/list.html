@@ -1,8 +1,9 @@
 {% load static %}
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Discussion Forum</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -13,7 +14,7 @@
   <link rel="stylesheet" href="{% static 'accounts/forum.css' %}">
 </head>
 
-<body>
+<body class="forum-body">
   <!-- Mobile sidebar toggle -->
   <button
     class="sidebar-toggle"
@@ -34,289 +35,373 @@
   {% endif %}
 
   <main class="main">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h3 class="mb-0">Discussion Forum</h3>
-        <div class="meta">Ask questions, share solutions, and help others learn.</div>
+    <div class="forum-shell">
+
+      <!-- Header -->
+      <div class="forum-header card forum-card mb-3">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div class="min-w-0">
+            <div class="d-flex align-items-center gap-2">
+              <span class="forum-mark">
+                <i class="fa-regular fa-comments"></i>
+              </span>
+              <h3 class="mb-0">Discussion Forum</h3>
+            </div>
+            <div class="meta mt-1">
+              Ask questions, share solutions, and help others learn.
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            {% if user.is_authenticated %}
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_inbox' %}">
+                <i class="fa-regular fa-envelope"></i>
+                Messages
+              </a>
+            {% endif %}
+            
+          </div>
+        </div>
       </div>
 
-      {% if user.is_authenticated %}
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'dm_inbox' %}">
-          <i class="fa-regular fa-envelope"></i> Messages
-        </a>
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+          {% endfor %}
+        </div>
       {% endif %}
-    </div>
 
-    {% if messages %}
-      <div class="mb-3">
-        {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <!-- Filters -->
-    <form method="get" class="mb-3">
-      <div class="row g-2">
-        <div class="col-md-4">
-          <div class="input-group">
-            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search questions...">
-          </div>
-        </div>
-
-        <div class="col-md-3">
-          <select class="form-select" id="filterCourse" name="course">
-            <option value="">All courses</option>
-            {% for c in courses %}
-              <option value="{{ c.id }}" {% if selected_course == c.id %}selected{% endif %}>
-                {{ c.course_code }} — {{ c.course_name }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <select class="form-select" id="filterChapter" name="chapter" {% if not selected_course %}disabled{% endif %}>
-            <option value="">All chapters</option>
-            {% for ch in chapters %}
-              <option value="{{ ch.id }}" {% if selected_chapter == ch.id %}selected{% endif %}>
-                {{ ch.chapter_number }}. {{ ch.chapter_name }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="col-md-2">
-          <select name="sort" class="form-select">
-            <option value="new" {% if sort == "new" %}selected{% endif %}>Newest</option>
-            <option value="upvotes" {% if sort == "upvotes" %}selected{% endif %}>Most upvoted</option>
-            <option value="answers" {% if sort == "answers" %}selected{% endif %}>Most answered</option>
-          </select>
-        </div>
-
-        <div class="col-12 d-flex gap-2 justify-content-end">
-          <button class="btn btn-primary">Filter</button>
-          <a class="btn btn-outline-secondary" href="{% url 'forum_home' %}" title="Clear filters">
-            <i class="fa-solid fa-rotate-left"></i>
-          </a>
-        </div>
-      </div>
-    </form>
-
-    <div class="row g-3">
-      <!-- Left: main list -->
-      <div class="col-lg-8">
-
-        <!-- Ask box (collapsible) -->
-        <div class="card forum-card mb-3">
-          <div class="card-body">
-            <details {% if q_form.errors %}open{% endif %}>
-              <summary class="fw-semibold" style="cursor:pointer;">
-                Ask a question / start a discussion
-              </summary>
-
-              <div class="mt-3 ask-help">
-                Tip: Use a clear title + include what you tried.
+      <!-- Filters -->
+      <form method="get" class="card forum-card forum-filters mb-3">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label small text-muted mb-1">Search</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search questions...">
               </div>
+            </div>
 
-              {% if user.is_authenticated %}
-                <form method="post" action="{% url 'forum_ask' %}" class="mt-2">
-                  {% csrf_token %}
+            <div class="col-md-3">
+              <label class="form-label small text-muted mb-1">Course</label>
+              <select class="form-select" id="filterCourse" name="course">
+                <option value="">All courses</option>
+                {% for c in courses %}
+                  <option value="{{ c.id }}" {% if selected_course == c.id %}selected{% endif %}>
+                    {{ c.course_code }} — {{ c.course_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
 
-                  <div class="mb-2">
-                    {{ q_form.title }}
-                    <div class="counter mt-1"><span id="titleCounter">0/255</span></div>
-                  </div>
+            <div class="col-md-3">
+              <label class="form-label small text-muted mb-1">Chapter</label>
+              <select class="form-select" id="filterChapter" name="chapter" {% if not selected_course %}disabled{% endif %}>
+                <option value="">All chapters</option>
+                {% for ch in chapters %}
+                  <option value="{{ ch.id }}" {% if selected_chapter == ch.id %}selected{% endif %}>
+                    {{ ch.chapter_number }}. {{ ch.chapter_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
 
-                  <div class="mb-2">
-                    {{ q_form.content }}
-                    <div class="counter mt-1"><span id="questionCounter">0/10000</span></div>
-                  </div>
+            <div class="col-md-2">
+              <label class="form-label small text-muted mb-1">Sort</label>
+              <select name="sort" class="form-select">
+                <option value="new" {% if sort == "new" %}selected{% endif %}>Newest</option>
+                <option value="upvotes" {% if sort == "upvotes" %}selected{% endif %}>Most upvoted</option>
+                <option value="answers" {% if sort == "answers" %}selected{% endif %}>Most answered</option>
+              </select>
+            </div>
 
-                  <div class="row g-2 mt-2">
-                    <div class="col-md-6">
-                      <label class="form-label">Course <span class="text-danger">*</span></label>
-                      {{ q_form.course }}
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label">Chapter (optional)</label>
-                      {{ q_form.chapter }}
-                    </div>
-                  </div>
-
-                  <button class="btn btn-primary mt-2">Post</button>
-                </form>
-              {% else %}
-                <div class="alert alert-info mb-0 mt-3">
-                  Please <a href="{% url 'login' %}">login</a> to ask and answer questions.
-                </div>
-              {% endif %}
-            </details>
+            <div class="col-12 d-flex gap-2 justify-content-end mt-2">
+              <button class="btn btn-primary">
+                <i class="fa-solid fa-filter"></i>
+                Filter
+              </button>
+              <a class="btn btn-outline-secondary" href="{% url 'forum_home' %}" title="Clear filters">
+                <i class="fa-solid fa-rotate-left"></i>
+              </a>
+            </div>
           </div>
         </div>
+      </form>
 
-        {% for q in page_obj %}
-          <div class="card forum-card mb-3">
+      <div class="row g-3">
+        <!-- Left: main list -->
+        <div class="col-lg-8">
+
+          <!-- Ask box -->
+          <div id="ask" class="card forum-card forum-ask mb-3">
             <div class="card-body">
-              <div class="d-flex justify-content-between gap-3">
-                <div style="min-width: 0;">
-                  <h5 class="mb-1 text-truncate">
-                    <a class="text-decoration-none" href="{% url 'forum_detail' q.id %}">
-                      {{ q.title }}
-                    </a>
-                    {% if q.top_answer_count|default:0 > 0 %}
-                      <span class="badge text-bg-success ms-2" style="font-size:.75rem;">Answered</span>
-                    {% endif %}
-                  </h5>
-
-                  <div class="meta mb-2 d-flex flex-wrap gap-2 align-items-center">
-                    <span>by <strong>{{ q.author.username }}</strong></span>
-                    <span>•</span>
-                    <span>{{ q.created_at|date:"M d, Y H:i" }}</span>
-                    <span>•</span>
-                    <span>{{ q.created_at|timesince }} ago</span>
-                  </div>
-
-                  <div class="mb-2 d-flex flex-wrap gap-2">
-                    {% if q.course %}
-                      <span class="chip"><i class="fa-solid fa-book"></i> {{ q.course.course_name }}</span>
-                    {% endif %}
-
-                    {% if q.chapter %}
-                      <span class="chip">
-                        <i class="fa-regular fa-file-lines"></i>
-                        Ch {{ q.chapter.chapter_number }}: {{ q.chapter.chapter_name }}
-                      </span>
-                    {% endif %}
-                  </div>
-
-                  <div class="text-muted">
-                    {{ q.content|truncatechars:220 }}
-                  </div>
-
-                  <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
-                    <span class="stat-pill"><i class="fa-regular fa-message"></i> {{ q.top_answer_count }}</span>
-
-                    <span class="stat-pill">
-                      <i class="fa-solid fa-arrow-up"></i>
-                      <span data-upvote-key="q{{ q.id }}">{{ q.upvote_count|default:q.total_upvotes }}</span>
+              <details {% if q_form.errors %}open{% endif %} class="ask-details">
+                <summary class="ask-summary">
+                  <span class="ask-summary-left">
+                    <span class="ask-icon"><i class="fa-solid fa-pen-to-square"></i></span>
+                    <span>
+                      <span class="fw-semibold">Ask a question</span>
+                      <span class="text-muted d-none d-sm-inline">— share context, what you tried, and what you need.</span>
                     </span>
-
-                    {% if user.is_authenticated and user.id != q.author_id %}
-                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' q.author.id %}">
-                        Message
-                      </a>
-                    {% endif %}
-                  </div>
-                </div>
+                  </span>
+                  <span class="ask-summary-right">
+                    <span class="badge rounded-pill text-bg-light">Click to expand</span>
+                  </span>
+                </summary>
 
                 {% if user.is_authenticated %}
-                  <form method="post" action="{% url 'forum_question_upvote' q.id %}" class="vote-form">
+                  <form method="post" action="{% url 'forum_ask' %}" class="mt-3">
                     {% csrf_token %}
-                    <button
-                      class="vote-btn"
-                      data-upvote-url="{% url 'forum_question_upvote' q.id %}"
-                      type="submit"
-                      title="Upvote"
-                    >
-                      <span class="vote-icon">▲</span>
-                      <span class="vote-count" data-upvote-key="q{{ q.id }}" data-upvote-count>
-                        {{ q.upvote_count|default:q.total_upvotes }}
-                      </span>
-                    </button>
+
+                    <div class="mb-2">
+                      <label class="form-label mb-1">Title</label>
+                      {{ q_form.title }}
+                      <div class="counter mt-1"><span id="titleCounter">0/255</span></div>
+                    </div>
+
+                    <div class="mb-2">
+                      <label class="form-label mb-1">Details</label>
+                      {{ q_form.content }}
+                      <div class="counter mt-1"><span id="questionCounter">0/10000</span></div>
+                    </div>
+
+                    <div class="row g-2 mt-1">
+                      <div class="col-md-6">
+                        <label class="form-label">Course <span class="text-danger">*</span></label>
+                        {{ q_form.course }}
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label">Chapter (optional)</label>
+                        {{ q_form.chapter }}
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                      <button class="btn btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Post
+                      </button>
+                    </div>
                   </form>
+                {% else %}
+                  <div class="alert alert-info mb-0 mt-3">
+                    Please <a href="{% url 'login' %}">login</a> to ask and answer questions.
+                  </div>
                 {% endif %}
+              </details>
+            </div>
+          </div>
+
+          <!-- Questions -->
+          {% for q in page_obj %}
+            <div class="card forum-card question-card mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between gap-3">
+                  <div class="d-flex gap-3 min-w-0">
+                    <div class="avatar-circle" aria-hidden="true">
+                      {{ q.author.username|default:"U"|slice:":1"|upper }}
+                    </div>
+
+                    <div class="min-w-0">
+                      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h5 class="mb-0 text-truncate">
+                          <a class="text-decoration-none" href="{% url 'forum_detail' q.id %}">
+                            {{ q.title }}
+                          </a>
+                        </h5>
+
+                        {% if q.top_answer_count|default:0 > 0 %}
+                          <span class="badge badge-answered">
+                            <i class="fa-solid fa-circle-check"></i> Answered
+                          </span>
+                        {% endif %}
+                      </div>
+
+                      <div class="meta mb-2 d-flex flex-wrap gap-2 align-items-center">
+                        <span>by <strong>{{ q.author.username }}</strong></span>
+                        <span class="dot">•</span>
+                        <span>{{ q.created_at|date:"M d, Y H:i" }}</span>
+                        <span class="dot">•</span>
+                        <span>{{ q.created_at|timesince }} ago</span>
+                      </div>
+
+                      <div class="mb-2 d-flex flex-wrap gap-2">
+                        {% if q.course %}
+                          <span class="chip"><i class="fa-solid fa-book"></i> {{ q.course.course_name }}</span>
+                        {% endif %}
+
+                        {% if q.chapter %}
+                          <span class="chip">
+                            <i class="fa-regular fa-file-lines"></i>
+                            Ch {{ q.chapter.chapter_number }}: {{ q.chapter.chapter_name }}
+                          </span>
+                        {% endif %}
+                      </div>
+
+                      <div class="text-muted question-snippet">
+                        {{ q.content|truncatechars:240 }}
+                      </div>
+
+                      <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+                        <span class="stat-pill">
+                          <i class="fa-regular fa-message"></i>
+                          {{ q.top_answer_count|default:0 }}
+                        </span>
+
+                        <span class="stat-pill">
+                          <i class="fa-solid fa-arrow-up"></i>
+                          <span data-upvote-key="q{{ q.id }}">{{ q.upvote_count|default:q.total_upvotes }}</span>
+                        </span>
+
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_detail' q.id %}">
+                          View
+                        </a>
+
+                        {% if user.is_authenticated and user.id != q.author_id %}
+                          <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' q.author.id %}">
+                            Message
+                          </a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+
+                  {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'forum_question_upvote' q.id %}" class="vote-form">
+                      {% csrf_token %}
+                      <button
+                        class="vote-btn"
+                        data-upvote-url="{% url 'forum_question_upvote' q.id %}"
+                        data-upvote-key="q{{ q.id }}"
+                        type="submit"
+                        title="Upvote"
+                      >
+                        <span class="vote-icon">▲</span>
+                        <span class="vote-count" data-upvote-key="q{{ q.id }}" data-upvote-count>
+                          {{ q.upvote_count|default:q.total_upvotes }}
+                        </span>
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
               </div>
             </div>
-          </div>
-        {% empty %}
-          <div class="alert alert-info">No discussions yet. Be the first to ask!</div>
-        {% endfor %}
-
-        <!-- Pagination -->
-        {% if page_obj.paginator.num_pages > 1 %}
-          <nav class="mt-3">
-            <ul class="pagination">
-              {% if page_obj.has_previous %}
-                <li class="page-item">
-                  <a class="page-link"
-                     href="?q={{ q }}&course={{ selected_course }}&chapter={{ selected_chapter }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">
-                    Prev
-                  </a>
-                </li>
-              {% endif %}
-
-              <li class="page-item disabled">
-                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-              </li>
-
-              {% if page_obj.has_next %}
-                <li class="page-item">
-                  <a class="page-link"
-                     href="?q={{ q }}&course={{ selected_course }}&chapter={{ selected_chapter }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">
-                    Next
-                  </a>
-                </li>
-              {% endif %}
-            </ul>
-          </nav>
-        {% endif %}
-      </div>
-
-      <!-- Right: sidebar -->
-      <div class="col-lg-4">
-        <div class="sticky-side">
-          <div class="card forum-card mb-3">
-            <div class="card-body">
-              <h6 class="mb-2">🔥 Trending</h6>
-              {% for t in trending %}
-                <div class="mb-2">
-                  <a href="{% url 'forum_detail' t.id %}" class="fw-semibold">{{ t.title|truncatechars:60 }}</a>
-                  <div class="small text-muted">▲ {{ t.q_up }} • recent answers {{ t.recent_ans }}</div>
-                </div>
-              {% empty %}
-                <div class="text-muted">No trending discussions yet.</div>
-              {% endfor %}
+          {% empty %}
+            <div class="card forum-card">
+              <div class="card-body text-center py-5">
+                <div class="empty-icon mb-2"><i class="fa-regular fa-circle-question"></i></div>
+                <h5 class="mb-1">No discussions yet</h5>
+                <div class="text-muted">Be the first to ask a question and kick things off.</div>
+              </div>
             </div>
-          </div>
+          {% endfor %}
 
-          {% if user.is_authenticated %}
+          <!-- Pagination -->
+          {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="mt-3">
+              <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link"
+                      href="?q={{ q }}&course={{ selected_course }}&chapter={{ selected_chapter }}&sort={{ sort }}&page={{ page_obj.previous_page_number }}">
+                      Prev
+                    </a>
+                  </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                  <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link"
+                      href="?q={{ q }}&course={{ selected_course }}&chapter={{ selected_chapter }}&sort={{ sort }}&page={{ page_obj.next_page_number }}">
+                      Next
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+          {% endif %}
+        </div>
+
+        <!-- Right: sidebar -->
+        <div class="col-lg-4">
+          <div class="sticky-side">
             <div class="card forum-card mb-3">
               <div class="card-body">
-                <h6 class="mb-2">🧑‍💻 My discussions</h6>
-                {% for m in my_discussions %}
-                  <div class="mb-2">
-                    <a href="{% url 'forum_detail' m.id %}">{{ m.title|truncatechars:60 }}</a>
-                    <div class="small text-muted">Answers: {{ m.top_answer_count }} • ▲ {{ m.upvote_count|default:m.total_upvotes }}</div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0">🔥 Trending</h6>
+                  <span class="small text-muted">Last 24h</span>
+                </div>
+
+                {% for t in trending %}
+                  <div class="side-row">
+                    <div class="side-title">
+                      <a href="{% url 'forum_detail' t.id %}" class="fw-semibold">
+                        {{ t.title|truncatechars:60 }}
+                      </a>
+                    </div>
+                    <div class="small text-muted">
+                      ▲ {{ t.q_up }} • recent answers {{ t.recent_ans }}
+                    </div>
                   </div>
                 {% empty %}
-                  <div class="text-muted">You haven’t posted yet.</div>
+                  <div class="text-muted">No trending discussions yet.</div>
                 {% endfor %}
               </div>
             </div>
-          {% endif %}
 
-          <div class="card forum-card">
-            <div class="card-body">
-              <h6 class="mb-2">🏆 Top users (by upvotes)</h6>
-              {% for u in top_users %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <span>{{ u.username }}</span>
-                    {% if user.is_authenticated and user.id != u.id %}
-                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' u.id %}">Message</a>
-                    {% endif %}
-                  </div>
-                  <span class="text-muted">▲ {{ u.total_upvotes }}</span>
+            {% if user.is_authenticated %}
+              <div class="card forum-card mb-3">
+                <div class="card-body">
+                  <h6 class="mb-2">🧑‍💻 My discussions</h6>
+
+                  {% for m in my_discussions %}
+                    <div class="side-row">
+                      <div class="side-title">
+                        <a href="{% url 'forum_detail' m.id %}" class="fw-semibold">
+                          {{ m.title|truncatechars:60 }}
+                        </a>
+                      </div>
+                      <div class="small text-muted">
+                        Answers: {{ m.top_answer_count|default:0 }} • ▲ {{ m.upvote_count|default:m.total_upvotes }}
+                      </div>
+                    </div>
+                  {% empty %}
+                    <div class="text-muted">You haven’t posted yet.</div>
+                  {% endfor %}
                 </div>
-              {% empty %}
-                <div class="text-muted">No upvotes yet.</div>
-              {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="card forum-card">
+              <div class="card-body">
+                <h6 class="mb-2">🏆 Top users (by upvotes)</h6>
+
+                {% for u in top_users %}
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="avatar-mini" aria-hidden="true">{{ u.username|default:"U"|slice:":1"|upper }}</span>
+                      <span class="text-truncate" style="max-width: 190px;">{{ u.username }}</span>
+                      {% if user.is_authenticated and user.id != u.id %}
+                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' u.id %}">Message</a>
+                      {% endif %}
+                    </div>
+                    <span class="text-muted">▲ {{ u.total_upvotes }}</span>
+                  </div>
+                {% empty %}
+                  <div class="text-muted">No upvotes yet.</div>
+                {% endfor %}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
   </main>
 

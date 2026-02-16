@@ -1,239 +1,571 @@
-:root{
-  --primary:#1eae98;
-  --primary-dark:#178d79;
-  --muted:#6b7280;
-  --border:#e5e7eb;
-  --bg:#ffffff;
-}
-
-body{ background:var(--bg); }
-
-/* Layout */
-.main{
-  margin-left:260px;
-  padding:24px;
-  width: calc(100% - 260px);
-  max-width:none;
-}
-
-@media (max-width: 991px){
-  .main{
-    width:100% !important;
-    margin-left:0 !important;
-    padding:16px !important;
-    padding-top:62px !important;
+  :root{
+    --primary:#1eae98;
+    --primary-dark:#178d79;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --bg:#ffffff;
   }
-  body{ overflow-x:hidden; }
-}
 
-/* Cards */
-.forum-card{
-  border-radius:14px;
-  border:1px solid var(--border);
-  box-shadow: 0 1px 1px rgba(0,0,0,.02);
-}
+  body{ background:var(--bg); }
 
-.meta{
-  color:var(--muted);
-  font-size:.9rem;
-}
+  /* Layout */
+  .main{
+    margin-left:260px;
+    padding:24px;
+    width: calc(100% - 260px);
+    max-width:none;
+  }
 
-.chip{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:.2rem .55rem;
-  background:#E6F8F7;
-  color:var(--primary);
-  border-radius:999px;
-  margin-right:.35rem;
-  font-size:.8rem;
-  font-weight:600;
-}
+  @media (max-width: 991px){
+    .main{
+      width:100% !important;
+      margin-left:0 !important;
+      padding:16px !important;
+      padding-top:62px !important;
+    }
+    body{ overflow-x:hidden; }
+  }
 
-/* Buttons */
-.btn-primary{
-  background:var(--primary) !important;
-  border-color:var(--primary) !important;
-}
-.btn-primary:hover{
-  background:var(--primary-dark) !important;
-  border-color:var(--primary-dark) !important;
-}
-.btn-outline-primary{
-  color:var(--primary) !important;
-  border-color:var(--primary) !important;
-}
-.btn-outline-primary:hover{
-  background:var(--primary) !important;
-  color:#fff !important;
-}
+  /* Cards */
+  .forum-card{
+    border-radius:14px;
+    border:1px solid var(--border);
+    box-shadow: 0 1px 1px rgba(0,0,0,.02);
+  }
 
-/* Small stat pills */
-.stat-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:.25rem .55rem;
-  border:1px solid var(--border);
-  border-radius:999px;
-  font-size:.85rem;
-  color:#111827;
-  background:#fff;
-}
+  .meta{
+    color:var(--muted);
+    font-size:.9rem;
+  }
 
-/* Right sidebar sticky */
-.sticky-side{
-  position: sticky;
-  top: 18px;
-}
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:.2rem .55rem;
+    background:#E6F8F7;
+    color:var(--primary);
+    border-radius:999px;
+    margin-right:.35rem;
+    font-size:.8rem;
+    font-weight:600;
+  }
 
-/* Ask box */
-.ask-help{
-  font-size:.9rem;
-  color:var(--muted);
-}
-.counter{
-  font-size:.8rem;
-  color:var(--muted);
-}
+  /* Buttons */
+  .btn-primary{
+    background:var(--primary) !important;
+    border-color:var(--primary) !important;
+  }
+  .btn-primary:hover{
+    background:var(--primary-dark) !important;
+    border-color:var(--primary-dark) !important;
+  }
+  .btn-outline-primary{
+    color:var(--primary) !important;
+    border-color:var(--primary) !important;
+  }
+  .btn-outline-primary:hover{
+    background:var(--primary) !important;
+    color:#fff !important;
+  }
 
-/* Replies */
-.reply-branch{
-  border-left:2px solid var(--border);
-  margin-left:18px;
-  padding-left:14px;
-  margin-top:10px;
-}
-.reply-toggle{
-  cursor:pointer;
-  color:var(--primary);
-  font-weight:600;
-}
-.reply-toggle:hover{ color:var(--primary-dark); }
+  /* Small stat pills */
+  .stat-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:.25rem .55rem;
+    border:1px solid var(--border);
+    border-radius:999px;
+    font-size:.85rem;
+    color:#111827;
+    background:#fff;
+  }
 
-/* =====================
-   Professional vote pill
-===================== */
-.vote-form{
-  flex: 0 0 auto;
-  align-self: flex-start; /* prevents tall stretching */
-  margin: 0;
-}
+  /* Right sidebar sticky */
+  .sticky-side{
+    position: sticky;
+    top: 18px;
+  }
 
-.vote-btn{
-  appearance: none;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: #111827;
-  font-weight: 600;
-  border-radius: 12px;
-  padding: .35rem .55rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-  box-shadow: 0 1px 1px rgba(0,0,0,.02);
-}
+  /* Ask box */
+  .ask-help{
+    font-size:.9rem;
+    color:var(--muted);
+  }
+  .counter{
+    font-size:.8rem;
+    color:var(--muted);
+  }
 
-.vote-btn:hover{
-  border-color: var(--primary);
-  color: var(--primary-dark);
-  background: rgba(30, 174, 152, 0.06);
-}
+  /* Replies */
+  .reply-branch{
+    border-left:2px solid var(--border);
+    margin-left:18px;
+    padding-left:14px;
+    margin-top:10px;
+  }
+  .reply-toggle{
+    /* cursor:pointer; */
+    color:var(--primary);
+    font-weight:600;
+  }
+  .reply-toggle:hover{ color:var(--primary-dark); }
 
-.vote-btn.is-voted{
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
+  /* =====================
+    Professional vote pill
+  ===================== */
+  .vote-form{
+    flex: 0 0 auto;
+    align-self: flex-start; /* prevents tall stretching */
+    margin: 0;
+  }
 
-.vote-icon{
-  font-size: .9rem;
-}
+  .vote-btn{
+    appearance: none;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: #111827;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: .35rem .55rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02);
+  }
 
-.vote-count{
-  min-width: 1.2em;
-  text-align: center;
-}
-/* =====================
-   Compact reply UI
-===================== */
-.reply-box summary.reply-toggle{
-  list-style: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--primary);
-  font-weight: 600;
-  font-size: .92rem;
-  cursor: pointer;
-  user-select: none;
-}
+  .vote-btn:hover{
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    background: rgba(30, 174, 152, 0.06);
+  }
 
-.reply-box summary.reply-toggle::-webkit-details-marker{ display:none; }
+  .vote-btn.is-voted{
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
 
-.reply-box summary.reply-toggle::before{
-  content: "↩";
-  font-size: .95rem;
-  opacity: .9;
-}
+  .vote-icon{
+    font-size: .9rem;
+  }
 
-.reply-form{
-  border: 0;
-  padding: 6px 0;
-  background: transparent;
-}
-.reply-input{
-  border-radius: 10px;
-}
+  .vote-count{
+    min-width: 1.2em;
+    text-align: center;
+  }
+  /* =====================
+    Compact reply UI
+  ===================== */
+  .reply-box summary.reply-toggle{
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: .92rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .reply-box summary.reply-toggle::-webkit-details-marker{ display:none; }
+
+  .reply-box summary.reply-toggle::before{
+    content: "↩";
+    font-size: .95rem;
+    opacity: .9;
+  }
+
+  .reply-form{
+    border: 0;
+    padding: 6px 0;
+    background: transparent;
+  }
+  .reply-input{
+    border-radius: 10px;
+  }
 
 
-.reply-actions{
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
+  .reply-actions{
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
 
-.reply-actions .btn{
-  border-radius: 10px;
-  padding: .25rem .6rem;
-}
+  .reply-actions .btn{
+    border-radius: 10px;
+    padding: .25rem .6rem;
+  }
 
-/* Make nested replies visually lighter */
-.reply-branch{
-  border-left: 2px solid var(--border);
-  margin-left: 14px;
-  padding-left: 12px;
-  margin-top: 10px;
+  /* Make nested replies visually lighter */
+  .reply-branch{
+    border-left: 2px solid var(--border);
+    margin-left: 14px;
+    padding-left: 12px;
+    margin-top: 10px;
+  }
+  html { scroll-behavior: smooth; }
+  /* ===== Thread (Reddit-like) ===== */
+  /* ===== Thread rows (no cards) ===== */
+  .thread-row{
+    position: relative;
+    padding: 10px 0;
+    scroll-margin-top: 90px;
+  }
+
+  /* Indent by nesting level (cap visually at 8 levels) */
+  .thread-row{
+    margin-left: calc(clamp(0, var(--lvl), 8) * 16px);
+    padding-left: 12px;
+  }
+
+  .thread-child::before{
+    content:"";
+    position:absolute;
+    left: 2px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border);
+    border-radius: 999px;
+  }
+
+  /* Keep replies visually lighter (no borders/boxes) */
+  .thread-replies .thread-row{
+    border-top: 0;
+  }
+
+
+  /* ===========================
+    Thread detail (scoped)
+    =========================== */
+  .forum-detail{
+    background:
+      radial-gradient(1200px 500px at 12% 0%, rgba(30,174,152,.14) 0%, rgba(30,174,152,0) 60%),
+      radial-gradient(900px 500px at 95% 10%, rgba(2,6,23,.06) 0%, rgba(2,6,23,0) 55%),
+      #f7fafc;
+  }
+
+  .forum-detail .main{
+    padding: 22px 26px;
+  }
+
+  @media (max-width: 991px){
+    .forum-detail .main{ padding:16px !important; }
+  }
+
+  /* Top bar */
+  .forum-detail .thread-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 14px;
+  }
+
+  .forum-detail .back-link{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    color:#0f172a;
+    text-decoration:none;
+    font-weight:600;
+    padding:8px 10px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+  }
+
+  .forum-detail .back-link:hover{
+    background:#ffffff;
+    border-color: var(--border);
+    box-shadow: 0 1px 1px rgba(0,0,0,.02);
+  }
+
+  .forum-detail .back-icon{
+    display:inline-grid;
+    place-items:center;
+    width:28px;
+    height:28px;
+    border-radius:10px;
+    background:#ffffff;
+    border:1px solid var(--border);
+  }
+
+  /* Question */
+  .forum-detail .q-title{
+    font-weight:800;
+    letter-spacing:-.02em;
+    color:#0f172a;
+  }
+
+  .forum-detail .q-pills{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .forum-detail .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:.28rem .6rem;
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-radius:999px;
+    font-size:.82rem;
+    color:#334155;
+    font-weight:600;
+  }
+
+  .forum-detail .prose{
+    color:#0f172a;
+    line-height:1.6;
+  }
+
+  .forum-detail .prose p{ margin-bottom:.6rem; }
+  .forum-detail .prose p:last-child{ margin-bottom:0; }
+
+  /* Composer */
+  .forum-detail .composer-head{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin-bottom:10px;
+  }
+
+  .forum-detail .composer-form textarea,
+  .forum-detail .composer-input textarea{
+    min-height: 120px;
+    border-radius: 12px;
+    border-color: var(--border);
+  }
+
+  .forum-detail .composer-actions{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:10px;
+  }
+
+  /* Answers head */
+  .forum-detail .answers-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    margin: 18px 0 10px;
+  }
+
+  /* Answer row */
+  .forum-detail .answer-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding: 14px 14px;
+    border: 1px solid var(--border);
+    background:#ffffff;
+    border-radius: 14px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02);
+  }
+
+  /* .forum-detail .answer-item--reply{
+    background: #fbfdff;
+  } */
+
+  .forum-detail .answer-avatar{
+    width:38px;
+    height:38px;
+    border-radius: 12px;
+    display:grid;
+    place-items:center;
+    font-weight:800;
+    color:#0f172a;
+    background: rgba(30,174,152,.12);
+    border: 1px solid rgba(30,174,152,.22);
+    flex: 0 0 auto;
+  }
+
+  .forum-detail .answer-main{
+    min-width:0;
+    flex:1;
+  }
+
+  .forum-detail .answer-meta{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    font-size:.88rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .forum-detail .answer-author{
+    color:#0f172a;
+    font-weight:700;
+  }
+
+  .forum-detail .dot{
+    opacity:.6;
+  }
+
+  .forum-detail .answer-body{
+    margin-bottom: 10px;
+  }
+
+  /* Actions + reply */
+  .forum-detail .answer-actions{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .forum-detail .mini-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:.9rem;
+    color:#2563eb;
+    text-decoration:none;
+  }
+
+  .forum-detail .mini-link:hover{ text-decoration:underline; }
+  /* 
+  .forum-detail details.reply-box{
+    display:inline-block;
+  } */
+
+  .forum-detail summary.reply-toggle{
+    list-style:none;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-weight:700;
+    color:#0f172a;
+    font-size:.9rem;
+    padding: 6px 10px;
+    /* border-radius: 10px;
+    border: 1px solid var(--border);
+    background:#ffffff; */
+  }
+
+  .forum-detail summary.reply-toggle::-webkit-details-marker{ display:none; }
+
+  .forum-detail summary.reply-toggle:hover{
+    border-color:#d8dee7;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02);
+  }
+
+  .forum-detail .reply-input{
+    border-radius: 12px;
+    border-color: var(--border);
+  }
+
+  .forum-detail .reply-actions{
+    margin-top:8px;
+    display:flex;
+    justify-content:flex-end;
+  }
+
+  /* Voting pill (right) */
+  .forum-detail .vote-form{
+    margin:0;
+    flex: 0 0 auto;
+  }
+
+  .forum-detail .vote-btn{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    min-width: 44px;
+    padding: 10px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background:#ffffff;
+  }
+
+  .forum-detail .vote-btn:hover{
+    border-color:#d8dee7;
+    box-shadow: 0 1px 1px rgba(0,0,0,.02);
+  }
+
+  .forum-detail .vote-icon{
+    font-size:.95rem;
+    color:#0f172a;
+    line-height:1;
+  }
+
+  .forum-detail .vote-count{
+    font-weight:800;
+    color:#0f172a;
+  }
+
+  /* Nested replies: keep your vertical guide, plus spacing */
+  .forum-detail .thread-row{
+    padding: 10px 0;
+  }
+
+  .forum-detail .thread-replies{
+    padding-left: 10px;
+  }
+
+  /* ---------- Replies: no individual "cards" ---------- */
+  .forum-detail .reply-card,
+  .forum-detail .forum-reply,
+  .forum-detail .answer-row--reply,
+  .forum-detail .reply-item {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 10px 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Keep a clean thread indentation line instead */
+  .forum-detail .replies,
+  .forum-detail .reply-thread {
+    margin-left: 44px;
+    padding-left: 14px;
+    border-left: 2px solid #e5e7eb;
+  }
+  /* If replies reuse answer-card, neutralize it inside reply thread */
+  .forum-detail .reply-thread .answer-card {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 10px 0 !important;
+  }
+
+  /* =========================
+   HARD OVERRIDE: replies = NO cards
+   ========================= */
+
+/* Replies often still use .answer-item, just inside .reply-branch or .thread-replies */
+.forum-detail .reply-branch .answer-item,
+.forum-detail .thread-replies .answer-item,
+.forum-detail .answer-item--reply {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 10px 0 !important;
 }
-html { scroll-behavior: smooth; }
-/* ===== Thread (Reddit-like) ===== */
-/* ===== Thread rows (no cards) ===== */
-.thread-row{
+/* Move the reply vertical line LEFT so it doesn't touch the avatar */
+.forum-detail .reply-branch{
+  margin-left: 0 !important;        /* stop pushing whole block right */
+  padding-left: 18px !important;     /* keep indent for content */
+  border-left: 2px solid var(--border) !important;
+
+  /* shift the border itself left */
   position: relative;
-  padding: 10px 0;
-  scroll-margin-top: 90px;
+  left: -14px;                       /* adjust: -10px to -18px */
 }
-
-/* Indent by nesting level (cap visually at 8 levels) */
-.thread-row{
-  margin-left: calc(clamp(0, var(--lvl), 8) * 16px);
-  padding-left: 12px;
-}
-
-.thread-child::before{
-  content:"";
-  position:absolute;
-  left: 2px;
-  top: 6px;
-  bottom: 6px;
-  width: 2px;
-  background: var(--border);
-  border-radius: 999px;
-}
-
-/* Keep replies visually lighter (no borders/boxes) */
-.thread-replies .thread-row{
-  border-top: 0;
+/* If the pseudo-line from thread-child is also showing, shift it left */
+.forum-detail .thread-child::before{
+  left: -10px !important;   /* tweak -8 to -14 */
 }
