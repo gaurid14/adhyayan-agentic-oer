@@ -581,3 +581,60 @@ class ContributorNote(models.Model):
 
 # python manage.py makemigrations
 # python manage.py migrate
+
+
+
+class ReleasePolicy(models.Model):
+    """
+    Controls course-level release threshold.
+    """
+
+    course = models.OneToOneField(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="release_policy"
+    )
+
+    threshold_percentage = models.IntegerField(default=80)
+
+    auto_release_enabled = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.course.course_name} - {self.threshold_percentage}%"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from accounts.services.decision_maker import DecisionMakerService
+# from accounts.models import DecisionRun
+
+@receiver(post_save, sender=ContentScore)
+def auto_run_decision_maker(sender, instance, created, **kwargs):
+    if created:
+        DecisionMakerService().decide_for_chapter(
+            chapter_id=instance.upload.chapter.id,
+            force=True
+        )
+
+# Remove the import from the top of the file! 
+# Delete: from accounts.services.admin_agent import run_admin_release_for_course
+
+@receiver(post_save, sender=DecisionRun)
+def auto_run_admin_agent(sender, instance, created, **kwargs):
+    if created:
+        # Move import here to prevent Circular Import error
+        from accounts.services.admin_agent import AdminAgentService
+        
+        course = instance.chapter.course
+        # Instantiate the service and call the new method
+        service = AdminAgentService()
+        service.run_for_course(course)
+
+
+
+
+
+# python manage.py makemigrations
+# python manage.py migrate

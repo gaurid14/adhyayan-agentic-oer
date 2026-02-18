@@ -26,6 +26,7 @@ from .models import (
     Assessment,
     Question,
     Option,
+    ReleasePolicy,
 )
 from .views.email.email_service import AccountApprovedEmail
 
@@ -144,3 +145,8 @@ admin.site.register(Assessment)
 admin.site.register(Question)
 admin.site.register(Option)
 
+@admin.register(ReleasePolicy)
+class ReleasePolicyAdmin(admin.ModelAdmin):
+    list_display = ("course", "threshold_percentage", "auto_release_enabled")
+    list_filter = ("auto_release_enabled",)
+    search_fields = ("course__course_name",)

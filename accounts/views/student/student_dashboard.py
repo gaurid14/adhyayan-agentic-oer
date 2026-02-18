@@ -3,6 +3,29 @@ from django.contrib.auth.decorators import login_required
 
 from ...models import Course, Chapter
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def student_dashboard(request):
+    courses = [
+        {"id": 1, "name": "Microcontroller Embedded Programming", "code": "ITD05011"},
+        {"id": 2, "name": "Advance Data Management Technologies", "code": "ITD05012"},
+        {"id": 3, "name": "Computer Graphics & Multimedia", "code": "ITD05013"},
+        {"id": 4, "name": "Advanced Data Structure", "code": "ITD05014"},
+        {"id": 5, "name": "Internet Programming", "code": "ITD05015"},
+        {"id": 6, "name": "Computer Network Security", "code": "ITD05016"},
+    ]
+
+    return render(
+        request,
+        "student/student_dashboard.html",
+        {
+            "courses": courses
+        }
+    )
+
+
 
 # @login_required
 def student_course_chapters(request, course_id):
@@ -99,3 +122,22 @@ def student_topic_view(request):
     }
 
     return render(request, "student/student_chapter_topics.html", context)
+
+    # Inside student_dashboard.py -> student_course_chapters view
+
+    from accounts.models import ReleasedContent
+
+    # ... inside the loop for ch in chapters_qs:
+        # Check if the Admin Agent has released any content for this chapter
+    is_released = ReleasedContent.objects.filter(
+            upload__chapter=ch, 
+            release_status=True
+        ).exists()
+
+    status = "not_started"
+    if is_released:
+            # If released, we can mark it as 'not_started' (available) 
+            # instead of potentially 'locked' if you add that status.
+            status = "not_started" 
+    else:
+            status = "locked" # You can add a 'locked' style to your CSS

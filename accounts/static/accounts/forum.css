@@ -106,7 +106,7 @@
     margin-top:10px;
   }
   .reply-toggle{
-    /* cursor:pointer; */
+    cursor:pointer;
     color:var(--primary);
     font-weight:600;
   }
