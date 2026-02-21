@@ -1226,19 +1226,187 @@
           .notes-text{ display:none; }   /* only icon on mobile */
         }
 
+        /* ===============================
+           ✨ NOTES MODAL REVAMP
+        ================================ */
+
+        .notes-modal {
+          width: 95%;
+          max-width: 720px;
+          border-radius: 18px;
+          padding: 22px;
+        }
+
+        /* Header */
+        .notes-header{
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:18px;
+        }
+
+        .notes-header h3{
+          font-size:20px;
+          font-weight:700;
+          color:#0f172a;
+        }
+
+
+
+        /* ===== Sticky Notes Grid ===== */
+        .notes-grid{
+          display:grid;
+          grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+          gap:16px;
+        }
+
+        /* ===== Sticky Card ===== */
+        .note-card{
+          position:relative;
+          padding:14px;
+          border-radius:14px;
+          background:#fffbea;
+          border:1px solid #fde68a;
+
+          box-shadow:
+            0 8px 18px rgba(0,0,0,0.06);
+
+          transition:0.25s ease;
+        }
+
+        /* slight organic feel */
+        .note-card:nth-child(odd){
+          transform:rotate(-0.8deg);
+        }
+        .note-card:nth-child(even){
+          transform:rotate(0.8deg);
+        }
+
+        .note-card:hover{
+          transform:translateY(-4px) rotate(0deg);
+          box-shadow:0 14px 28px rgba(0,0,0,0.12);
+        }
+
+        /* Title */
+        .note-title{
+          font-weight:700;
+          color:#92400e;
+          margin-bottom:6px;
+        }
+
+        /* Content */
+        .note-content{
+          font-size:14px;
+          color:#374151;
+          white-space:pre-wrap;
+        }
+
+        /* Actions */
+        .note-actions{
+          margin-top:10px;
+          display:flex;
+          gap:8px;
+        }
+
+        .note-actions button{
+          border:none;
+          background:#ffffffaa;
+          border-radius:8px;
+          padding:4px 8px;
+          cursor:pointer;
+          font-size:12px;
+          font-weight:600;
+        }
+
+        .note-actions button:hover{
+          background:#fff;
+        }
+
+        /* Color variations */
+        .note-card.blue{
+          background:#ecfeff;
+          border-color:#a5f3fc;
+        }
+
+        .note-card.green{
+          background:#ecfdf5;
+          border-color:#bbf7d0;
+        }
+
+        .note-card.pink{
+          background:#fdf2f8;
+          border-color:#fbcfe8;
+        }
+
+        /* ===============================
+           ✨ SMART STICKY NOTES
+        ================================ */
+
+        .note-toolbar{
+          display:flex;
+          justify-content:flex-end;
+          margin-bottom:6px;
+        }
+
+        .note-toolbar button{
+          border:none;
+          background:transparent;
+          cursor:pointer;
+          opacity:.6;
+        }
+
+        .note-toolbar button:hover{
+          opacity:1;
+        }
+
+        .note-editable{
+          outline:none;
+          min-height:130px;
+          font-size:14px;
+          line-height:1.5;
+          color:#334155;
+          cursor:text;
+        }
+
+        .note-editable:empty:before{
+          content:"Start typing...";
+          color:#94a3b8;
+        }
+
+        /* PROFESSIONAL COLORS */
+
+        .note-card.yellow{
+          background:#fffbea;
+          border-color:#fde68a;
+        }
+
+        .note-card.blue{
+          background:#ecfeff;
+          border-color:#a5f3fc;
+        }
+
+        .note-card.green{
+          background:#ecfdf5;
+          border-color:#bbf7d0;
+        }
+
+        .note-card.pink{
+          background:#fdf2f8;
+          border-color:#fbcfe8;
+        }
     </style>
 </head>
 
 <body>
-  <button
-  class="sidebar-toggle"
-  type="button"
-  id="sidebarToggle"
-  aria-label="Open menu"
-  aria-controls="sidebar"
-  aria-expanded="false"
+<button
+        class="sidebar-toggle"
+        type="button"
+        id="sidebarToggle"
+        aria-label="Open menu"
+        aria-controls="sidebar"
+        aria-expanded="false"
 >
-  ☰ Menu
+    ☰ Menu
 </button>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -1491,55 +1659,56 @@
     </main>
 </div>
 
+<!-- ===============================
+        🧠 SMART NOTES WORKSPACE
+================================ -->
 <div class="modal-overlay" id="notesModal">
-    <div class="modal">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <h3 style="font-size:18px; font-weight:700;">My Notes</h3>
-            <button onclick="closeNotesModal()" style="border:none; background:none; font-size:18px; cursor:pointer;">✖</button>
+
+    <div class="modal notes-modal">
+
+        <div class="notes-header">
+            <h3>📝 My Notes</h3>
+
+            <div style="display:flex;gap:10px;">
+                <button class="primary-btn"
+                        onclick="createStickyNote()">
+                    + New Note
+                </button>
+
+                <button onclick="closeNotesModal()"
+                        style="border:none;background:none;font-size:18px;cursor:pointer;">
+                    ✖
+                </button>
+            </div>
         </div>
 
-        <!-- Add note -->
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
-            <input id="noteTitle" placeholder="Title (optional)"
-                   style="padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px;">
-            <textarea id="noteContent" placeholder="Write a note..."
-                      style="padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; min-height:90px;"></textarea>
+        <div id="notesList" class="notes-grid">
 
-            <button class="primary-btn" id="noteSaveBtn" onclick="saveNote()">Add Note</button>
-            <button class="secondary-btn" id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">
-                Cancel
-            </button>
-            <input type="hidden" id="editingNoteId">
-        </div>
-
-        <!-- Notes list -->
-        <div id="notesList" style="display:flex; flex-direction:column; gap:10px;">
-            {% if notes %}
             {% for n in notes %}
-            <div style="border:1px solid #eef2f7; border-radius:12px; padding:12px;">
-                <div style="font-weight:700; color:#0f172a;">
-                    {{ n.title|default:"Untitled" }}
+            <div class="note-card {% cycle 'yellow' 'blue' 'green' 'pink' %}"
+                 data-note-id="{{ n.id }}">
+
+                <div class="note-toolbar">
+                    <button onclick="deleteNote('{{n.id}}')">
+                        <i class="fa fa-trash"></i>
+                    </button>
                 </div>
-                <div class="muted" style="margin-top:4px;">
+
+                <div class="note-editable"
+                     contenteditable="true"
+                     data-note-id="{{n.id}}">
                     {{ n.content }}
                 </div>
 
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="secondary-btn" onclick="editNote('{{n.id}}','{{n.title|escapejs}}','{{n.content|escapejs}}')">
-                        Edit
-                    </button>
-
-                    <button class="secondary-btn" style="border-color:#fecaca; background:#fef2f2; color:#b91c1c;"
-                            onclick="deleteNote('{{n.id}}')">
-                        Delete
-                    </button>
-                </div>
+            </div>
+            {% empty %}
+            <div id="emptyNotesMessage" class="muted">
+                Create your first note ✨
             </div>
             {% endfor %}
-            {% else %}
-            <div class="muted">No notes yet.</div>
-            {% endif %}
+
         </div>
+
     </div>
 </div>
 
@@ -1547,6 +1716,9 @@
     {{ chapters_json|safe }}
 </script>
 
+<script>
+    const ADD_NOTE_URL = "{% url 'add_note' %}";
+</script>
 
 <script>
     function toggleNotifications() {
@@ -1830,85 +2002,179 @@
 </script>
 
 <script>
-    async function addNote(){
-      const title = document.getElementById("noteTitle").value;
-      const content = document.getElementById("noteContent").value;
 
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("content", content);
+    /* ============================
+       AUTO SAVE NOTES
+    ============================ */
 
-      const res = await fetch("/dashboard/contributor/notes/add/", {
-        method: "POST",
-        body: formData
-      });
+    let saveTimers = {};
 
-      const data = await res.json();
-      if(data.success){
-        location.reload();
-      } else {
-        alert(data.error || "Failed to add note");
-      }
-    }
+    document.addEventListener("input", function(e){
 
-      function editNote(id, title, content){
-        document.getElementById("editingNoteId").value = id;
-        document.getElementById("noteTitle").value = title || "";
-        document.getElementById("noteContent").value = content || "";
+        if(!e.target.classList.contains("note-editable"))
+            return;
 
-        document.getElementById("noteSaveBtn").innerText = "Update Note";
-        document.getElementById("cancelEditBtn").style.display = "inline-block";
-      }
+        const el = e.target;
+        const noteId = el.dataset.noteId;
+        const content = el.innerText;
 
-      function cancelEdit(){
-        document.getElementById("editingNoteId").value = "";
-        document.getElementById("noteTitle").value = "";
-        document.getElementById("noteContent").value = "";
+        clearTimeout(saveTimers[noteId]);
 
-        document.getElementById("noteSaveBtn").innerText = "Add Note";
-        document.getElementById("cancelEditBtn").style.display = "none";
-      }
+        saveTimers[noteId] = setTimeout(()=>{
+            autoSaveNote(noteId, content);
+        },700);
+    });
 
-      async function saveNote(){
-        const noteId = document.getElementById("editingNoteId").value;
-        const title = document.getElementById("noteTitle").value;
-        const content = document.getElementById("noteContent").value;
 
-        if(!content.trim()){
-          alert("Note content cannot be empty");
-          return;
-        }
+    async function autoSaveNote(id, content){
 
         const formData = new FormData();
-        formData.append("title", title);
         formData.append("content", content);
 
-        let url = "/dashboard/contributor/notes/add/";
-        if(noteId){
-          url = `/dashboard/contributor/notes/edit/${noteId}/`;
-        }
+        await fetch(
+            `/dashboard/contributor/notes/edit/${id}/`,
+            {
+                method:"POST",
+                body:formData
+            }
+        );
+    }
 
-        const res = await fetch(url, {
-          method: "POST",
-          body: formData
+
+    /* ============================
+       CREATE NOTE
+    ============================ */
+
+    async function createStickyNote(){
+
+    const formData = new FormData();
+    formData.append("title","");
+    formData.append("content","");
+
+    try{
+
+        const res = await fetch(ADD_NOTE_URL,{
+            method:"POST",
+            body:formData
         });
 
         const data = await res.json();
 
         if(data.success){
-          location.reload();
-        } else {
-          alert(data.error || "Failed to save note");
+
+            insertNewSticky(data.id);
+
         }
+
+    }catch(err){
+        console.error(err);
+    }
+}
+
+function insertNewSticky(noteId){
+
+    const grid = document.getElementById("notesList");
+
+    const emptyMsg = document.getElementById("emptyNotesMessage");
+    if(emptyMsg){
+        emptyMsg.remove();
     }
 
-    function deleteNote(id){
-      if(!confirm("Delete this note?")) return;
+    const colors = ["yellow","blue","green","pink"];
+    const color = colors[Math.floor(Math.random()*colors.length)];
 
-      fetch(`/dashboard/contributor/notes/delete/${id}/`, {
-        method: "POST"
-      }).then(() => location.reload());
+    const note = document.createElement("div");
+
+    note.className = `note-card ${color}`;
+    note.setAttribute("data-note-id", noteId);
+
+    note.innerHTML = `
+        <div class="note-toolbar">
+            <button onclick="deleteNote('${noteId}')">
+                <i class="fa fa-trash"></i>
+            </button>
+        </div>
+
+        <div class="note-editable"
+             contenteditable="true"
+             data-note-id="${noteId}">
+        </div>
+    `;
+
+    grid.prepend(note);
+
+    // ✅ auto focus typing
+    const editable = note.querySelector(".note-editable");
+
+    setTimeout(()=>{
+        editable.focus();
+    },50);
+}
+
+
+    /* ============================
+       DELETE NOTE
+    ============================ */
+
+    async function deleteNote(id){
+
+    if(!confirm("Delete this note?")) return;
+
+    try{
+
+        await fetch(
+            `/dashboard/contributor/notes/delete/${id}/`,
+            {
+                method:"POST"
+            }
+        );
+
+        removeStickyFromUI(id);
+
+    }catch(err){
+        console.error("Delete failed", err);
     }
+}
+
+function checkEmptyNotesState(){
+
+    const grid = document.getElementById("notesList");
+
+    const remainingNotes =
+        grid.querySelectorAll(".note-card");
+
+    if(remainingNotes.length === 0){
+
+        const empty = document.createElement("div");
+
+        empty.id = "emptyNotesMessage";
+        empty.className = "muted";
+        empty.innerText = "Create your first note ✨";
+
+        grid.appendChild(empty);
+    }
+}
+    function removeStickyFromUI(id){
+
+    const note = document.querySelector(
+        `.note-card[data-note-id="${id}"]`
+    );
+
+    if(!note) return;
+
+    note.style.transition = "0.25s ease";
+    note.style.transform = "scale(0.8)";
+    note.style.opacity = "0";
+
+    setTimeout(()=>{
+
+        note.remove();
+
+        checkEmptyNotesState();   // ⭐ IMPORTANT
+
+    },250);
+}
+
 </script>
 <script src="{% static 'accounts/sidebar-drawer.js' %}"></script>
 

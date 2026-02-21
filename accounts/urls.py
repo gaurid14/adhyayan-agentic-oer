@@ -3,7 +3,7 @@ from .views import views
 from django.contrib.auth import views as auth_views
 from .views.contributor import generate_expertise
 from .views.contributor.contributor_dashboard import contributor_dashboard_view, contributor_submit_content_view, \
-    contributor_profile, contributor_submissions, add_note, edit_note, delete_note
+    contributor_profile, contributor_submissions, add_note, edit_note, delete_note, get_note
 from .views.contributor.submit_content import upload_files, load_file, contributor_editor, delete_drive_file, \
     confirm_submission, gemini_chat, contributor_upload_file, \
     generate_assessment, after_submission, generated_assessment_form, list_resources, add_resource, delete_resource
@@ -185,4 +185,5 @@ urlpatterns = [
     path("dashboard/contributor/notes/add/", add_note, name="add_note"),
     path("dashboard/contributor/notes/edit/<int:note_id>/", edit_note, name="edit_note"),
     path("dashboard/contributor/notes/delete/<int:note_id>/", delete_note, name="delete_note"),
+    path("dashboard/contributor/notes/<id>/", get_note, name="get_note"),
 ]

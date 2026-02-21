@@ -721,21 +721,24 @@ from accounts.models import ContributorNote
 @csrf_exempt
 @login_required
 def add_note(request):
+
     if request.method != "POST":
         return JsonResponse({"error": "Invalid method"}, status=405)
 
     title = request.POST.get("title", "").strip()
     content = request.POST.get("content", "").strip()
 
-    if not content:
-        return JsonResponse({"error": "Content required"}, status=400)
-
+    # allow empty note creation
     note = ContributorNote.objects.create(
         contributor=request.user,
         title=title,
-        content=content
+        content=content or ""
     )
-    return JsonResponse({"success": True, "id": note.id})
+
+    return JsonResponse({
+        "success": True,
+        "id": note.id
+    })
 
 
 @csrf_exempt
@@ -763,3 +766,16 @@ def delete_note(request, note_id):
     note.delete()
 
     return JsonResponse({"success": True})
+
+@login_required
+def get_note(request, note_id):
+    note = ContributorNote.objects.get(
+        id=note_id,
+        user=request.user
+    )
+
+    return JsonResponse({
+        "id": note.id,
+        "title": note.title,
+        "content": note.content
+    })
