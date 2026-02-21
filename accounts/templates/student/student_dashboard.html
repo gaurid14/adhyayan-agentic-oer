@@ -593,51 +593,21 @@
         Information Technology – Semester 5 Subjects
     </h2>
 
-    <div class="course-grid student-subject-grid">
-
+   <div class="course-grid student-subject-grid">
+    {% for course in courses %}
         <div class="course-card student-subject-card">
-            <h4>Microcontroller Embedded Programming</h4>
-            <p class="subject-code">Subject Code: ITD05011</p>
+            <h4>{{ course.name }}</h4>
+            <p class="subject-code">Subject Code: {{ course.code }}</p>
             <p class="subject-meta">Third Year · Semester 5</p>
-            <a href="#" class="view-link">View Chapters</a>
-        </div>
 
-        <div class="course-card student-subject-card">
-            <h4>Advance Data Management Technologies</h4>
-            <p class="subject-code">Subject Code: ITD05012</p>
-            <p class="subject-meta">Third Year · Semester 5</p>
-            <a href="#" class="view-link">View Chapters</a>
+            <a href="{% url 'student_chapter_topics' course.id %}"
+               class="view-link">
+                View Chapters
+            </a>
         </div>
+    {% endfor %}
+</div>
 
-        <div class="course-card student-subject-card">
-            <h4>Computer Graphics & Multimedia System</h4>
-            <p class="subject-code">Subject Code: ITD05013</p>
-            <p class="subject-meta">Third Year · Semester 5</p>
-            <a href="#" class="view-link">View Chapters</a>
-        </div>
-
-        <div class="course-card student-subject-card">
-            <h4>Advanced Data Structure and Analysis</h4>
-            <p class="subject-code">Subject Code: ITD05014</p>
-            <p class="subject-meta">Third Year · Semester 5</p>
-            <a href="#" class="view-link">View Chapters</a>
-        </div>
-
-        <div class="course-card student-subject-card">
-            <h4>Internet Programming</h4>
-            <p class="subject-code">Subject Code: ITD05015</p>
-            <p class="subject-meta">Third Year · Semester 5</p>
-            <a href="#" class="view-link">View Chapters</a>
-        </div>
-
-        <div class="course-card student-subject-card">
-            <h4>Computer Network Security</h4>
-            <p class="subject-code">Subject Code: ITD05016</p>
-            <p class="subject-meta">Third Year · Semester 5</p>
-            <a href="#" class="view-link">View Chapters</a>
-        </div>
-
-    </div>
 </section>
 
             </section>

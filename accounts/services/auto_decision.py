@@ -24,10 +24,14 @@ def trigger_decision_if_due(chapter_id: int):
         logger.info("[DM] chapter=%s not due yet (deadline=%s)", chapter_id, policy.current_deadline)
         return None
 
+    from accounts.models import ContentScore
+
     evaluated_count = UploadCheck.objects.filter(
-        chapter_id=chapter_id,
-        evaluation_status=True,
+    chapter_id=chapter_id,
+    evaluation_status=True,
+    content_score__isnull=False,
     ).count()
+
 
     min_req = int(policy.min_contributions or 0)
     if evaluated_count < min_req:
@@ -42,7 +46,7 @@ def trigger_decision_if_due(chapter_id: int):
 
 
     logger.info("[DM] chapter=%s RUNNING decision maker...", chapter_id)
-    service = DecisionMakerService()
+    service = DecisionMakerService()    
 
     with transaction.atomic():
         run = service.decide_for_chapter(

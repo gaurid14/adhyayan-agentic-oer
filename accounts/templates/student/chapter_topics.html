@@ -292,10 +292,7 @@
 
     <!-- Top bar -->
     <div class="topbar">
-        <a class="back-btn"
-           href="{% url 'student_course_chapters' %}?course_id={{ course.id }}">
-            ← Back to Chapters
-        </a>
+        {% comment %} <a class="back-btn" href="{% url 'student_course_chapters' course_id=course.id %}">← Back to Chapters</a> {% endcomment %}
 
         <div style="font-size:13px;color:#666;font-weight:700;">
             Student Dashboard

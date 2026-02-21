@@ -79,10 +79,16 @@ def contributor_dashboard_view(request):
 
 # Student Dashboard
 @login_required
-def dashboard_view(request):
+def student_dashboard(request):
     form = ProfilePictureForm(instance=request.user)
-    return render(request, 'student/student_dashboard.html', {'form': form})
+    courses = Course.objects.all()
 
+    print("Courses count:", courses.count())
+
+    return render(request, 'student/student_dashboard.html', {
+        'form': form,
+        'courses': courses
+    })
 
 # --- LOGOUT VIEW ---
 def logout_view(request):

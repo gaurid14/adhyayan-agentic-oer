@@ -13,8 +13,16 @@ from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
-    dm_inbox, dm_thread,dm_thread_updates,dm_inbox_updates,forum_course_chapters, # <-- ADD THIS IMPORT
+    dm_inbox, dm_thread,dm_thread_updates,dm_inbox_updates, # <-- ADD THIS IMPORT
 )
+from accounts.views.student.student_dashboard import student_dashboard
+
+from accounts.views.student.student_courses import student_courses
+from accounts.views.student.student_profile import student_profile
+# from accounts.views.auth.logout import logout_view
+from accounts.views.student.chapter_topics import chapter_topics
+from accounts.views.student.student_dashboard import student_dashboard, student_topic_view
+
 
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
@@ -41,8 +49,35 @@ urlpatterns = [
     # needed for JS
     # path('dashboard/contributor/submit_content/submit_assessment', submit_assessment, name='submit_assessment'),
     path('dashboard/contributor/submit_content/gemini_chat', gemini_chat, name='gemini_chat'),
+    
     path('dashboard/contributor/submit_content/after_submission/', after_submission, name='after_submission'),
-    path('dashboard/student/', views.dashboard_view, name='student_dashboard'),
+   
+   #student
+   path("dashboard/student/", student_dashboard, name="student_dashboard"),
+    path("student/courses/", student_courses, name="student_courses"),
+    path("student/profile/", student_profile, name="student_profile"),
+    path("forum/", forum_home, name="forum_home"),
+    # path("logout/", logout_view, name="logout"),
+    #path("dashboard/student/course/<int:course_id>/chapters/", chapter_topics, name="student_chapter_topics"),
+ path(
+        "dashboard/student/course/<int:course_id>/chapters/",
+        chapter_topics,
+        name="student_chapter_topics"
+    ),
+
+    # 1. Course Chapters List View
+    path(
+        "dashboard/student/course/<int:course_id>/chapters/",
+        chapter_topics, # This is your student_course_chapters view
+        name="student_course_chapters" 
+    ),
+
+    # 2. Topic Detail View (The one that uses ?course_id=...&chapter_id=...)
+    path(
+        "dashboard/student/topics/", 
+        student_topic_view, 
+        name="student_topic_view"
+    ),
 
     # Forum
     path("forum/", forum_home, name="forum_home"),
@@ -52,9 +87,6 @@ urlpatterns = [
     path("forum/<int:question_id>/reply/<int:parent_id>/", post_reply, name="forum_reply"),
     path("forum/<int:pk>/upvote/", toggle_question_upvote, name="forum_question_upvote"),
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
-    path("forum/<int:question_id>/reply/<int:parent_id>/", post_reply, name="forum_reply"),
-    path("forum/course/<int:course_id>/chapters/", forum_course_chapters, name="forum_course_chapters"),
-
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---
@@ -70,6 +102,42 @@ urlpatterns = [
     path("messages/<int:user_id>/", dm_thread, name="dm_thread"),
     path("dm/<int:user_id>/updates/", dm_thread_updates, name="dm_thread_updates"),
     path("messages/updates/", dm_inbox_updates, name="dm_inbox_updates"),
+
+    # Password reset
+    path(
+        'password-reset/',
+        auth_views.PasswordResetView.as_view(
+            template_name='auth/password_reset.html',
+            email_template_name='emails/password_reset_email.txt',  # plain text fallback
+            html_email_template_name='emails/password_reset_email.html',  # HTML email
+            subject_template_name='emails/password_reset_subject.txt'
+        ),
+        name = 'password_reset'
+    ),
+
+    path(
+        'password-reset/done/',
+        auth_views.PasswordResetDoneView.as_view(
+            template_name='auth/password_reset_done.html'
+        ),
+        name='password_reset_done'
+    ),
+
+    path(
+        'reset/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='auth/password_reset_confirm.html'
+        ),
+        name='password_reset_confirm'
+    ),
+
+    path(
+        'reset/done/',
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name='auth/password_reset_complete.html'
+        ),
+        name='password_reset_complete'
+    ),
 
     # Password reset
     path(
