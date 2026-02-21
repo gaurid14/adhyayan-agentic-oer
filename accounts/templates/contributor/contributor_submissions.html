@@ -241,18 +241,20 @@
 
 
 
-            {% if uploads %}
+            {% if uploads_with_files %}
             <table>
                 <thead>
                 <tr>
                     <th>Course</th>
                     <th>Chapter</th>
+                    <th>Files</th>
                     <th>Status</th>
                     <th>Submitted On</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for upload in uploads %}
+                {% for item in uploads_with_files %}
+                {% with upload=item.upload files=item.files %}
                 <tr data-status="{% if upload.evaluation_status %}evaluated{% else %}pending{% endif %}"
                     data-date="{{ upload.timestamp|date:'U' }}">
 
@@ -273,6 +275,34 @@
                             {{ upload.chapter.chapter_name }}
                         </div>
                     </td>
+                    <td style="max-width:250px;">
+                        {% if files %}
+                        <div class="file-summary" onclick="toggleFiles(this)">
+                            📁 {{ files|length }} Files
+                            <i class="fas fa-chevron-down" style="margin-left:6px; font-size:12px;"></i>
+                        </div>
+
+                        <div class="file-dropdown" style="display:none; margin-top:8px;">
+                            {% for file in files %}
+                            <div style="padding:4px 0; font-size:13px;">
+                                {% if file.type == "pdf" %}
+                                <i class="fas fa-file-pdf" style="color:#dc3545;"></i>
+                                {% elif file.type == "videos" %}
+                                <i class="fas fa-video" style="color:#1EAE98;"></i>
+                                {% endif %}
+
+                                <a href="https://drive.google.com/file/d/{{ file.id }}/preview"
+                                   target="_blank"
+                                   style="color:#1EAE98; text-decoration:none; margin-left:6px;">
+                                    {{ file.name }}
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <span style="color:#999;">No Files</span>
+                        {% endif %}
+                    </td>
                     <td>
                         <div class="badge {% if upload.evaluation_status %}evaluated{% else %}pending{% endif %}">
                             {{ upload.evaluation_status|yesno:"Evaluated,Pending" }}
@@ -282,11 +312,12 @@
                         {{ upload.timestamp|localtime|date:"d M Y, h:i A" }}
                     </td>
                 </tr>
+                {% endwith %}
                 {% endfor %}
                 </tbody>
             </table>
 
-            <!-- ✅ No matching results (hidden by default) -->
+            <!-- No matching results (hidden by default) -->
             <div id="noResults" class="empty-state" style="display:none; padding:40px 20px;">
                 <i class="fas fa-search"></i>
                 <p style="font-weight:600; color:#111827;">No matching submissions found</p>
@@ -376,6 +407,12 @@
     });
 </script>
 <script src="{% static 'accounts/sidebar-drawer.js' %}"></script>
-
+  <script>
+      function toggleFiles(element) {
+          const dropdown = element.nextElementSibling;
+          dropdown.style.display =
+              dropdown.style.display === "none" ? "block" : "none";
+      }
+  </script>
 </body>
 </html>

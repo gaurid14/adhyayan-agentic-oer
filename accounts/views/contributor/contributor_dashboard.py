@@ -315,13 +315,13 @@ def contributor_dashboard_view(request):
 
                 # urgency label
                 if hours_left <= 24:
-                    urgency = "red"      # 🟥
+                    urgency = "red"
                     urgency_text = "URGENT • < 24h"
                 elif hours_left <= 48:
-                    urgency = "orange"   # 🟧
+                    urgency = "orange"
                     urgency_text = "Soon • < 2 days"
                 else:
-                    urgency = "green"    # 🟩
+                    urgency = "green"
                     urgency_text = "On track"
 
                 tasks.append({
@@ -383,6 +383,28 @@ def contributor_dashboard_view(request):
     return render(request, "contributor/contributor_dashboard.html", context)
 
 
+# @login_required
+# def contributor_submissions(request):
+#     user = request.user
+#
+#     if not ContributorAccessGuard.ensure_contributor(user):
+#         return render(request, "403.html", status=403)
+#
+#     uploads = ContributorSubmissionService.get_user_submissions(user)
+#
+#     context = {
+#         "uploads": uploads,
+#         "total_uploads": uploads.count(),
+#         "pending_count": uploads.filter(evaluation_status=False).count(),
+#         "evaluated_count": uploads.filter(evaluation_status=True).count(),
+#     }
+#
+#     return render(
+#         request,
+#         "contributor/contributor_submissions.html",
+#         context
+#     )
+
 @login_required
 def contributor_submissions(request):
     user = request.user
@@ -392,8 +414,85 @@ def contributor_submissions(request):
 
     uploads = ContributorSubmissionService.get_user_submissions(user)
 
+    service = GoogleDriveAuthService.get_service()
+    folder_service = GoogleDriveFolderService(service)
+    oer_root_id = folder_service.get_or_create_folder("oer_content")
+
+    uploads_with_files = []
+
+    for upload in uploads:
+        contributor_id = upload.contributor.id
+        course = upload.chapter.course
+        chapter = upload.chapter
+
+        all_files = []
+
+        def get_files_from_folder(folder_type):
+            folder_name = f"{contributor_id}_{course.id}_{chapter.chapter_number}"
+
+            root_folder_id = folder_service.get_or_create_folder(
+                settings.GOOGLE_DRIVE_FOLDERS[folder_type],
+                oer_root_id
+            )
+
+            query = (
+                "mimeType='application/vnd.google-apps.folder' "
+                f"and name='{folder_name}' "
+                f"and '{root_folder_id}' in parents "
+                "and trashed=false"
+            )
+
+            folders = service.files().list(
+                q=query,
+                fields="files(id, name)"
+            ).execute().get("files", [])
+
+            if not folders:
+                return []
+
+            chapter_folder_id = folders[0]["id"]
+
+            collected_files = []
+
+            # STEP 1: Get topic folders
+            topic_folders = service.files().list(
+                q=(
+                    "mimeType='application/vnd.google-apps.folder' "
+                    f"and '{chapter_folder_id}' in parents "
+                    "and trashed=false"
+                ),
+                fields="files(id, name)"
+            ).execute().get("files", [])
+
+            for topic in topic_folders:
+                topic_id = topic["id"]
+                topic_name = topic["name"]
+
+                # STEP 2: Get files inside topic folder
+                files_result = service.files().list(
+                    q=f"'{topic_id}' in parents and trashed=false",
+                    fields="files(id, name, mimeType)"
+                ).execute()
+
+                for f in files_result.get("files", []):
+                    f["topic"] = topic_name
+                    collected_files.append(f)
+
+            return collected_files
+        for folder_type in ["pdf", "videos"]:
+            files = get_files_from_folder(folder_type)
+
+            for f in files:
+                f["type"] = folder_type
+                all_files.append(f)
+
+        uploads_with_files.append({
+            "upload": upload,
+            "files": all_files
+        })
+
     context = {
-        "uploads": uploads,
+        "uploads_with_files": uploads_with_files,
         "total_uploads": uploads.count(),
         "pending_count": uploads.filter(evaluation_status=False).count(),
         "evaluated_count": uploads.filter(evaluation_status=True).count(),
@@ -404,7 +503,6 @@ def contributor_submissions(request):
         "contributor/contributor_submissions.html",
         context
     )
-
 
 @login_required
 def contributor_profile(request):
@@ -439,7 +537,7 @@ def contributor_profile(request):
 
 @login_required
 def contributor_submit_content_view(request, course_id=None, chapter_id=None):
-    # ✅ Accept IDs from URL kwargs OR query params OR POST (safe + backward compatible)
+    # Accept IDs from URL kwargs OR query params OR POST (safe + backward compatible)
     course_id = course_id or request.GET.get("course_id") or request.POST.get("course_id")
     chapter_id = chapter_id or request.GET.get("chapter_id") or request.POST.get("chapter_id")
 
@@ -450,20 +548,20 @@ def contributor_submit_content_view(request, course_id=None, chapter_id=None):
         messages.error(request, "Invalid access. Please select a course & chapter.")
         return redirect("contributor_dashboard")
 
-    # ✅ Load course + chapter correctly (chapter must belong to this course)
+    # Load course + chapter correctly (chapter must belong to this course)
     course = get_object_or_404(Course, id=course_id)
     chapter = get_object_or_404(Chapter, id=chapter_id, course=course)
 
     contributor_id = request.user.id
 
-    # ✅ Contributor approval check (required feature)
+    # Contributor approval check (required feature)
     # If your project allows students too, keep this check strictly for contributors
     if getattr(request.user, "role", None) == User.Role.CONTRIBUTOR:
         if request.user.contributor_approval_status != User.ContributorApprovalStatus.APPROVED:
             messages.warning(request, "Your contributor account is not approved yet.")
             return redirect("contributor_dashboard")
 
-    # ✅ Deadline check (required feature)
+    # Deadline check (required feature)
     policy = getattr(chapter, "policy", None)
     deadline = None
     if policy:
@@ -499,13 +597,12 @@ def contributor_submit_content_view(request, course_id=None, chapter_id=None):
     files = []
 
     try:
-        # 🔹 Initialize Drive service (NEW AUTH CLASS)
+        # Initialize Drive service (NEW AUTH CLASS)
         service = GoogleDriveAuthService.get_service()
         folder_service = GoogleDriveFolderService(service)
 
         oer_root_id = folder_service.get_or_create_folder("oer_content")
 
-        # --- SAME LOGIC AS YOUR WORKING VERSION ---
         def get_files_from_folder(folder_type):
             folder_name = f"{contributor_id}_{course.id}_{chapter.chapter_number}"
 
@@ -612,7 +709,7 @@ def contributor_submit_content_view(request, course_id=None, chapter_id=None):
         "chapter": chapter,
         "files": files,
         "topics": topics,
-        "deadline": deadline,  # ✅ optional: use in template if you want
+        "deadline": deadline,
     }
 
     return render(request, "contributor/submit_content.html", context)
