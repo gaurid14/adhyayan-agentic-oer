@@ -1,350 +1,295 @@
 {% extends "home/base.html" %} {% load static %} {% block title %}Login / Sign
 Up{% endblock %} {% block content %}
+
 <style>
-  :root {
-    --primary: #009688;
-    --border: #e5e7eb;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --bg: #ffffff;
-  }
-
-  /* Page base */
-  body {
-    background: var(--bg);
-    font-family:
-      "Segoe UI",
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      sans-serif;
-    color: var(--text);
-  }
-
-  /* Centering container */
-  .container {
-    min-height: calc(100vh - 120px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 48px 16px;
-  }
-
-  /* Auth card */
-  .login-box {
-    width: 100%;
-    max-width: 760px;
-    background: #ffffff;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    padding: 48px 56px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
-  }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 40px;
-  }
-
-  .tab-link {
-    font-weight: 600;
-    color: var(--muted);
-    padding-bottom: 10px;
-    border-bottom: 3px solid transparent;
-  }
-
-  .tab-link.active {
-    color: var(--primary);
-    border-color: var(--primary);
-  }
-
-  /* Login / Signup visibility */
-  .login-row,
-  .signup-row {
-    display: none;
-  }
-
-  .login-row.active {
-    display: grid;
-    grid-template-columns: 1fr 0.9fr;
-    gap: 48px;
-  }
-
-  .signup-row.active {
-    display: block;
-  }
-
-  /* Inputs – NO FIXED HEIGHT */
-  input,
-  select,
-  textarea {
-    width: 100%;
-    padding: 11px 14px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-    font-size: 15px;
-    background: #fff;
-  }
-
-  /* Textarea only */
-  textarea {
-    min-height: 110px;
-    resize: vertical;
-  }
-
-  /* Focus */
-  input:focus,
-  select:focus,
-  textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(0, 150, 136, 0.12);
-  }
-
-  /* Buttons */
-  .login-btn {
-    margin-top: 36px;
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    background: var(--primary);
-    color: #fff;
-    font-weight: 600;
-    border: none;
-    font-size: 16px;
-  }
-
-  .login-btn:hover {
-    background: #00796b;
-  }
-
-  /* Role tabs */
-  .role-tabs {
-    display: flex;
-    background: #f3f4f6;
-    border-radius: 10px;
-    padding: 6px;
-    margin-bottom: 36px;
-  }
-
-  .role-tab {
-    flex: 1;
-    padding: 10px;
-    background: transparent;
-    border: none;
-    font-weight: 600;
-    border-radius: 8px;
-    color: var(--muted);
-    cursor: pointer;
-  }
-
-  .role-tab.active {
-    background: #ffffff;
-    color: var(--primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  }
-
-  /* ===============================
-       SIGNUP GRID – REAL FIX
-       =============================== */
-
-  .role-form {
-    display: none;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 32px;
-    row-gap: 28px; /* 🔑 THIS FIXES CHIPKE HUE */
-  }
-
-  .role-form.active {
-    display: grid;
-  }
-
-  /* Field wrapper */
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Label spacing */
-  .form-group label {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  /* Full width */
-  .form-group.full-width {
-    grid-column: 1 / -1;
-  }
-
-  /* Email + Password */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-top: 40px;
-  }
-
-  /* Illustration */
-  .illustration {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .illustration img {
-    max-width: 90%;
-    opacity: 0.9;
-  }
-
-  /* Responsive */
-  @media (max-width: 900px) {
-    .login-row.active {
-      grid-template-columns: 1fr;
+    :root {
+        --primary: #0f5f56;
+        --primary-dark: #0c4b45;
+        --border: #e5e7eb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --bg: #f7f9f8;
     }
 
-    .illustration {
-      display: none;
+    /* ===== PAGE BASE ===== */
+
+    body {
+        background: var(--bg);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--text);
     }
+
+    /* ===== CENTER CONTAINER ===== */
+
+    .container {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    /* ===== AUTH CARD ===== */
 
     .login-box {
-      padding: 32px 24px;
+        width: 100%;
+        max-width: 820px;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 40px 48px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.05);
     }
+
+    /* ===== MAIN TABS ===== */
+
+    .tabs {
+        display: flex;
+        gap: 32px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 36px;
+    }
+
+    .tab-link {
+        font-weight: 600;
+        color: var(--muted);
+        padding-bottom: 12px;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .tab-link.active {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    /* ===== LOGIN / SIGNUP VISIBILITY ===== */
+
+    .login-row,
+    .signup-row {
+        display: none;
+    }
+
+    .login-row.active {
+        display: grid;
+        grid-template-columns: 1fr 1.1fr; /* image slightly bigger */
+        gap: 60px;
+        align-items: center;
+    }
+
+    .signup-row.active {
+        display: block;
+    }
+
+    /* ===== INPUTS ===== */
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        background: #fff;
+        transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(15,95,86,0.12);
+    }
+
+    /* ===== BUTTONS ===== */
+
+    .login-btn {
+        margin-top: 32px;
+        width: 100%;
+        padding: 13px;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        font-size: 15px;
+        transition: background 0.2s ease;
+    }
+
+    .login-btn:hover {
+        background: var(--primary-dark);
+    }
+
+    /* ===== ROLE TABS ===== */
+
+    .role-tabs {
+        display: flex;
+        background: #f1f3f2;
+        border-radius: 10px;
+        padding: 5px;
+        margin-bottom: 32px;
+    }
+
+    .role-tab {
+        flex: 1;
+        padding: 9px;
+        background: transparent;
+        border: none;
+        font-weight: 600;
+        border-radius: 8px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .role-tab.active {
+        background: #ffffff;
+        color: var(--primary);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* ===== SIGNUP GRID ===== */
+
+    .role-form {
+        display: none;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        column-gap: 28px;
+        row-gap: 22px;
+    }
+
+    .role-form.active {
+        display: grid;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #374151;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Email + Password row */
 
     .form-grid {
-      grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+        margin-top: 32px;
     }
 
-    /* ---------- Social Signup (Contributor only) ---------- */
-    .social-auth {
-        margin-bottom: 28px;
-        padding: 18px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: #fafafa;
-    }
+    /* ===== LOGIN SIDE ILLUSTRATION ===== */
 
-    .social-auth h4 {
-        margin: 0 0 12px;
-        font-size: 14px;
-        color: var(--muted);
-        font-weight: 600;
-    }
-
-    .social-btn {
-        width: 100%;
+    .illustration {
         display: flex;
-        align-items: center;
         justify-content: center;
-        gap: 10px;
-        padding: 12px 14px;
-        border-radius: 10px;
-        font-weight: 600;
-        border: 1px solid var(--border);
-        cursor: pointer;
-        background: #fff;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .social-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-    }
-
-    .social-btn img {
-        width: 28px;
-        height: 28px;
-    }
-
-    /* LinkedIn button */
-    .linkedin-btn {
-        border-color: #0A66C2;
-        color: #0A66C2;
-    }
-
-    .linkedin-btn:hover {
-        background: rgba(10, 102, 194, 0.06);
-    }
-
-    /* Divider */
-    .or-divider {
-        display: flex;
         align-items: center;
-        gap: 12px;
-        margin: 18px 0;
-        color: var(--muted);
-        font-size: 13px;
     }
 
-    .or-divider::before,
-    .or-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: var(--border);
+    .illustration img {
+        width: 100%;
+        max-width: 420px;  /* bigger image */
+        height: auto;
+        opacity: 0.95;
     }
 
-    /* Website autofill row */
-    .website-autofill {
+    .login-form {
         display: flex;
-        gap: 10px;
+        flex-direction: column;
+        width: 100%;
     }
 
-    .website-autofill input {
-        flex: 1;
+    .login-form input {
+        margin-bottom: 18px;
     }
 
-    .website-autofill button {
-        width: 180px;
-        padding: 12px 10px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: #fff;
-        font-weight: 600;
-        cursor: pointer;
-    }
+    /* ===== FORGOT PASSWORD ===== */
 
-    .website-autofill button:hover {
-        border-color: var(--primary);
+    .forgot {
+        font-size: 13px;
         color: var(--primary);
+        margin-top: 8px;
+        display: inline-block;
+        text-decoration: none;
     }
 
-  }
+    .forgot:hover {
+        text-decoration: underline;
+    }
+
+    /* ===== RESPONSIVE ===== */
+
+    @media (max-width: 900px) {
+
+        .login-row.active {
+            grid-template-columns: 1fr;
+        }
+
+        .illustration {
+            display: none;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .login-box {
+            padding: 28px 24px;
+        }
+
+        .role-form {
+            grid-template-columns: 1fr;
+        }
+    }
+
 </style>
-<link
-  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-  rel="stylesheet"
-/>
-<link
-  href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css"
-  rel="stylesheet"
-  type="text/css"
-/>
 
 <div class="container">
-<!--my code-->
+
     <div class="login-box">
+
+        <!-- Tabs -->
         <div class="tabs">
             <a href="#" class="tab-link active" data-target="login">Login</a>
             <a href="#" class="tab-link" data-target="signup">Sign up</a>
         </div>
 
+        <!-- LOGIN -->
         <div class="form-row login-row active">
             <form class="login-form" method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
+
                 <input type="email" name="email" placeholder="Email" required>
+
                 <input type="password" name="password" placeholder="Password" required>
-                <a href="{% url 'password_reset' %}" class="forgot">Forgot your password?</a>
+
+                <a href="{% url 'password_reset' %}" class="forgot">
+                    Forgot your password?
+                </a>
+
                 <button type="submit" class="login-btn">Login</button>
             </form>
+
             <div class="illustration">
-                <img src="{% static 'accounts/animation.gif' %}" alt="Login GIF">
+                <img src="{% static 'images/login.png' %}" alt="Login illustration">
             </div>
         </div>
 
+        <!-- SIGNUP (unchanged structure) -->
         <div class="signup-row">
             <form class="signup-form" method="POST" action="{% url 'register' %}">
                 {% csrf_token %}
@@ -389,30 +334,6 @@ Up{% endblock %} {% block content %}
                     </div>
 
                     <div class="role-form" id="contributor-form">
-                        <!-- Contributor Auto-fill Section -->
-<!--                        <div class="form-group full-width">-->
-<!--                            <div class="social-auth">-->
-<!--                                <h4>Quick setup (optional)</h4>-->
-
-                                <!-- LinkedIn Button -->
-<!--                                <button type="button" class="social-btn linkedin-btn" id="linkedin-signup-btn">-->
-<!--                                    <img src="{% static 'images/linkedin.png' %}" alt="LinkedIn">-->
-<!--                                    Continue with LinkedIn-->
-<!--                                </button>-->
-
-<!--                                <div class="or-divider">OR</div>-->
-
-                                <!-- Personal Website Input -->
-<!--                                <div class="website-autofill">-->
-<!--                                    <input type="url" id="portfolio-url" placeholder="Personal Website / Portfolio URL (optional)">-->
-<!--                                    <button type="button" id="website-autofill-btn">Auto-fill</button>-->
-<!--                                </div>-->
-
-<!--                                <small style="display:block; margin-top:10px; color: var(&#45;&#45;muted);">-->
-<!--                                    If auto-fill is not available, please fill the details manually below.-->
-<!--                                </small>-->
-<!--                            </div>-->
-<!--                        </div>-->
 
                         <div class="form-group"><label>First Name</label><input type="text" name="contrib-fname"
                                                                                 required></div>
@@ -424,18 +345,6 @@ Up{% endblock %} {% block content %}
                                                                                  required></div>
                         <div class="form-group"><label>Years of Experience</label><input type="number" name="exp"
                                                                                          required></div>
-                        <!-- Program Dropdown -->
-                        <!--                        <div class="form-group">-->
-                        <!--                            <label>Program</label>-->
-                        <!--                            <select name="program" id="program-select" required>-->
-                        <!--                                <option value="">Select Program</option>-->
-                        <!--                                <option value="Engineering">Engineering</option>-->
-                        <!--                                <option value="Commerce">Commerce</option>-->
-                        <!--                                <option value="Arts">Arts</option>-->
-                        <!--                                <option value="Science">Science</option>-->
-                        <!--                                <option value="Humanities">Humanities</option>-->
-                        <!--                            </select>-->
-                        <!--                        </div>-->
 
                         <!-- Highest Qualification Dropdown -->
                         <div class="form-group">
@@ -449,14 +358,6 @@ Up{% endblock %} {% block content %}
                             </select>
                         </div>
 
-                        <!-- Expertise checkboxes will be populated here -->
-                        <!--                        <div class="form-group">-->
-                        <!--                            <label>Domain of Expertise</label>-->
-                        <!--                            <div id="expertise-checkboxes">-->
-                        <!--                                &lt;!&ndash; Dynamically filled based on selected program &ndash;&gt;-->
-                        <!--                            </div>-->
-                        <!--                        </div>-->
-                        <!--                        </div>-->
                         <div class="form-group full-width">
                             <label for="domain-input-tagify">Key Skills / Expertise involved</label>
                             <input type="text" id="domain-input-tagify" name="domain" placeholder="Add skills..."
@@ -486,168 +387,112 @@ Up{% endblock %} {% block content %}
                 <button type="submit" class="login-btn">Sign Up</button>
             </form>
         </div>
-    <div><br></div> 
-<!--    {% if messages %}-->
-<!--    <div class="mb-3">-->
-<!--      {% for message in messages %}-->
-<!--        <div class="alert-->
-<!--            {% if message.tags == 'error' %}alert-danger-->
-<!--            {% elif message.tags == 'success' %}alert-success-->
-<!--            {% elif message.tags == 'warning' %}alert-warning-->
-<!--            {% else %}alert-info{% endif %}-->
-<!--            alert-dismissible fade show"-->
-<!--            role="alert"-->
-<!--            style="border-radius: 12px;">-->
-<!--          <strong>-->
-<!--            {% if message.tags == 'error' %}Action needed:{% else %}Info:{% endif %}-->
-<!--          </strong>-->
-<!--          {{ message }}-->
-<!--          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>-->
-<!--        </div>-->
-<!--      {% endfor %}-->
-<!--    </div>-->
-<!--  {% endif %}-->
 
-</div>
+    </div>
+
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // ---- Tab switching code (unchanged) ----
-    const mainTabs = document.querySelectorAll(".tab-link");
-    const loginRow = document.querySelector(".login-row");
-    const signupRow = document.querySelector(".signup-row");
-    mainTabs.forEach((tab) => {
-      tab.addEventListener("click", (e) => {
-        e.preventDefault();
-        mainTabs.forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
-        loginRow.classList.toggle("active", tab.dataset.target === "login");
-        signupRow.classList.toggle("active", tab.dataset.target === "signup");
+    document.addEventListener("DOMContentLoaded", () => {
+      // ---- Tab switching code (unchanged) ----
+      const mainTabs = document.querySelectorAll(".tab-link");
+      const loginRow = document.querySelector(".login-row");
+      const signupRow = document.querySelector(".signup-row");
+      mainTabs.forEach((tab) => {
+        tab.addEventListener("click", (e) => {
+          e.preventDefault();
+          mainTabs.forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          loginRow.classList.toggle("active", tab.dataset.target === "login");
+          signupRow.classList.toggle("active", tab.dataset.target === "signup");
+        });
       });
-    });
 
-    const roleTabsContainer = document.querySelector(".role-tabs");
-    const roleForms = document.querySelectorAll(".role-form");
-    const roleTabs = document.querySelectorAll(".role-tab");
-    const roleInput = document.getElementById("role-input");
+      const roleTabsContainer = document.querySelector(".role-tabs");
+      const roleForms = document.querySelectorAll(".role-form");
+      const roleTabs = document.querySelectorAll(".role-tab");
+      const roleInput = document.getElementById("role-input");
 
-    function updateFormRequirements(activeRole) {
-      <!--            roleForms.forEach(form => {-->
-      <!--                const isVisible = form.id === activeRole + '-form';-->
-      <!--                form.querySelectorAll('input, select, textarea').forEach(input => {-->
-      <!--                    if (input.type !== 'file') input.required = isVisible;-->
-      <!--                });-->
-      <!--            });-->
-      roleForms.forEach((form) => {
-        const isVisible = form.id === activeRole + "-form";
-        form
-          .querySelectorAll("input:not([type=hidden]), select, textarea")
-          .forEach((input) => {
-            // Check if the element exists and is not Tagify's internal input
-            if (input && !input.hasAttribute("contenteditable")) {
-              input.required = isVisible;
-            }
+      function updateFormRequirements(activeRole) {
+        roleForms.forEach((form) => {
+          const isVisible = form.id === activeRole + "-form";
+          form
+            .querySelectorAll("input:not([type=hidden]), select, textarea")
+            .forEach((input) => {
+              // Check if the element exists and is not Tagify's internal input
+              if (input && !input.hasAttribute("contenteditable")) {
+                input.required = isVisible;
+              }
+            });
+        });
+      }
+
+      if (roleTabsContainer) {
+        roleTabsContainer.addEventListener("click", (e) => {
+          if (!e.target.matches(".role-tab")) return;
+          const targetRole = e.target.dataset.role;
+          if (roleInput) roleInput.value = targetRole;
+          roleTabs.forEach((tab) => tab.classList.remove("active"));
+          e.target.classList.add("active");
+          roleForms.forEach((form) =>
+            form.classList.toggle("active", form.id === targetRole + "-form"),
+          );
+          updateFormRequirements(targetRole);
+        });
+      }
+
+      // Keep student form active by default
+      const studentForm = document.getElementById("student-form");
+      const studentTab = document.querySelector('.role-tab[data-role="student"]');
+      if (studentForm && studentTab) {
+        studentForm.classList.add("active");
+        studentTab.classList.add("active");
+      }
+      updateFormRequirements("student");
+
+      // ---- SIMPLE Tagify Initialization ----
+      var domainInput = document.getElementById("domain-input-tagify");
+      if (domainInput) {
+        // Initialize Tagify with no whitelist or restrictions
+        var tagify = new Tagify(domainInput, {
+          maxTags: 10, // optional limit
+          enforceWhitelist: false, // allow free text input
+          dropdown: {
+            enabled: 0, // no dropdown suggestions
+          },
+        });
+
+        // Ensure form validation works properly
+        tagify.on("change", function (e) {
+          domainInput.required = e.detail.value.length === 0;
+      });
+  }
+
+      // LinkedIn UI button (for now redirect / later OAuth)
+      const linkedinBtn = document.getElementById("linkedin-signup-btn");
+      if (linkedinBtn) {
+          linkedinBtn.addEventListener("click", () => {
+              alert("LinkedIn signup will be enabled soon (OAuth). For now please fill manually.");
+              // Later you will redirect here:
+              // window.location.href = "/auth/linkedin/";
           });
-      });
-    }
+      }
 
-    if (roleTabsContainer) {
-      roleTabsContainer.addEventListener("click", (e) => {
-        if (!e.target.matches(".role-tab")) return;
-        const targetRole = e.target.dataset.role;
-        if (roleInput) roleInput.value = targetRole;
-        roleTabs.forEach((tab) => tab.classList.remove("active"));
-        e.target.classList.add("active");
-        roleForms.forEach((form) =>
-          form.classList.toggle("active", form.id === targetRole + "-form"),
-        );
-        updateFormRequirements(targetRole);
-      });
-    }
-
-    // Keep student form active by default
-    const studentForm = document.getElementById("student-form");
-    const studentTab = document.querySelector('.role-tab[data-role="student"]');
-    if (studentForm && studentTab) {
-      studentForm.classList.add("active");
-      studentTab.classList.add("active");
-    }
-    updateFormRequirements("student");
-
-    <!--        // &#45;&#45;&#45;&#45; Contributor Program -> Expertise logic &#45;&#45;&#45;&#45;-->
-    <!--        const programSelect = document.getElementById('program-select');-->
-    <!--        const expertiseContainer = document.getElementById('expertise-checkboxes');-->
-
-    <!--        if (programSelect) {-->
-    <!--            programSelect.addEventListener('change', async () => {-->
-    <!--                expertiseContainer.innerHTML = '';-->
-    <!--                const program = programSelect.value;-->
-    <!--                if (!program) return;-->
-
-    <!--                try {-->
-    <!--                    const response = await fetch(`/register/?program=${program}`);-->
-    <!--                    const data = await response.json();-->
-
-    <!--                    data.forEach(exp => {-->
-    <!--                        const div = document.createElement('div');-->
-    <!--                        div.classList.add('checkbox-item');-->
-    <!--                        div.innerHTML = `-->
-    <!--                            <input type="checkbox" id="exp-${exp.id}" name="expertise" value="${exp.id}">-->
-    <!--                            <label for="exp-${exp.id}">${exp.name}</label>-->
-    <!--                        `;-->
-    <!--                        expertiseContainer.appendChild(div);-->
-    <!--                    });-->
-    <!--                } catch (error) {-->
-    <!--                    console.error("Failed to load expertise:", error);-->
-    <!--                }-->
-    <!--            });-->
-    <!--        }-->
-    // ---- SIMPLE Tagify Initialization ----
-    var domainInput = document.getElementById("domain-input-tagify");
-    if (domainInput) {
-      // Initialize Tagify with no whitelist or restrictions
-      var tagify = new Tagify(domainInput, {
-        maxTags: 10, // optional limit
-        enforceWhitelist: false, // allow free text input
-        dropdown: {
-          enabled: 0, // no dropdown suggestions
-        },
-      });
-
-      // Ensure form validation works properly
-      tagify.on("change", function (e) {
-        domainInput.required = e.detail.value.length === 0;
+      // Website autofill (placeholder for now)
+      const websiteBtn = document.getElementById("website-autofill-btn");
+      if (websiteBtn) {
+          websiteBtn.addEventListener("click", () => {
+              const url = document.getElementById("portfolio-url").value.trim();
+              if (!url) {
+                  alert("Please enter your website / portfolio URL.");
+                  return;
+              }
+              alert("Website auto-fill will be integrated soon. For now please fill manually.");
+          });
+      }
     });
-}
-
-    // LinkedIn UI button (for now redirect / later OAuth)
-    const linkedinBtn = document.getElementById("linkedin-signup-btn");
-    if (linkedinBtn) {
-        linkedinBtn.addEventListener("click", () => {
-            alert("LinkedIn signup will be enabled soon (OAuth). For now please fill manually.");
-            // Later you will redirect here:
-            // window.location.href = "/auth/linkedin/";
-        });
-    }
-
-    // Website autofill (placeholder for now)
-    const websiteBtn = document.getElementById("website-autofill-btn");
-    if (websiteBtn) {
-        websiteBtn.addEventListener("click", () => {
-            const url = document.getElementById("portfolio-url").value.trim();
-            if (!url) {
-                alert("Please enter your website / portfolio URL.");
-                return;
-            }
-            alert("Website auto-fill will be integrated soon. For now please fill manually.");
-        });
-    }
-  });
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 {% endblock %}
-</div>
