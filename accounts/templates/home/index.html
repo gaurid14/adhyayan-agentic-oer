@@ -1,383 +1,365 @@
 {% extends "home/base.html" %}
 {% load static %}
-
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adhyayan | Access. Equity, Learning</title>
-    <!-- Use external CSS for main theme variables -->
-    <link rel="stylesheet" href="{% static 'frontend/css/style.css' %}">
-    <!-- Use a modern, professional font -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        /* Variables from style.css for clarity */
-        :root {
-            --bg-light: #F4FCFA;        /* Main Page Background (Light Mint) */
-            --card-bg: #FFFFFF;         /* Card/Form Background (White) */
-            --primary-color: #1EAE98;   /* Primary Accent (Dark Teal/Green) */
-            --primary-hover: #178D79;   /* Primary Hover (Slightly Darker Teal) */
-            --text-dark: #333333;       /* General Text Color */
-            --secondary-accent: #D9F5E2;/* Secondary Accent (Soft Green/Borders) */
-        }
-        
-        body {
-            font-family: 'Inter', 'Roboto', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-        }
 
-        /* --- Main Layout --- */
-  
-        .main-content {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 20px 20px 60px;
-        }
-        
-        /* --- 1. HERO SECTION --- */
-        .hero-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 40px;
-            margin-top: 20px;
-            margin-bottom: 60px;
-            background: linear-gradient(10deg, var(--secondary-accent) 10%, var(--card-bg) 90%);
-            border-radius: 15px;
-            border: 1px solid var(--secondary-accent);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-        }
+<div class="landing">
 
-        .hero-text {
-            max-width: 55%;
-        }
+    <!-- ================= HERO ================= -->
+    <section class="hero">
 
-        .hero-text h1 {
-            font-size: 2.5rem;
-            color: var(--text-dark);
-            margin-bottom: 25px;
-            line-height: 1.1;
-        }
-        
-        .hero-text h1 span {
-            color: var(--primary-color);
-            /* Underline to emphasize the unique feature */
-            border-bottom: 5px solid var(--primary-color); 
-            padding-bottom: 5px;
-        }
+        <div class="container hero-grid">
 
-        .hero-text p {
-            font-size: 1.3rem;
-            color: #555;
-            margin-bottom: 40px;
-        }
-        
-        .hero-image {
-            max-width: 40%;
-        }
-        
-        .hero-image img {
-             width: 100%; 
-             height: auto; 
-             border-radius: 10px;
-        }
+            <div class="hero-left">
 
-        /* --- 2. VALUE PROPS (Mid-Page Features) --- */
-        .value-props-section {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        .value-props-section h2 {
-            font-size: 2.2rem;
-            color: var(--text-dark);
-            margin-bottom: 50px;
-        }
-        .value-prop-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-        }
-        .prop-card {
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid var(--secondary-accent);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .prop-card:hover {
-            border-color: var(--primary-color);
-            box-shadow: 0 6px 15px rgba(30, 174, 152, 0.2);
-        }
-        .prop-icon {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-        .prop-card h3 {
-            font-size: 1.3rem;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        /* --- 3. ROLE SELECTION --- */
-        .role-selection {
-            text-align: center;
-            padding: 40px 0;
-        }
-        .role-selection h2 {
-            font-size: 2.5rem;
-            color: var(--text-dark);
-            margin-bottom: 40px;
-        }
-        
-        .role-grid {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .role-button {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            width: 280px;
-            height: 350px;
-            padding: 35px 20px;
-            border-radius: 15px;
-            border: 2px solid var(--secondary-accent);
-            background-color: var(--card-bg);
-            transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
-            text-decoration: none;
-            color: var(--text-dark);
-        }
-        
-        .role-button:hover {
-            transform: translateY(-8px);
-            background-color: #F8FFFF; /* Slight hover color */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .role-button h3 {
-            font-size: 1.7rem;
-            margin-bottom: 20px;
-            color: var(--text-dark);
-        }
-        .role-button p {
-            font-size: 1rem;
-            color: #666;
-            flex-grow: 1; /* Pushes the button to the bottom */
-            margin-bottom: 20px;
-        }
-        .role-icon {
-            font-size: 3rem;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 50%;
-            background: var(--secondary-accent);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 900px) {
-            .hero-section {
-                flex-direction: column;
-                text-align: center;
-                padding: 40px 20px;
-            }
-            .hero-text {
-                max-width: 600–650px;
-                padding: 0;
-                margin-bottom: 30px;
-            }
-            .hero-text h1 {
-                font-size: 2.5rem;
-            }
-            .hero-image {
-                max-width: 80%;
-                order: -1; /* Move image above text on small screens */
-                margin-bottom: 30px;
-            }
-            .value-prop-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .hero-cta {
-            display: inline-block;
-            padding: 14px 32px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: #ffffff;
-            background-color: var(--primary-color);
-            border-radius: 30px;
-            text-decoration: none;
-            box-shadow: 0 6px 18px rgba(30, 174, 152, 0.35);
-            transition: background-color 0.25s ease,
-                        transform 0.2s ease,
-                        box-shadow 0.25s ease;
-        }
-
-        .hero-cta:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(30, 174, 152, 0.45);
-        }
-
-        .hero-cta.secondary {
-            background: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-        }
-
-        /* ---------- Subtle Animations ---------- */
-
-        /* Fade-up animation */
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(25px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Fade-in animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Initial hidden state */
-        .animate {
-            opacity: 0;
-        }
-
-        /* Activated state */
-        .animate.show {
-            animation: fadeUp 0.8s ease forwards;
-        }
-
-        /* Hero specific timing */
-        .hero-text.animate.show {
-            animation-delay: 0.1s;
-        }
-
-        .hero-image.animate.show {
-            animation: fadeIn 1s ease forwards;
-            animation-delay: 0.3s;
-        }
-
-        .prop-card.animate.show {
-            animation-delay: 0.1s;
-        }
-
-        .prop-card.animate.show:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .prop-card.animate.show:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-content"> 
-        <!-- 1. HERO SECTION: Automated Content Curation -->
-        <section class="hero-section">
-            <div class="hero-text animate">
-                <h1>
-                    Building Trust in Open Education with <br><span>Intelligent Automation</span>
+                <h1 class="hero-title">
+                    Structured & Evaluated
+                    <span>Open Educational Resources</span>
                 </h1>
-                <p>
-                    Ensuring every learning resource meets academic standards through
-                    transparent, consistent, and scalable quality assurance.
+
+                <p class="hero-subtitle">
+                    Adhyayan applies structured rubric frameworks and multi-agent
+                    AI evaluation to ensure educational resources meet academic
+                    quality standards before publication.
                 </p>
-                <a href="#role-select" class="hero-cta">Select Your Portal</a>
-            </div>
-            <div class="hero-image animate">
-                <!-- Placeholder Image for AI/Automation Concept -->
-                <img src="{% static 'images/home.jpg' %}" alt="AI Agent System Diagram Placeholder">
-            </div>
-        </section>
-        
-        <!-- 2. CORE VALUE PROPS: Addressing OER Pain Points -->
-        <section class="value-props-section">
-            <h2>Our AI-Driven Commitment to Quality</h2>
-            <div class="value-prop-grid">
-                
-                <div class="prop-card animate">
-                    <div class="prop-icon">⚡</div>
-                    <h3>Scalable Speed</h3>
-                    <p>Move past manual bottlenecks. Our agents process thousands of submissions daily, publishing approved materials instantly.</p>
+
+                <div class="hero-buttons">
+                    <a href="{% url 'login' %}?portal=student" class="btn-primary">
+                        Student Portal
+                    </a>
+                    <a href="{% url 'login' %}?portal=contributor" class="btn-outline">
+                        Contributor Portal
+                    </a>
                 </div>
-                
-                <div class="prop-card animate">
-                    <div class="prop-icon">✅</div>
-                    <h3>Rubric-Based Quality</h3>
-                    <p>Evaluation is grounded in objective educational rubrics, guaranteeing consistency and adherence to academic standards.</p>
-                </div>
-                
-                <div class="prop-card animate">
-                    <div class="prop-icon">📊</div>
-                    <h3>Data-Backed Transparency</h3>
-                    <p>Contributors receive detailed, explainable scoring from the AI, creating a clear feedback loop for continuous improvement.</p>
+
+                <div class="hero-meta">
+                    Designed for Academic Institutions and Research Bodies
                 </div>
 
             </div>
-        </section>
 
-        <!-- 3. ROLE SELECTION: Entry Point -->
-        <section class="role-selection" id="role-select">
-            <h2>Access the Platform</h2>
-            <div class="role-grid">
-                
-                <a href="{% url 'login' %}" class="role-button animate">
-                    <span class="role-icon">✏️</span>
-                    <h3>Contributor Portal</h3>
-                    <p>Submit resources, use our rich text editor, and view detailed evaluation reports.</p>
-                    <div class="btn" style="width: 100%; padding: 10px 20px; font-size: 1em;">Login as Contributor</div>
+            <div class="hero-right">
+                <div class="image-wrapper">
+                    <img src="{% static 'images/home.png' %}"
+                         alt="Adhyayan Evaluation Flow"
+                         class="hero-img">
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ================= IMPACT ================= -->
+    <section class="impact reveal">
+        <div class="container impact-grid">
+            <div>
+                <h2>100%</h2>
+                <p>Rubric-Based Review</p>
+            </div>
+            <div>
+                <h2>Multi-Agent</h2>
+                <p>Independent AI Evaluation</p>
+            </div>
+            <div>
+                <h2>Structured</h2>
+                <p>Academic Framework</p>
+            </div>
+            <div>
+                <h2>Transparent</h2>
+                <p>Explainable Decisions</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ================= PROCESS ================= -->
+    <section class="process">
+        <div class="container">
+
+            <h2 class="section-title reveal">Evaluation Workflow</h2>
+
+            <div class="process-grid">
+
+                <div class="process-card reveal">
+                    <div class="step">01</div>
+                    <h4>Submission Intake</h4>
+                    <p>Educators submit curriculum-aligned resources.</p>
+                </div>
+
+                <div class="process-card reveal">
+                    <div class="step">02</div>
+                    <h4>Multi-Agent Assessment</h4>
+                    <p>AI agents evaluate clarity, pedagogy and alignment.</p>
+                </div>
+
+                <div class="process-card reveal">
+                    <div class="step">03</div>
+                    <h4>Rubric Scoring</h4>
+                    <p>Resources are scored using academic benchmarks.</p>
+                </div>
+
+                <div class="process-card reveal">
+                    <div class="step">04</div>
+                    <h4>Publication</h4>
+                    <p>Only verified resources are released.</p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ================= CTA ================= -->
+    <section class="cta reveal">
+        <div class="container text-center">
+
+            <h2>Building Trust in Open Education</h2>
+
+            <p>
+                Structured infrastructure for evaluating and publishing
+                academically verified educational resources.
+            </p>
+
+            <div class="cta-buttons">
+                <a href="{% url 'login' %}?portal=student" class="btn-white">
+                    Access Platform
                 </a>
-
-                <a href="{% url 'login' %}" class="role-button animate">
-                    <span class="role-icon">📘</span>
-                    <h3>Student Portal</h3>
-                    <p>Discover and utilize certified, high-quality educational materials curated by the system.</p>
-                    <div class="btn" style="width: 100%; padding: 10px 20px; font-size: 1em;">Login as Student</div>
+                <a href="{% url 'login' %}?portal=contributor" class="btn-outline-light">
+                    Submit Resources
                 </a>
-                
             </div>
-        </section>
-    </div>
-    <script>
-        const animatedElements = document.querySelectorAll('.animate');
 
-        const observer = new IntersectionObserver(
-            entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('show');
-                    }
-                });
-            },
-            { threshold: 0.15 }
-        );
+        </div>
+    </section>
 
-        animatedElements.forEach(el => observer.observe(el));
-    </script>
+</div>
 
-</body>
-</html>
+
+<style>
+
+    /* ===== BASE ===== */
+
+    .landing {
+        font-family: 'Inter', sans-serif;
+        color: #0f172a;
+    }
+
+    .container {
+        max-width: 1150px;
+        margin: auto;
+        padding: 60px 20px;   /* REDUCED */
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 2.2rem;
+        margin-bottom: 40px;  /* REDUCED */
+        font-weight: 700;
+    }
+
+    /* ===== HERO ===== */
+
+    .hero {
+        background: linear-gradient(135deg, #f7faf9, #ffffff);
+        padding-top: 60px;     /* REDUCED */
+        padding-bottom: 60px;  /* REDUCED */
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 40px;             /* REDUCED */
+        align-items: center;
+    }
+
+    .hero-title {
+        font-size: 2.6rem;     /* Slightly tighter */
+        margin-bottom: 15px;
+    }
+
+    .hero-title span {
+        color: #0f5f56;
+    }
+
+    .hero-subtitle {
+        color: #475569;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    .hero-meta {
+        margin-top: 20px;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    /* ===== IMAGE GREEN BLEND ===== */
+
+    .image-wrapper {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .image-wrapper::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(15,95,86,0.15);  /* green overlay */
+        mix-blend-mode: multiply;
+    }
+
+    .hero-img {
+        width: 100%;
+        max-width: 520px;
+        display: block;
+    }
+
+    /* ===== IMPACT ===== */
+
+    .impact {
+        background: #0f5f56;
+        color: white;
+        padding: 50px 0;  /* REDUCED */
+    }
+
+    .impact-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        text-align: center;
+        gap: 25px;
+    }
+
+    .impact h2 {
+        font-size: 1.6rem;
+    }
+
+    /* ===== PROCESS ===== */
+
+    .process {
+        padding: 60px 0; /* tighter */
+    }
+
+    .process-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        text-align: center;
+    }
+
+    .process-card {
+        padding: 30px;
+        border-radius: 14px;
+        background: white;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        transition: transform 0.25s ease;
+    }
+
+    .process-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .step {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0f5f56;
+        margin-bottom: 8px;
+    }
+
+    /* ===== CTA ===== */
+
+    .cta {
+        background: linear-gradient(90deg, #0f5f56, #0c4b45);
+        color: white;
+        padding: 60px 0;  /* tighter */
+    }
+
+    .cta p {
+        color: #d1fae5;
+        margin: 15px 0 25px;
+    }
+
+    /* ===== BUTTONS ===== */
+
+    .btn-primary {
+        background: #0f5f56;
+        color: white;
+        padding: 12px 28px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-outline {
+        border: 1px solid #0f5f56;
+        color: #0f5f56;
+        padding: 12px 28px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-white {
+        background: white;
+        color: #0f5f56;
+        padding: 12px 28px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-outline-light {
+        border: 2px solid white;
+        color: white;
+        padding: 12px 28px;
+        border-radius: 40px;
+        text-decoration: none;
+    }
+
+    /* ===== SCROLL REVEAL ===== */
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.7s ease;
+    }
+
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ===== RESPONSIVE ===== */
+
+    @media (max-width: 900px) {
+        .hero-grid,
+        .impact-grid,
+        .process-grid {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+    }
+
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const revealElements = document.querySelectorAll(".reveal");
+
+        function revealOnScroll() {
+            revealElements.forEach(function (el) {
+                const top = el.getBoundingClientRect().top;
+                if (top < window.innerHeight - 80) {
+                    el.classList.add("active");
+                }
+            });
+        }
+
+        revealOnScroll();
+        window.addEventListener("scroll", revealOnScroll);
+    });
+</script>
+
 {% endblock %}
