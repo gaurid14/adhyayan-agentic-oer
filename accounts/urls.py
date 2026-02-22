@@ -14,8 +14,10 @@ from .views.home.subjects import subject_view, chapter_view
 from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
-    dm_inbox, dm_thread,dm_thread_updates,dm_inbox_updates, # <-- ADD THIS IMPORT
+    forum_course_chapters,
+    dm_inbox, dm_thread, dm_thread_updates, dm_inbox_updates,
 )
+
 from accounts.views.student.student_dashboard import student_dashboard
 
 from accounts.views.student.student_courses import student_courses
@@ -23,6 +25,7 @@ from accounts.views.student.student_profile import student_profile
 # from accounts.views.auth.logout import logout_view
 from accounts.views.student.chapter_topics import chapter_topics
 from accounts.views.student.student_dashboard import student_dashboard, student_topic_view
+from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action
 
 
 urlpatterns = [
@@ -59,6 +62,7 @@ urlpatterns = [
     path("student/profile/", student_profile, name="student_profile"),
     path("forum/", forum_home, name="forum_home"),
     path("check_content_quality/", check_topic_quality, name="check_topic_quality"),
+    path("forum/course/<int:course_id>/chapters/", forum_course_chapters, name="forum_course_chapters"),
     # path("logout/", logout_view, name="logout"),
     #path("dashboard/student/course/<int:course_id>/chapters/", chapter_topics, name="student_chapter_topics"),
  path(
@@ -82,13 +86,15 @@ urlpatterns = [
     ),
 
     # Forum
-    path("forum/", forum_home, name="forum_home"),
     path("forum/<int:pk>/", forum_detail, name="forum_detail"),
     path("forum/ask/", post_question, name="forum_ask"),
     path("forum/<int:question_id>/answer/", post_answer, name="forum_answer"),
     path("forum/<int:question_id>/reply/<int:parent_id>/", post_reply, name="forum_reply"),
     path("forum/<int:pk>/upvote/", toggle_question_upvote, name="forum_question_upvote"),
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
+    path("forum/moderation/", forum_moderation_queue, name="forum_moderation_queue"),
+    path("forum/moderation/action/", forum_moderation_action, name="forum_moderation_action"),
+    
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---
@@ -189,3 +195,4 @@ urlpatterns = [
     path("dashboard/contributor/notes/delete/<int:note_id>/", delete_note, name="delete_note"),
     path("dashboard/contributor/notes/<id>/", get_note, name="get_note"),
 ]
+

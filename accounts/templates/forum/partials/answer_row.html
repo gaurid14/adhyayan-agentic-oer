@@ -15,6 +15,15 @@
         <span class="dot">•</span>
         <span>{{ answer.created_at|timesince }} ago</span>
       </div>
+{% if answer.is_hidden and answer.moderation_status == "pending_review" %}
+  {% if user.is_authenticated %}
+    {% if user.is_staff or user.id == answer.author_id %}
+      <span class="badge text-bg-warning ms-2">
+        <i class="fa-solid fa-eye-slash"></i> Pending review
+      </span>
+    {% endif %}
+  {% endif %}
+{% endif %}
 
       <div class="answer-body prose">
         {{ answer.content|linebreaks }}
@@ -29,25 +38,30 @@
             </summary>
 
             <form method="post"
-                  action="{% url 'forum_reply' question.id answer.id %}"
-                  class="reply-form mt-2">
-              {% csrf_token %}
+      action="{% url 'forum_reply' question.id answer.id %}"
+      class="reply-form mt-2">
+  {% csrf_token %}
 
-              <textarea
-                name="content"
-                class="form-control reply-input"
-                rows="2"
-                placeholder="Write a reply… (Enter to send, Shift+Enter for new line)"
-                data-enter-submit
-                data-reply-input
-              ></textarea>
+  <div class="reply-compose">
+    <textarea
+      name="content"
+      class="form-control reply-input"
+      rows="2"
+      placeholder="Write a reply…"
+      data-enter-submit
+      data-reply-input
+    ></textarea>
 
-              <div class="reply-actions">
-                <button class="btn btn-sm btn-outline-secondary" type="submit">
-                  Post reply
-                </button>
-              </div>
-            </form>
+    <button class="btn btn-primary reply-send" type="submit">
+      Post
+    </button>
+  </div>
+
+  <div class="reply-hint">
+    Enter to send • Shift+Enter for new line
+  </div>
+</form>
+
           </details>
         </div>
       {% endif %}

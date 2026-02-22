@@ -392,6 +392,10 @@ class ForumTopic(models.Model):
     def __str__(self):
         return self.name
 
+class ModerationStatus(models.TextChoices):
+    APPROVED = "approved", "Approved"
+    PENDING = "pending_review", "Pending review"
+    REJECTED = "rejected", "Rejected"
 
 class ForumQuestion(models.Model):
     """Main question/discussion post."""
@@ -416,6 +420,21 @@ class ForumQuestion(models.Model):
         blank=True,
         related_name="forum_questions",
     )
+
+    # ---- Moderation (auto + manual review) ----
+    is_hidden = models.BooleanField(default=False)
+
+    moderation_status = models.CharField(
+        max_length=32,
+        choices=ModerationStatus.choices,
+        default=ModerationStatus.APPROVED,
+    )
+
+    moderation_model = models.CharField(max_length=64, null=True, blank=True)
+    moderation_details = models.JSONField(default=dict, blank=True)
+    moderated_at = models.DateTimeField(null=True, blank=True)
+
+
     def __str__(self):
         return self.title
 
@@ -433,6 +452,19 @@ class ForumAnswer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     upvotes = models.ManyToManyField(User, related_name="answer_upvotes", blank=True)
+
+    # ---- Moderation (auto + manual review) ----
+    is_hidden = models.BooleanField(default=False)
+
+    moderation_status = models.CharField(
+        max_length=32,
+        choices=ModerationStatus.choices,
+        default=ModerationStatus.APPROVED,
+    )
+
+    moderation_model = models.CharField(max_length=64, null=True, blank=True)
+    moderation_details = models.JSONField(default=dict, blank=True)
+    moderated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Answer by {self.author.username} on {self.question.title}"

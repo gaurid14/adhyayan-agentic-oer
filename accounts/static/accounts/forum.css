@@ -221,7 +221,11 @@
     margin-left: calc(clamp(0, var(--lvl), 8) * 16px);
     padding-left: 12px;
   }
-
+/* Highlight the answer/reply when opened via #a<ID> */
+.thread-row:target .answer-item{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(30, 174, 152, 0.18);
+}
   .thread-child::before{
     content:"";
     position:absolute;
@@ -568,4 +572,48 @@
 /* If the pseudo-line from thread-child is also showing, shift it left */
 .forum-detail .thread-child::before{
   left: -10px !important;   /* tweak -8 to -14 */
+}
+
+/* ===== Reply composer (compact) ===== */
+.reply-form .reply-compose{
+  display: flex;
+  gap: 10px;
+  align-items: flex-start; /* don't stretch button height */
+}
+
+.reply-form .reply-input{
+  flex: 1;
+  resize: vertical;
+  min-height: 38px;      /* compact */
+  max-height: 120px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  padding: 8px 10px;     /* less padding */
+  line-height: 1.25;
+}
+
+.reply-form .reply-send{
+  white-space: nowrap;
+  border-radius: 12px;
+  padding: 8px 14px;     /* compact button */
+  min-width: 74px;
+  height: 38px;          /* fixed height to match textarea */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reply-form .reply-hint{
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted, #64748b);
+}
+
+@media (max-width: 520px){
+  .reply-form .reply-compose{
+    flex-direction: column;
+  }
+  .reply-form .reply-send{
+    width: 100%;
+  }
 }
