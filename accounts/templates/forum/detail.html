@@ -31,7 +31,8 @@
     {% include "student/sidebar.html" %}
   {% endif %}
 
-  
+
+
 <main class="main">
   <div class="thread-topbar">
     <a href="{% url 'forum_home' %}" class="back-link">
@@ -40,7 +41,21 @@
 
     <div class="thread-actions"></div>
   </div>
-
+  {% if messages %}
+    <div class="px-2 px-md-0 mt-2">
+      {% for message in messages %}
+        {% if 'error' in message.tags %}
+          <div class="alert alert-danger">{{ message }}</div>
+        {% elif 'success' in message.tags %}
+          <div class="alert alert-success">{{ message }}</div>
+        {% elif 'warning' in message.tags %}
+          <div class="alert alert-warning">{{ message }}</div>
+        {% else %}
+          <div class="alert alert-info">{{ message }}</div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
     <!-- QUESTION -->
     <div class="card forum-card mb-4">
       <div class="card-body">
@@ -61,6 +76,8 @@
 </div>
 
 <div class="q-body prose mt-3">{{ question.content|linebreaks }}</div>
+
+
 
 {% if question.topics.all %}
   <div class="mt-3 d-flex gap-2 flex-wrap">

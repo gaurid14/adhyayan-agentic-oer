@@ -1,48 +1,44 @@
 # accounts/views/forum.py
-from concurrent.futures import thread
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db.models import (
-    Count, Q, Prefetch, F, IntegerField, ExpressionWrapper,
-    OuterRef, Subquery
-)
-from django.http import JsonResponse, Http404
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
-from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
+from django.db.models import Count, Q, F, IntegerField, ExpressionWrapper, OuterRef, Subquery
+from django.http import JsonResponse, Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
 
 from ..models import (
     Chapter, Course, ForumQuestion, ForumAnswer, ForumTopic,
     DmThread, DmMessage, User
 )
 from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
-from django.views.decorators.http import require_GET
-from django.db.models import OuterRef, Subquery, Count, Q
-from django.db.models import Count
-from django.shortcuts import get_object_or_404, render
 
-def _clean_forum_text(text: str, max_len: int = 10000) -> str:
-    text = (text or "").strip()
-    if not text:
-        return ""
-    # prevent accidental template-tag-like storage (optional safety)
-    if "{%" in text:
-        return ""
-    return text[:max_len]
+from accounts.moderation_perspective import moderate_text, apply_decision_to_instance
 
 
 def _clean_forum_text(text: str, max_len: int = 10000) -> str:
     text = (text or "").strip()
     if not text:
         return ""
-    # prevent accidental template-tag-like storage (optional safety)
-    if "{%" in text:
+    if "{%" in text:  # optional safety
         return ""
     return text[:max_len]
+
+def _apply_question_visibility(request, qs):
+    """Limit visibility of hidden questions to staff or the author."""
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return qs
+        return qs.filter(Q(is_hidden=False) | Q(author=request.user))
+    return qs.filter(is_hidden=False)
+
+
 
 
 def forum_home(request):
@@ -59,29 +55,24 @@ def forum_home(request):
         .prefetch_related("topics")
         .annotate(
             upvote_count=Count("upvotes", distinct=True),
-            top_answer_count=Count(
-                "answers",
-                filter=Q(answers__parent__isnull=True),
-                distinct=True
-            ),
+            top_answer_count=Count("answers", filter=Q(answers__parent__isnull=True), distinct=True),
         )
     )
 
     questions = base_qs
 
+    # ✅ visibility rules (hidden content only for staff/author)
+    questions = _apply_question_visibility(request, questions)
+
     if q:
         questions = questions.filter(Q(title__icontains=q) | Q(content__icontains=q))
-
     if topic_id:
         questions = questions.filter(topics__id=topic_id).distinct()
-
     if course_id:
         questions = questions.filter(course_id=course_id)
-
     if chapter_id:
         questions = questions.filter(chapter_id=chapter_id)
 
-    # Sorting (safe, no schema change)
     if sort == "upvotes":
         questions = questions.order_by("-upvote_count", "-created_at")
     elif sort == "answers":
@@ -96,8 +87,9 @@ def forum_home(request):
     )
 
     window = timezone.now() - timedelta(days=7)
+    visible_base_qs = _apply_question_visibility(request, base_qs)
     trending = (
-        base_qs
+        visible_base_qs
         .annotate(
             q_up=Count("upvotes", distinct=True),
             recent_ans=Count("answers", filter=Q(answers__created_at__gte=window), distinct=True),
@@ -125,7 +117,6 @@ def forum_home(request):
     page_obj = paginator.get_page(page)
 
     courses = Course.objects.all().order_by("course_name", "course_code")
-
     chapters = Chapter.objects.none()
     if course_id:
         chapters = Chapter.objects.filter(course_id=course_id).order_by("chapter_number", "chapter_name")
@@ -147,30 +138,35 @@ def forum_home(request):
         "selected_course": int(course_id) if course_id else None,
         "selected_chapter": int(chapter_id) if chapter_id else None,
     }
-
     return render(request, "forum/list.html", context)
 
-
-def _top_level_answers_qs():
-    return (
-        ForumAnswer.objects
-        .filter(parent__isnull=True)
-        .select_related("author")
-        .annotate(upvote_count=Count("upvotes", distinct=True))
-        .order_by("-created_at")
-    )
-
-
 def forum_detail(request, pk: int):
-    question = (
+    question = get_object_or_404(
         ForumQuestion.objects
         .select_related("author", "course", "chapter")
         .prefetch_related("topics")
-        .annotate(upvote_count=Count("upvotes", distinct=True))
-        .get(pk=pk)
+        .annotate(upvote_count=Count("upvotes", distinct=True)),
+        pk=pk
     )
 
-    answers = (
+    # ✅ Question visibility
+    if question.is_hidden:
+        if request.user.is_authenticated and request.user.is_staff:
+            pass
+        elif (
+            request.user.is_authenticated and
+            request.user == question.author and
+            question.moderation_status == "pending_review"
+        ):
+            pass
+        else:
+            raise Http404()
+
+    # ✅ Answers / replies visibility:
+    # staff: all
+    # author: public + own pending_review hidden
+        # others: only public
+    answers_qs = (
         ForumAnswer.objects
         .filter(question=question)
         .select_related("author")
@@ -178,14 +174,25 @@ def forum_detail(request, pk: int):
         .order_by("created_at")
     )
 
-    # parent_id -> [children...]
+    if request.user.is_authenticated and request.user.is_staff:
+        visible_answers_qs = answers_qs
+    elif request.user.is_authenticated:
+        visible_answers_qs = answers_qs.filter(
+            Q(is_hidden=False) |
+            Q(is_hidden=True, moderation_status="pending_review", author=request.user)
+        )
+    else:
+        visible_answers_qs = answers_qs.filter(is_hidden=False)
+
+    answers = list(visible_answers_qs)
+
+
+    # Build thread structure (parent -> children)
     by_parent = {}
     for a in answers:
         by_parent.setdefault(a.parent_id, []).append(a)
 
     top_answers = by_parent.get(None, [])
-
-    # Build groups: each top answer + a flat list of replies with nesting level
     thread_groups = []
 
     def walk(parent, level, out):
@@ -202,9 +209,10 @@ def forum_detail(request, pk: int):
     question.thread_groups = thread_groups
     question.top_answers = top_answers
 
-    return render(request, "forum/detail.html", {"question": question, "a_form": ForumAnswerForm()})
-
-
+    return render(request, "forum/detail.html", {
+        "question": question,
+        "a_form": ForumAnswerForm(),
+    })
 @login_required
 @require_POST
 def post_question(request):
@@ -216,19 +224,16 @@ def post_question(request):
     title = _clean_forum_text(form.cleaned_data.get("title"), max_len=255)
     content = _clean_forum_text(form.cleaned_data.get("content"), max_len=10000)
     if not title or not content:
-        messages.error(request, "Title/content cannot be empty (or contain invalid template tags).")
+        messages.error(request, "Title/content cannot be empty.")
         return redirect("forum_home")
 
     qobj = form.save(commit=False)
     course = form.cleaned_data.get("course")
     chapter = form.cleaned_data.get("chapter")
 
-    # Require course (makes the feature meaningful)
     if not course:
         messages.error(request, "Please select a course.")
         return redirect("forum_home")
-
-    # If chapter selected, ensure it belongs to selected course
     if chapter and chapter.course_id != course.id:
         messages.error(request, "Selected chapter does not belong to that course.")
         return redirect("forum_home")
@@ -239,33 +244,106 @@ def post_question(request):
     qobj.title = title
     qobj.content = content
 
+    decision, err = moderate_text(f"{title}\n\n{content}")
+
+    # 1) HARD BLOCK (do not save)
+    if decision and decision.action == "block":
+        messages.error(
+            request,
+            "Your question wasn’t published because it violates our community guidelines. "
+            "Please rewrite and try again."
+        )
+        return redirect("forum_home")
+
+    # 2) If moderation service failed, hide for non-staff (fail-soft)
+    if err and not request.user.is_staff:
+        qobj.is_hidden = True
+        qobj.moderation_status = "pending_review"
+        qobj.moderation_details = {"kind": "question", "error": err}
+
+    # 3) Apply model decision (hide/review/allow) BUT protect pending-review for non-staff
+    apply_decision_to_instance(qobj, decision, kind="question")
+
+    # ✅ IMPORTANT: If decision says "review/hide", ensure it becomes pending_review for non-staff
+    # (Different implementations name this differently, so we handle common cases safely.)
+    if not request.user.is_staff and decision:
+        if getattr(decision, "action", None) in {"review", "hide"}:
+            qobj.is_hidden = True
+            qobj.moderation_status = "pending_review"
+        # Some implementations use flags instead of action strings:
+        if getattr(decision, "should_hide", False) is True:
+            qobj.is_hidden = True
+            qobj.moderation_status = "pending_review"
+
     qobj.save()
     form.save_m2m()
 
-    messages.success(request, "Your question was posted.")
+    # 4) Message shown on detail page only (as per your design)
+    if qobj.is_hidden and not request.user.is_staff:
+        messages.success(request, "Post Hidden — pending review.", extra_tags="detail_only")
+    else:
+        messages.success(request, "Your question was posted.", extra_tags="detail_only")
+
     return redirect("forum_detail", pk=qobj.pk)
 
+from django.contrib import messages
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
 
 @login_required
 @require_POST
 def post_answer(request, question_id):
     question = get_object_or_404(ForumQuestion, pk=question_id)
-    form = ForumAnswerForm(request.POST)
-    if form.is_valid():
-        content = _clean_forum_text(form.cleaned_data.get("content"))
-        if not content:
-            messages.error(request, "Invalid content.")
-            return redirect("forum_detail", pk=question.pk)
 
-        ans = form.save(commit=False)
-        ans.content = content
-        ans.author = request.user
-        ans.question = question
-        ans.parent = None
-        ans.save()
+    # If question is hidden, only staff OR author can interact (optional)
+    if question.is_hidden and not (request.user.is_staff or request.user == question.author):
+        raise Http404()
+
+    form = ForumAnswerForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Please fix the errors in your answer.")
+        return redirect("forum_detail", pk=question.pk)
+
+    content = _clean_forum_text(form.cleaned_data.get("content"), max_len=10000)
+    if not content:
+        messages.error(request, "Answer cannot be empty.")
+        return redirect("forum_detail", pk=question.pk)
+
+    ans = form.save(commit=False)
+    ans.content = content
+    ans.author = request.user
+    ans.question = question
+    ans.parent = None
+
+    decision, err = moderate_text(content)
+
+    # Hard block
+    if decision and decision.action == "block":
+        messages.error(
+            request,
+            "Your answer wasn’t published because it violates our community guidelines. "
+            "Please rewrite and try again.",
+            extra_tags="detail_only",
+        )
+        return redirect("forum_detail", pk=question.pk)
+
+    # Fail-soft moderation error → pending review for non-staff
+    if err and not request.user.is_staff:
+        ans.is_hidden = True
+        ans.moderation_status = "pending_review"
+        ans.moderation_details = {"kind": "answer", "error": err}
+
+    apply_decision_to_instance(ans, decision, kind="answer")
+    ans.save()
+
+    # ✅ message based on final hidden state (NO staff exception)
+    if ans.is_hidden:
+        messages.success(request, "Answer submitted — pending review.", extra_tags="detail_only")
+    else:
+        messages.success(request, "Your answer was posted.", extra_tags="detail_only")
 
     return redirect("forum_detail", pk=question.pk)
-
 
 @login_required
 @require_POST
@@ -273,36 +351,57 @@ def post_reply(request, question_id, parent_id):
     question = get_object_or_404(ForumQuestion, pk=question_id)
     parent = get_object_or_404(ForumAnswer, pk=parent_id, question=question)
 
-    MAX_DEPTH = 10
+    # Visibility rules: if hidden, only staff or the hidden item's author can access
+    if question.is_hidden and not (request.user.is_staff or request.user == question.author):
+        raise Http404()
 
-    def _depth(ans: ForumAnswer) -> int:
-        d = 0
-        cur_id = ans.parent_id
-        while cur_id is not None and d < 50:
-            d += 1
-            cur_id = ForumAnswer.objects.only("id", "parent_id").get(id=cur_id).parent_id
-        return d
-
-    if _depth(parent) >= MAX_DEPTH:
-        messages.error(request, f"Reply limit reached (max depth {MAX_DEPTH}).")
-        return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
+    if parent.is_hidden and not (request.user.is_staff or request.user == parent.author):
+        raise Http404()
 
     form = ForumAnswerForm(request.POST)
-    if form.is_valid():
-        content = _clean_forum_text(form.cleaned_data.get("content"), max_len=5000)
-        if not content:
-            messages.error(request, "Invalid content.")
-            return redirect("forum_detail", pk=question.pk)
+    if not form.is_valid():
+        messages.error(request, "Please fix the errors in your reply.", extra_tags="detail_only")
+        return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
 
-        reply = form.save(commit=False)
-        reply.content = content
-        reply.author = request.user
-        reply.question = question
-        reply.parent = parent
-        reply.save()
+    content = _clean_forum_text(form.cleaned_data.get("content"), max_len=5000)
+    if not content:
+        messages.error(request, "Reply cannot be empty.", extra_tags="detail_only")
+        return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
+
+    reply = form.save(commit=False)
+    reply.content = content
+    reply.author = request.user
+    reply.question = question
+    reply.parent = parent
+
+    decision, err = moderate_text(content)
+
+    # Hard block
+    if decision and decision.action == "block":
+        messages.error(
+            request,
+            "Your reply wasn’t published because it violates our community guidelines. "
+            "Please rewrite and try again.",
+            extra_tags="detail_only",
+        )
+        return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
+
+    # Fail-soft moderation error → pending review
+    if err and not request.user.is_staff:
+        reply.is_hidden = True
+        reply.moderation_status = "pending_review"
+        reply.moderation_details = {"kind": "reply", "error": err}
+
+    apply_decision_to_instance(reply, decision, kind="reply")
+    reply.save()
+
+    # ✅ message based on final hidden state (NO staff exception)
+    if reply.is_hidden:
+        messages.success(request, "Reply submitted — pending review.", extra_tags="detail_only")
+    else:
+        messages.success(request, "Your reply was posted.", extra_tags="detail_only")
 
     return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
-
 
 @login_required
 @require_POST
@@ -340,13 +439,90 @@ def toggle_answer_upvote(request, pk: int):
     return redirect("forum_detail", pk=ans.question_id)
 
 
+# ------------------- Moderation Queue -------------------
+
+@staff_member_required
+@login_required
+@require_GET
+def forum_course_chapters(request, course_id):
+    """Return chapters for a given course as JSON (used by dependent dropdowns)."""
+    # Always return JSON so the frontend doesn't crash when parsing.
+    if not Course.objects.filter(id=course_id).exists():
+        return JsonResponse({"ok": False, "chapters": []}, status=404)
+
+    chapters = (
+        Chapter.objects
+        .filter(course_id=course_id)
+        .order_by("chapter_number", "chapter_name")
+        .values("id", "chapter_number", "chapter_name")
+    )
+    return JsonResponse({"ok": True, "chapters": list(chapters)})
+
+def forum_moderation_queue(request):
+    if not request.user.is_staff:
+        raise Http404()
+    
+    q_pending = ForumQuestion.objects.filter(moderation_status="pending_review").order_by("-created_at")[:200]
+    a_pending = ForumAnswer.objects.filter(moderation_status="pending_review").select_related("question").order_by("-created_at")[:200]
+    return render(request, "forum/moderation_queue.html", {
+        "q_pending": q_pending,
+        "a_pending": a_pending,
+    })
+
+
+@staff_member_required
+@login_required
+@require_POST
+def forum_moderation_action(request):
+    if not request.user.is_staff:
+        raise Http404()
+    kind = request.POST.get("kind")  # "question" or "answer"
+    obj_id = request.POST.get("id")
+    action = request.POST.get("action")  # "approve" | "reject" | "keep_hidden"
+
+    if kind not in {"question", "answer"} or action not in {"approve", "reject", "keep_hidden"}:
+        messages.error(request, "Invalid moderation request.")
+        return redirect("forum_moderation_queue")
+
+    Model = ForumQuestion if kind == "question" else ForumAnswer
+    obj = get_object_or_404(Model, pk=obj_id)
+
+    # apply manual decision
+    if action == "approve":
+        obj.is_hidden = False
+        obj.moderation_status = "approved"
+    elif action == "reject":
+        obj.is_hidden = True
+        obj.moderation_status = "rejected"
+    else:  # keep_hidden
+        obj.is_hidden = True
+        obj.moderation_status = "pending_review"
+
+    details = obj.moderation_details or {}
+    details["manual"] = {
+        "by": request.user.username,
+        "action": action,
+        "at": timezone.now().isoformat(),
+    }
+    obj.moderation_details = details
+    obj.save(update_fields=["is_hidden", "moderation_status", "moderation_details"])
+
+    messages.success(request, f"{kind.title()} updated.")
+    return redirect("forum_moderation_queue")
+
+
+# ------------------- DMs (your existing code) -------------------
+User = get_user_model()
+MODERATOR_USERNAME = "moderator"
+
+
+def _is_moderator_user(u) -> bool:
+    return bool(u) and getattr(u, "username", "") == MODERATOR_USERNAME
+
+
 @login_required
 def dm_inbox(request):
-    last_msg_qs = (
-        DmMessage.objects
-        .filter(thread=OuterRef("pk"))
-        .order_by("-created_at")
-    )
+    last_msg_qs = DmMessage.objects.filter(thread=OuterRef("pk")).order_by("-created_at")
 
     threads = (
         DmThread.objects
@@ -356,7 +532,7 @@ def dm_inbox(request):
             unread_count=Count(
                 "messages",
                 filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user),
-                distinct=True
+                distinct=True,
             ),
             last_text=Subquery(last_msg_qs.values("content")[:1]),
             last_at=Subquery(last_msg_qs.values("created_at")[:1]),
@@ -367,7 +543,6 @@ def dm_inbox(request):
     thread_data = []
     for t in threads:
         other = t.user_b if t.user_a == request.user else t.user_a
-
         last_text = (t.last_text or "").strip()
         if len(last_text) > 70:
             last_text = last_text[:70] + "…"
@@ -378,7 +553,7 @@ def dm_inbox(request):
             "started_at": t.started_at,
             "last_at": t.last_at or t.started_at,
             "last_text": last_text,
-            "unread_count": t.unread_count,
+            "unread_count": int(t.unread_count or 0),
         })
 
     return render(request, "forum/dm_inbox.html", {"threads": thread_data})
@@ -400,13 +575,22 @@ def dm_thread(request, user_id: int):
 
     msgs = thread.messages.select_related("sender").order_by("created_at")
 
+    # mark incoming as read on GET
     if request.method == "GET":
-        thread.messages.filter(sender=other, is_read=False).update(is_read=True, read_at=timezone.now())
+        thread.messages.filter(sender=other, is_read=False).update(
+            is_read=True,
+            read_at=timezone.now()
+        )
 
     last_msg = msgs.last()
     last_id = last_msg.id if last_msg else 0
 
+    # ✅ Block replying to moderator ONLY on POST
     if request.method == "POST":
+        if _is_moderator_user(other):
+            messages.error(request, "This is a system-generated conversation. Replies are disabled.")
+            return redirect("dm_thread", user_id=other.id)
+
         body = (request.POST.get("content") or "").strip()
         if body:
             m = DmMessage.objects.create(thread=thread, sender=request.user, content=body)
@@ -417,7 +601,7 @@ def dm_thread(request, user_id: int):
                         "id": m.id,
                         "content": m.content,
                         "sender_id": request.user.id,
-                        "created_at": m.created_at.strftime("%b %d, %H:%M"),
+                        "created_at": timezone.localtime(m.created_at).strftime("%b %d, %H:%M"),
                     }
                 })
         return redirect("dm_thread", user_id=other.id)
@@ -426,7 +610,9 @@ def dm_thread(request, user_id: int):
         "thread": thread,
         "other": other,
         "messages": msgs,
-        "last_id": last_id
+        "last_id": last_id,
+        "can_reply": (not _is_moderator_user(other)),
+        "is_system_thread": _is_moderator_user(other),
     })
 
 
@@ -448,13 +634,14 @@ def dm_thread_updates(request, user_id: int):
         .order_by("created_at")
     )
 
+    # mark incoming as read
     new_msgs.filter(sender=other, is_read=False).update(is_read=True, read_at=timezone.now())
 
     data = [{
         "id": m.id,
         "content": m.content,
         "sender_id": m.sender_id,
-        "created_at": m.created_at.strftime("%b %d, %H:%M"),
+        "created_at": timezone.localtime(m.created_at).strftime("%b %d, %H:%M"),
     } for m in new_msgs]
 
     return JsonResponse({"ok": True, "messages": data})
@@ -463,14 +650,7 @@ def dm_thread_updates(request, user_id: int):
 @require_GET
 @login_required
 def dm_inbox_updates(request):
-    """
-    Returns unread counts + last message meta for inbox rows (AJAX).
-    """
-    last_msg_qs = (
-        DmMessage.objects
-        .filter(thread=OuterRef("pk"))
-        .order_by("-created_at")
-    )
+    last_msg_qs = DmMessage.objects.filter(thread=OuterRef("pk")).order_by("-created_at")
 
     threads = (
         DmThread.objects
@@ -479,7 +659,7 @@ def dm_inbox_updates(request):
             unread_count=Count(
                 "messages",
                 filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user),
-                distinct=True
+                distinct=True,
             ),
             last_text=Subquery(last_msg_qs.values("content")[:1]),
             last_at=Subquery(last_msg_qs.values("created_at")[:1]),
@@ -489,34 +669,16 @@ def dm_inbox_updates(request):
     payload = []
     for t in threads:
         other = t.user_b if t.user_a_id == request.user.id else t.user_a
-
         last_text = (t.last_text or "").strip()
         if len(last_text) > 70:
             last_text = last_text[:70] + "…"
-
         last_at = t.last_at or t.started_at
-        last_at_display = timezone.localtime(last_at).strftime("%b %d, %H:%M")
 
         payload.append({
             "other_id": other.id,
             "unread_count": int(t.unread_count or 0),
             "last_text": last_text,
-            "last_at_display": last_at_display,
+            "last_at_display": timezone.localtime(last_at).strftime("%b %d, %H:%M"),
         })
 
     return JsonResponse({"ok": True, "threads": payload})
-
-
-@require_GET
-def forum_course_chapters(request, course_id: int):
-    """
-    Public endpoint used by forum.js to populate chapters dropdown.
-    Keeping it public prevents auth-redirect HTML being returned to fetch().
-    """
-    chapters = (
-        Chapter.objects
-        .filter(course_id=course_id)
-        .order_by("chapter_number", "chapter_name")
-        .values("id", "chapter_number", "chapter_name")
-    )
-    return JsonResponse({"ok": True, "chapters": list(chapters)})

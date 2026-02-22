@@ -377,48 +377,50 @@
         </div>
 
         {% for t in threads %}
-        <div
-          class="thread {% if t.unread_count|default:0 > 0 %}thread-unread{% endif %}"
-          data-other-id="{{ t.other.id }}"
-        >
-          <div class="thread-left">
-            <div class="avatar" aria-hidden="true">
-              {{ t.other.username|slice:":1"|upper }}
-            </div>
+        <div class="thread {% if t.unread_count|default:0 > 0 %}thread-unread{% endif %}">
+  <div class="thread-left">
+    <div class="avatar" aria-hidden="true">
+      {% if t.other.username == "moderator" %}
+        M
+      {% else %}
+        {{ t.other.username|slice:":1"|upper }}
+      {% endif %}
 
-            <div class="thread-text">
-              <div class="thread-name">
-                {{ t.other.username }}
+      <span class="badge-slot">
+        {% if t.unread_count > 0 %}
+          <span class="unread-badge">{{ t.unread_count }}</span>
+        {% endif %}
+      </span>
+    </div>
 
-                <span class="badge-slot">
-                  {% if t.unread_count > 0 %}
-                  <span class="unread-badge">{{ t.unread_count }}</span>
-                  {% endif %}
-                </span>
-              </div>
+    <div class="thread-info">
+      <div class="thread-title">
+        {% if t.other.username == "moderator" %}
+          Moderator
+        {% else %}
+          {{ t.other.username }}
+        {% endif %}
+      </div>
 
-              <div
-  class="thread-meta"
-  data-meta
-  data-fallback="{% if t.last_text %}{{ t.last_text }} • {{ t.last_at|date:'M d, H:i' }}{% else %}Started: {{ t.started_at|date:'M d, Y • H:i' }}{% endif %}"
->
-  {% if t.last_text %}
-    {{ t.last_text }} • {{ t.last_at|date:"M d, H:i" }}
-  {% else %}
-    Started: {{ t.started_at|date:"M d, Y • H:i" }}
-  {% endif %}
+      <div
+        class="thread-meta"
+        data-meta
+        data-fallback="{% if t.last_text %}{{ t.last_text }} • {{ t.last_at|date:'M d, H:i' }}{% else %}Started: {{ t.started_at|date:'M d, Y • H:i' }}{% endif %}"
+      >
+        {% if t.last_text %}
+          {{ t.last_text }} • {{ t.last_at|date:"M d, H:i" }}
+        {% else %}
+          Started: {{ t.started_at|date:"M d, Y • H:i" }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <a class="btn btn-primary btn-sm" href="{% url 'dm_thread' t.other.id %}">
+    Open
+  </a>
 </div>
 
-            </div>
-          </div>
-
-          <a
-            class="btn btn-primary btn-sm"
-            href="{% url 'dm_thread' t.other.id %}"
-          >
-            Open
-          </a>
-        </div>
         {% empty %}
         <div class="empty">
           <div class="emoji">💬</div>

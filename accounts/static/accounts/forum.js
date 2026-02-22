@@ -121,20 +121,27 @@ async function loadChapters(courseId, chapterSelect, selectedId = null) {
 
   chapterSelect.disabled = false;
 
-  const res = await fetch(`/forum/course/${courseId}/chapters/`);
-  const data = await res.json();
-  if (!data.ok) return;
+  try {
+    const res = await fetch(`/forum/course/${courseId}/chapters/`, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.ok) return;
 
   // If it's the "ask form" dropdown, text should be "Select chapter"
   // but we keep it simple and professional.
-  data.chapters.forEach(ch => {
+    data.chapters.forEach(ch => {
     const opt = document.createElement("option");
     opt.value = ch.id;
     opt.textContent = `${ch.chapter_number}. ${ch.chapter_name}`;
 
     if (selectedId && Number(selectedId) === Number(ch.id)) opt.selected = true;
     chapterSelect.appendChild(opt);
-  });
+    });
+  } catch (err) {
+    console.warn("Load chapters failed", err);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -172,4 +179,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       await loadChapters(askCourse.value, askChapter, askChapter.value);
     }
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Only inside the ASK form (inside #ask)
+  const askForm = document.querySelector("#ask form");
+  if (!askForm) return;
+
+  const askCourse = askForm.querySelector('select[name="course"]');
+  const askChapter = askForm.querySelector('select[name="chapter"]');
+  if (!askCourse || !askChapter) return;
+
+  // your dynamic logic ONLY here (if any)
 });

@@ -227,3 +227,22 @@ os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "false")
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY", "")
 os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT", "adhyayan")
 os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+
+import os
+
+FORUM_MODERATION_ENABLED = True
+
+PERSPECTIVE_HIDE_THRESHOLD = 0.60
+PERSPECTIVE_BLOCK_THRESHOLD = 0.75
+
+# NEW: stricter category cutoffs (recommended)
+PERSPECTIVE_PROFANITY_HIDE_THRESHOLD = 0.50
+PERSPECTIVE_INSULT_HIDE_THRESHOLD = 0.30
+
+# NEW: threats block earlier than general max score
+PERSPECTIVE_THREAT_BLOCK_THRESHOLD = 0.65
+
+# Optional: identity attacks block earlier too (leave same as block threshold if you want)
+PERSPECTIVE_IDENTITY_BLOCK_THRESHOLD = 0.75
+
+PERSPECTIVE_DO_NOT_STORE = True

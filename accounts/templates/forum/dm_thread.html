@@ -477,9 +477,13 @@
         {% for m in messages %}
           <div class="msg-row {% if m.sender == user %}me{% else %}other{% endif %}">
             <div class="msg {% if m.sender == user %}me{% else %}other{% endif %}">
-              {{ m.content }}
+              {{ m.content|linebreaksbr }}
               <div class="msg-meta">
-                {% if m.sender == user %}You{% else %}{{ other.username }}{% endif %}
+                {% if m.sender.username == "moderator" %}
+                  Moderator
+                {% else %}
+                  {{ m.sender.username }}
+                {% endif %}
                 • {{ m.created_at|date:"M d, H:i" }}
               </div>
             </div>
@@ -491,6 +495,11 @@
     </div>
 
     <!-- Composer -->
+    {% if other.username == "moderator" %}
+  <div class="alert alert-info mt-3">
+    This is a system-generated conversation. Replies are disabled.
+  </div>
+{% else %}
     <form id="chatForm" method="post" class="composer">
       {% csrf_token %}
       <div class="composer-inner">
@@ -504,6 +513,7 @@
         <button type="submit" class="btn btn-primary composer-send">Send</button>
       </div>
     </form>
+    {% endif %}
   </section>
 </div>
 
