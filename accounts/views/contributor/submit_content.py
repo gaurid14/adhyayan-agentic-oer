@@ -30,7 +30,7 @@ from googleapiclient.http import (
 
 from accounts.models import (
     Chapter, UploadCheck, Assessment,
-    Question, Option, Course, User, ExternalResource, ChapterContributionProgress, ChapterPolicy
+    Question, Option, Course, User, ExternalResource, ChapterContributionProgress, ChapterPolicy, AssessmentSource
 )
 from accounts.views.email.email_service import ContributionSuccessEmail
 
@@ -944,15 +944,22 @@ def generate_assessment(request):
         return JsonResponse({"error": "Invalid method"}, status=405)
 
     try:
-        # -------------------------------------------------
-        # Basic validation
-        # -------------------------------------------------
+        # =====================================================
+        # 1. BASIC VALIDATION
+        # =====================================================
         course_id = request.POST.get("course_id")
         chapter_id = request.POST.get("chapter_id")
         topic_name = request.POST.get("topic")
 
+        difficulty = request.POST.get("difficulty", "Medium")
+        question_count = int(request.POST.get("question_count", 10))
+        custom_prompt = request.POST.get("custom_prompt", "").strip()
+
         if not all([course_id, chapter_id, topic_name]):
-            return JsonResponse({"error": "Missing required fields"}, status=400)
+            return JsonResponse(
+                {"error": "Missing required fields"},
+                status=400
+            )
 
         contributor_id = request.session.get("contributor_id")
         if not contributor_id:
@@ -962,20 +969,52 @@ def generate_assessment(request):
             )
 
         selected_file_ids = request.POST.getlist("selected_files")
+
         if not selected_file_ids:
             return JsonResponse(
                 {"error": "No PDF files selected."},
                 status=400
             )
 
-        # -------------------------------------------------
-        # Drive service
-        # -------------------------------------------------
-        service = GoogleDriveAuthService.get_service()
+        # =====================================================
+        # 2. PREVENT PDF REUSE
+        # =====================================================
+        already_used = AssessmentSource.objects.filter(
+            assessment__contributor_id=contributor_id,
+            drive_file_id__in=selected_file_ids
+        ).values_list("drive_file_id", flat=True)
 
-        # -------------------------------------------------
-        # Read selected PDFs
-        # -------------------------------------------------
+        if already_used:
+            service = GoogleDriveAuthService.get_service()
+
+            used_ids = AssessmentSource.objects.filter(
+                assessment__contributor_id=contributor_id,
+                drive_file_id__in=selected_file_ids
+            ).values_list("drive_file_id", flat=True)
+
+            used_files = []
+
+            for fid in used_ids:
+                try:
+                    meta = service.files().get(
+                        fileId=fid,
+                        fields="name"
+                    ).execute()
+
+                    used_files.append(meta.get("name", "Unknown File"))
+
+                except Exception:
+                    used_files.append("Unknown File")
+
+            return JsonResponse({
+                "error": "Some selected PDFs were already used: "
+                         + ", ".join(used_files)
+            }, status=400)
+
+        # =====================================================
+        # 3. GOOGLE DRIVE DOWNLOAD
+        # =====================================================
+        service = GoogleDriveAuthService.get_service()
         pdf_texts = []
 
         for file_id in selected_file_ids:
@@ -998,39 +1037,65 @@ def generate_assessment(request):
                     page.extract_text() or ""
                     for page in reader.pages
                 )
+
                 if text.strip():
                     pdf_texts.append(text)
+
             except Exception as e:
                 print(f"[WARN] Skipping PDF {file_id}: {e}")
 
         if not pdf_texts:
             return JsonResponse(
-                {"error": "No readable text found in selected PDFs."},
+                {"error": "No readable text found."},
                 status=400
             )
 
         combined_text = "\n".join(pdf_texts)[:15000]
 
-        # -------------------------------------------------
-        # Gemini Prompt
-        # -------------------------------------------------
+        # =====================================================
+        # 4. FETCH EXISTING QUESTIONS (UNIQUENESS)
+        # =====================================================
+        existing_questions = Question.objects.filter(
+            assessment__contributor_id=contributor_id
+        ).values_list("text", flat=True)[:200]
+
+        existing_questions_text = "\n".join(existing_questions)
+
+        # =====================================================
+        # 5. GEMINI PROMPT
+        # =====================================================
         prompt = f"""
-You are an educational content generator.
-Based on the following content, create 10 multiple-choice questions (from easy to hard).
-Each question must have 4 options and exactly one correct option index.
+You are an expert educational assessment generator.
 
-Topic: {topic_name}
+Generate {question_count} UNIQUE multiple-choice questions.
 
-Content:
+STRICT RULES:
+- Difficulty Level: {difficulty}
+- Topic: {topic_name}
+- Questions must NOT repeat or paraphrase previous ones.
+- Focus on conceptual understanding.
+- Exactly 4 options.
+- Only ONE correct option.
+- Return ONLY valid JSON.
+
+Additional Instructions:
+{custom_prompt}
+
+Previously generated questions
+(Do NOT repeat or rephrase):
+
+{existing_questions_text}
+
+Content Source:
 {combined_text}
 
-Return valid JSON like this:
+Return JSON:
 {{
-  "questions": [
+  "questions":[
     {{
-      "text": "What is ...?",
-      "options": ["A", "B", "C", "D"],
-      "correct_option": 1
+      "text":"...",
+      "options":["A","B","C","D"],
+      "correct_option":1
     }}
   ]
 }}
@@ -1049,17 +1114,14 @@ Return valid JSON like this:
         try:
             result = json.loads(cleaned_text)
         except json.JSONDecodeError:
-            return JsonResponse(
-                {
-                    "error": "Gemini returned invalid JSON",
-                    "raw": cleaned_text
-                },
-                status=500
-            )
+            return JsonResponse({
+                "error": "Gemini returned invalid JSON",
+                "raw": cleaned_text
+            }, status=500)
 
-        # -------------------------------------------------
-        # Save Assessment
-        # -------------------------------------------------
+        # =====================================================
+        # 6. CREATE ASSESSMENT
+        # =====================================================
         contributor = User.objects.get(id=contributor_id)
         course = Course.objects.get(id=course_id)
         chapter = Chapter.objects.get(id=chapter_id)
@@ -1067,15 +1129,72 @@ Return valid JSON like this:
         assessment = Assessment.objects.create(
             course=course,
             chapter=chapter,
-            contributor_id=contributor
+            contributor_id=contributor,
+            topic=topic_name
         )
 
+        # =====================================================
+        # 7. SAVE USED PDF SOURCES (WITH REAL FILENAMES)
+        # =====================================================
+
+        file_metadata_map = {}
+
+        # Fetch filenames from Google Drive
+        for file_id in selected_file_ids:
+            try:
+                meta = service.files().get(
+                    fileId=file_id,
+                    fields="id,name"
+                ).execute()
+
+                file_metadata_map[file_id] = meta.get(
+                    "name",
+                    "Unknown File"
+                )
+
+            except Exception as e:
+                print(f"[WARN] Could not fetch name for {file_id}: {e}")
+                file_metadata_map[file_id] = "Unknown File"
+
+
+        # Save sources
+        for file_id in selected_file_ids:
+            AssessmentSource.objects.create(
+                assessment=assessment,
+                drive_file_id=file_id,
+                file_name=file_metadata_map.get(
+                    file_id,
+                    "Unknown File"
+                )
+            )
+        # =====================================================
+        # 8. HARD DUPLICATE PROTECTION
+        # =====================================================
+        existing_set = set(
+            Question.objects.filter(
+                assessment__contributor_id=contributor_id
+            ).values_list("text", flat=True)
+        )
+
+        saved_count = 0
+
         for q_data in result.get("questions", []):
+
+            q_text = q_data.get("text", "").strip()
+
+            if not q_text or q_text in existing_set:
+                continue
+
             question = Question.objects.create(
                 assessment=assessment,
-                text=q_data.get("text", ""),
-                correct_option=q_data.get("correct_option", 0)
+                text=q_text,
+                correct_option=q_data.get(
+                    "correct_option", 0
+                )
             )
+
+            existing_set.add(q_text)
+            saved_count += 1
 
             for opt in q_data.get("options", []):
                 Option.objects.create(
@@ -1083,10 +1202,25 @@ Return valid JSON like this:
                     text=opt
                 )
 
-        return redirect(
-            "generated_assessment_form",
-            assessment_id=assessment.id
-        )
+        if saved_count == 0:
+            assessment.delete()
+            return JsonResponse({
+                "error":
+                    "All generated questions were duplicates."
+            }, status=400)
+
+        # =====================================================
+        # 9. REDIRECT
+        # =====================================================
+        from django.urls import reverse
+
+        return JsonResponse({
+            "success": True,
+            "redirect_url": reverse(
+                "generated_assessment_form",
+                args=[assessment.id]
+            )
+        })
 
     except Exception as e:
         print("[ERROR] Assessment generation failed:", e)

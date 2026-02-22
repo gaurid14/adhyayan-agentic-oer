@@ -1101,9 +1101,116 @@
         .generate-btn i{
             opacity:0.9;
         }
+
+        /* ===== PDF SELECT ===== */
+
+        .pdf-list{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+
+        .pdf-select-row{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+
+            padding:14px 16px;
+            border:1px solid #e5e7eb;
+            border-radius:10px;
+
+            cursor:pointer;
+            transition:all .25s ease;
+            background:#fff;
+        }
+
+        .pdf-select-row:hover{
+            border-color:#1EAE98;
+            background:#f8fafc;
+        }
+
+        /* LEFT SIDE */
+        .pdf-left{
+            display:flex;
+            align-items:center;
+            gap:12px;
+        }
+
+        .pdf-icon{
+            color:#ef4444;
+            font-size:18px;
+        }
+
+        /* RIGHT CHECK */
+        .selected-icon{
+            color:#1EAE98;
+            font-size:18px;
+            opacity:0;
+            transition:.2s;
+        }
+
+        /* SELECTED STATE */
+        .pdf-select-row.selected{
+            border-color:#1EAE98;
+            background:#ecfdf5;
+        }
+
+        .pdf-select-row.selected .selected-icon{
+            opacity:1;
+        }
+
+        .pdf-label{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            width:100%;
+            cursor:pointer;
+        }
+
+        .file-checkbox{
+            accent-color:#1EAE98;
+            transform:scale(1.1);
+        }
+
+        .assessment-alert{
+            display:flex;
+            align-items:center;
+            gap:10px;
+
+            padding:14px 16px;
+            margin-bottom:15px;
+
+            border-radius:10px;
+            font-size:14px;
+        }
+
+        /* ERROR */
+        .assessment-alert.error{
+            background:#fef2f2;
+            border:1px solid #fecaca;
+            color:#991b1b;
+        }
+
+        /* SUCCESS */
+        .assessment-alert.success{
+            background:#ecfdf5;
+            border:1px solid #bbf7d0;
+            color:#065f46;
+        }
     </style>
 </head>
+<script>
+    window.addEventListener("pageshow", function (event) {
 
+        // true when page restored from back/forward cache
+        if (event.persisted ||
+            performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+
+            window.location.reload();
+        }
+
+    });
+</script>
 <body>
 <section class="dashboard-layout">
 
@@ -1326,8 +1433,8 @@
                 <section class="card editor-card">
                     <h2 class="card-title">Your Existing Files</h2>
 
-                    <form id="assessmentForm" method="POST" action="{% url 'generate_assessment' %}">
-                        {% csrf_token %}
+<!--                    <form id="assessmentForm" method="POST" action="{% url 'generate_assessment' %}">-->
+<!--                        {% csrf_token %}-->
                         <div class="files-scroll-container">
                             <input type="hidden" name="course_id" value="{{ course.id }}">
                             <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
@@ -1430,7 +1537,7 @@
 <!--                        </div>-->
 <!--                        {% endif %}-->
 
-                    </form>
+<!--                    </form>-->
                 </section>
 
                 <section class="card upload-card upload-section">
@@ -1477,12 +1584,13 @@
                 <!-- ================= LEFT WORKSPACE ================= -->
                 <div class="assessment-primary">
 
-                    <form method="POST" action="{% url 'generate_assessment' %}">
+                    <form id="generateAssessmentForm" method="POST" action="{% url 'generate_assessment' %}">
                         {% csrf_token %}
 
                         <input type="hidden" name="course_id" value="{{ course.id }}">
                         <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
                         <input type="hidden" name="topic" value="{{ topic }}">
+
 
                         <!-- ===== SELECT PDFs ===== -->
                         <section class="card">
@@ -1493,32 +1601,34 @@
 
                             <!-- ================= PDFs ================= -->
                             <h3 style="margin-bottom:10px;">PDFs</h3>
-                            <ul class="file-group">
+                            <ul class="pdf-list">
+
                                 {% for file in files %}
                                 {% if file.type == 'pdf' %}
-                                <li style="display:flex; align-items:center; gap:10px;">
-                                    <!--                                    <input-->
-                                    <!--                                            type="checkbox"-->
-                                    <!--                                            name="selected_files"-->
-                                    <!--                                            value="{{ file.id }}"-->
-                                    <!--                                            class="file-checkbox"-->
-                                    <!--                                            placeholder="Nothing to show yet"-->
-                                    <!--                                    >-->
-                                    <a href="https://drive.google.com/uc?export=download&id={{ file.id }}"
-                                       target="_blank">
-                                        {{ file.name }}
-                                    </a>
-                                    <button type="button"
-                                            class="delete-icon-btn"
-                                            title="Delete file"
-                                            data-fileid="{{ file.id }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+
+                                <li class="pdf-select-row">
+
+                                    <label class="pdf-label">
+
+                                        <input
+                                                type="checkbox"
+                                                name="selected_files"
+                                                value="{{ file.id }}"
+                                                class="file-checkbox"
+                                        >
+
+                                        <div class="pdf-left">
+                                            <i class="fas fa-file-pdf pdf-icon"></i>
+                                            <span>{{ file.name }}</span>
+                                        </div>
+
+                                    </label>
+
                                 </li>
+
                                 {% endif %}
-                                {% empty %}
-                                <li>No PDFs uploaded yet.</li>
                                 {% endfor %}
+
                             </ul>
 
                 <!--                        &lt;!&ndash; ================= Generate Button ================= &ndash;&gt;-->
@@ -1556,11 +1666,9 @@
 
                             <div class="assessment-config-grid">
 
-                                <textarea
-                                        name="custom_prompt"
-                                        class="assessment-textarea"
-                                        placeholder="Optional instruction (e.g. conceptual + scenario based questions)">
-                                </textarea>
+                                <textarea name="custom_prompt"
+                                          class="assessment-textarea"
+                                          placeholder="Optional instruction"></textarea>
 
                                 <div style="display:flex;gap:20px;align-items:center;">
 
@@ -1591,6 +1699,18 @@
 
                         <!-- ===== GENERATE ===== -->
                         <section class="card generate-card" style="text-align:right;">
+                            {% if messages %}
+                            <div style="margin-bottom:20px;">
+                                {% for message in messages %}
+
+                                <div class="assessment-alert {{ message.tags }}">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    {{ message }}
+                                </div>
+
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             <button class="generate-btn">
                                 <i class="fas fa-bolt"></i>
                                 Generate Assessment
@@ -1944,6 +2064,21 @@
         loadResources();
 
 
+        document.querySelectorAll(".file-checkbox")
+            .forEach(cb => {
+
+                cb.addEventListener("change", function(){
+
+                    const row = this.closest(".pdf-select-row");
+
+                    if(this.checked)
+                        row.classList.add("selected");
+                    else
+                        row.classList.remove("selected");
+                });
+
+            });
+
     }); // End DOMContentLoaded
 
     document.querySelectorAll('.load-file').forEach(link => {
@@ -2088,6 +2223,70 @@ if (topicCheckBtn) {
 
     });
 }
+</script>
+<script>
+
+    function showAssessmentMessage(message, type="error") {
+
+    const container =
+        document.querySelector(".generate-card");
+
+    const old =
+        container.querySelector(".dynamic-alert");
+
+    if(old) old.remove();
+
+    const div = document.createElement("div");
+    div.className =
+        `assessment-alert ${type} dynamic-alert`;
+
+    div.innerHTML = `
+        <i class="fas fa-exclamation-triangle"></i>
+        ${message}
+    `;
+
+    container.prepend(div);
+}
+    document
+    .getElementById("generateAssessmentForm")
+    .addEventListener("submit", async function(e){
+
+        e.preventDefault(); // ✅ STOP PAGE REDIRECT
+
+        const form = this;
+        const formData = new FormData(form);
+
+        try {
+
+            const response = await fetch(form.action,{
+                method:"POST",
+                headers:{
+                    "X-CSRFToken":"{{ csrf_token }}"
+                },
+                body:formData
+            });
+
+            const data = await response.json();
+
+            // ✅ ERROR CASE
+            if(!response.ok){
+                showAssessmentMessage(
+                    data.error || "Something went wrong"
+                );
+                return;
+            }
+
+            // ✅ SUCCESS CASE
+            if(data.redirect_url){
+                window.location.href = data.redirect_url;
+            }
+
+        }
+        catch(err){
+            console.error(err);
+        }
+
+    });
 </script>
 </body>
 </html>
