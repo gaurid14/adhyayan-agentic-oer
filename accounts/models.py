@@ -372,6 +372,15 @@ class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')
     text = models.CharField(max_length=255)
 
+class AssessmentSource(models.Model):
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE
+    )
+    drive_file_id = models.CharField(max_length=255)
+    file_name = models.CharField(max_length=255)
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
 # ---------- Forum Models --------------------------------------------------------------------------------------
 

@@ -2047,69 +2047,69 @@
 
     async function createStickyNote(){
 
-    const formData = new FormData();
-    formData.append("title","");
-    formData.append("content","");
+        const formData = new FormData();
+        formData.append("title","");
+        formData.append("content","");
 
-    try{
+        try{
 
-        const res = await fetch(ADD_NOTE_URL,{
-            method:"POST",
-            body:formData
-        });
+            const res = await fetch(ADD_NOTE_URL,{
+                method:"POST",
+                body:formData
+            });
 
-        const data = await res.json();
+            const data = await res.json();
 
-        if(data.success){
+            if(data.success){
 
-            insertNewSticky(data.id);
+                insertNewSticky(data.id);
 
+            }
+
+        }catch(err){
+            console.error(err);
+        }
+    }
+
+    function insertNewSticky(noteId){
+
+        const grid = document.getElementById("notesList");
+
+        const emptyMsg = document.getElementById("emptyNotesMessage");
+        if(emptyMsg){
+            emptyMsg.remove();
         }
 
-    }catch(err){
-        console.error(err);
+        const colors = ["yellow","blue","green","pink"];
+        const color = colors[Math.floor(Math.random()*colors.length)];
+
+        const note = document.createElement("div");
+
+        note.className = `note-card ${color}`;
+        note.setAttribute("data-note-id", noteId);
+
+        note.innerHTML = `
+            <div class="note-toolbar">
+                <button onclick="deleteNote('${noteId}')">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+
+            <div class="note-editable"
+                 contenteditable="true"
+                 data-note-id="${noteId}">
+            </div>
+        `;
+
+        grid.prepend(note);
+
+        // ✅ auto focus typing
+        const editable = note.querySelector(".note-editable");
+
+        setTimeout(()=>{
+            editable.focus();
+        },50);
     }
-}
-
-function insertNewSticky(noteId){
-
-    const grid = document.getElementById("notesList");
-
-    const emptyMsg = document.getElementById("emptyNotesMessage");
-    if(emptyMsg){
-        emptyMsg.remove();
-    }
-
-    const colors = ["yellow","blue","green","pink"];
-    const color = colors[Math.floor(Math.random()*colors.length)];
-
-    const note = document.createElement("div");
-
-    note.className = `note-card ${color}`;
-    note.setAttribute("data-note-id", noteId);
-
-    note.innerHTML = `
-        <div class="note-toolbar">
-            <button onclick="deleteNote('${noteId}')">
-                <i class="fa fa-trash"></i>
-            </button>
-        </div>
-
-        <div class="note-editable"
-             contenteditable="true"
-             data-note-id="${noteId}">
-        </div>
-    `;
-
-    grid.prepend(note);
-
-    // ✅ auto focus typing
-    const editable = note.querySelector(".note-editable");
-
-    setTimeout(()=>{
-        editable.focus();
-    },50);
-}
 
 
     /* ============================
@@ -2118,62 +2118,62 @@ function insertNewSticky(noteId){
 
     async function deleteNote(id){
 
-    if(!confirm("Delete this note?")) return;
+        if(!confirm("Delete this note?")) return;
 
-    try{
+        try{
 
-        await fetch(
-            `/dashboard/contributor/notes/delete/${id}/`,
-            {
-                method:"POST"
-            }
-        );
+            await fetch(
+                `/dashboard/contributor/notes/delete/${id}/`,
+                {
+                    method:"POST"
+                }
+            );
 
-        removeStickyFromUI(id);
+            removeStickyFromUI(id);
 
-    }catch(err){
-        console.error("Delete failed", err);
+        }catch(err){
+            console.error("Delete failed", err);
+        }
     }
-}
 
-function checkEmptyNotesState(){
+    function checkEmptyNotesState(){
 
-    const grid = document.getElementById("notesList");
+        const grid = document.getElementById("notesList");
 
-    const remainingNotes =
-        grid.querySelectorAll(".note-card");
+        const remainingNotes =
+            grid.querySelectorAll(".note-card");
 
-    if(remainingNotes.length === 0){
+        if(remainingNotes.length === 0){
 
-        const empty = document.createElement("div");
+            const empty = document.createElement("div");
 
-        empty.id = "emptyNotesMessage";
-        empty.className = "muted";
-        empty.innerText = "Create your first note ✨";
+            empty.id = "emptyNotesMessage";
+            empty.className = "muted";
+            empty.innerText = "Create your first note ✨";
 
-        grid.appendChild(empty);
+            grid.appendChild(empty);
+        }
     }
-}
     function removeStickyFromUI(id){
 
-    const note = document.querySelector(
-        `.note-card[data-note-id="${id}"]`
-    );
+        const note = document.querySelector(
+            `.note-card[data-note-id="${id}"]`
+        );
 
-    if(!note) return;
+        if(!note) return;
 
-    note.style.transition = "0.25s ease";
-    note.style.transform = "scale(0.8)";
-    note.style.opacity = "0";
+        note.style.transition = "0.25s ease";
+        note.style.transform = "scale(0.8)";
+        note.style.opacity = "0";
 
-    setTimeout(()=>{
+        setTimeout(()=>{
 
-        note.remove();
+            note.remove();
 
-        checkEmptyNotesState();   // ⭐ IMPORTANT
+            checkEmptyNotesState();   // ⭐ IMPORTANT
 
-    },250);
-}
+        },250);
+    }
 
 </script>
 <script src="{% static 'accounts/sidebar-drawer.js' %}"></script>

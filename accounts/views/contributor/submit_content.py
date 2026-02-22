@@ -58,8 +58,22 @@ from accounts.models import ContentCheck
 # ✅ ALWAYS point to project root (folder that has manage.py)
 PROJECT_ROOT = str(settings.BASE_DIR)
 
-# ✅ MCP server path from project root
+# MCP server path from project root
 MCP_PATH = os.path.join(PROJECT_ROOT, "langgraph_agents", "services", "mcp_server.py")
+
+def get_chapter_storage_usage(service, folder_id):
+
+    total_size = 0
+
+    results = service.files().list(
+        q=f"'{folder_id}' in parents and trashed=false",
+        fields="files(size)"
+    ).execute()
+
+    for f in results.get("files", []):
+        total_size += int(f.get("size", 0))
+
+    return total_size
 
 
 class ContributorSessionService:
@@ -538,7 +552,16 @@ def upload_files(request):
 
     files = request.FILES.getlist("supporting_files")
 
+    MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB
+
     for uploaded_file in files:
+        if uploaded_file.size > MAX_FILE_SIZE:
+            messages.error(
+                request,
+                f"{uploaded_file.name} exceeds 20MB limit"
+            )
+            continue
+
         # READ FILE CONTENT SAFELY
         file_bytes = uploaded_file.read()
         uploaded_file.seek(0)  # reset pointer (important)
@@ -704,6 +727,17 @@ def contributor_editor(request):
                     raise Exception("PDF generation failed")
 
                 pdf_io.seek(0)
+
+                MAX_EDITOR_SIZE = 40 * 1024 * 1024  # 40MB
+
+                pdf_size = len(pdf_io.getvalue())
+
+                if pdf_size > MAX_EDITOR_SIZE:
+                    messages.error(
+                        request,
+                        "Generated PDF exceeds 40MB limit."
+                    )
+                    return redirect(request.path)
 
                 media = MediaIoBaseUpload(
                     pdf_io,
@@ -1202,3 +1236,8 @@ def auto_submit_expired_deadlines():
 
             progress.auto_submitted = True
             progress.save()
+
+def check_topic_quality():
+    print("After submission view called")
+    # generate_expertise()
+    # Clear all session data safely

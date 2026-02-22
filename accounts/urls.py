@@ -6,7 +6,8 @@ from .views.contributor.contributor_dashboard import contributor_dashboard_view,
     contributor_profile, contributor_submissions, add_note, edit_note, delete_note, get_note
 from .views.contributor.submit_content import upload_files, load_file, contributor_editor, delete_drive_file, \
     confirm_submission, gemini_chat, contributor_upload_file, \
-    generate_assessment, after_submission, generated_assessment_form, list_resources, add_resource, delete_resource
+    generate_assessment, after_submission, generated_assessment_form, list_resources, add_resource, delete_resource, \
+    check_topic_quality
 from .views.home.home import about, contact
 from .views.home.subjects import subject_view, chapter_view
 
@@ -57,6 +58,7 @@ urlpatterns = [
     path("student/courses/", student_courses, name="student_courses"),
     path("student/profile/", student_profile, name="student_profile"),
     path("forum/", forum_home, name="forum_home"),
+    path("check_content_quality/", check_topic_quality, name="check_topic_quality"),
     # path("logout/", logout_view, name="logout"),
     #path("dashboard/student/course/<int:course_id>/chapters/", chapter_topics, name="student_chapter_topics"),
  path(

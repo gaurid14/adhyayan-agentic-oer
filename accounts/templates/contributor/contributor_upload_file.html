@@ -668,7 +668,6 @@
         }
 
         .guidelines-toggle {
-          width: 100%;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -780,6 +779,93 @@
           background-color: #fff;
           align-items: center;
         }
+
+        .submission-banner{
+            display:flex;
+            align-items:center;
+            gap:10px;
+
+            margin:18px 0 28px 0;
+            padding:12px 16px;
+
+            background:#fffbeb;
+            border:1px solid #fde68a;
+            border-left:5px solid #f59e0b;
+
+            border-radius:10px;
+
+            font-size:14px;
+            color:#92400e;
+        }
+
+        .submission-banner i{
+            color:#f59e0b;
+            font-size:16px;
+        }
+
+        .ai-chip{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+
+            padding:6px 12px;
+
+            font-size:13px;
+            font-weight:600;
+
+            color:#0f766e;
+            background:#ecfdf5;
+
+            border:1px solid #bbf7d0;
+            border-radius:999px;
+
+            cursor:pointer;
+            white-space:nowrap;
+
+            transition:all .2s ease;
+        }
+
+        .ai-chip:hover{
+            background:#d1fae5;
+        }
+
+        .ai-feedback{
+            display:none;
+            margin-top:16px;
+            padding:14px 16px;
+
+            background:#f8fafc;
+            border:1px solid #e5e7eb;
+            border-left:4px solid #1EAE98;
+
+            border-radius:10px;
+            font-size:14px;
+        }
+
+        .guidelines-header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+        }
+
+        /* IMPORTANT */
+        .guidelines-toggle{
+            min-width:0;   /* remove 100% */
+            flex:1;
+        }
+
+        .assessment-primary,
+        .assessment-secondary {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .assessment-secondary {
+            position: sticky;
+            top: 20px;
+        }
     </style>
 </head>
 
@@ -809,8 +895,22 @@
             </a>
         </div>
 
+        <div class="submission-banner">
+            <i class="fas fa-info-circle"></i>
+
+            <span>
+                After completing content or uploads,
+                return to
+                <a href="{% url 'contributor_submit_content_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}"
+                   class="topics-link">
+                    <b>Topics</b>
+                </a>
+                to confirm your submission.
+            </span>
+        </div>
+
         <!-- ===== Submission Context (Breadcrumb Style) ===== -->
-        <div class="submission-context">
+        <div class="submission-context submission-warning">
             <span class="context-label">Context</span>
 
             <div class="context-path">
@@ -838,6 +938,7 @@
         </span>
 
             </div>
+
         </div>
 
         {% if tab == "content" %}
@@ -847,14 +948,29 @@
             <div class="primary-column">
 
                 <section class="guidelines-card" style="margin-bottom:18px;">
-                    <button type="button" class="guidelines-toggle" id="guidelinesToggle">
-                        <div class="guidelines-title">
-                            <i class="fas fa-lightbulb"></i>
-                            Content Guidelines (Recommended)
-                        </div>
+                    <!-- HEADER ROW -->
+                    <div class="guidelines-header">
 
-                        <i class="fas fa-chevron-down arrow" id="guidelinesArrow"></i>
-                    </button>
+                        <!-- Toggle -->
+                        <button type="button"
+                                class="guidelines-toggle"
+                                id="guidelinesToggle">
+
+                            <div class="guidelines-title">
+                                <i class="fas fa-lightbulb"></i>
+                                Content Guidelines
+                            </div>
+
+                            <i class="fas fa-chevron-down arrow"
+                               id="guidelinesArrow"></i>
+                        </button>
+
+                        <button id="aiTopicCheckBtn" class="ai-chip">
+                            <i class="fas fa-robot"></i>
+                            AI Review
+                        </button>
+
+                    </div>
 
                     <div class="guidelines-body" id="guidelinesBody">
                         <div class="guideline-list">
@@ -900,6 +1016,8 @@
                             ✅ Your content will be evaluated on: relevance, completeness, clarity, coherence, and engagement.
                         </div>
                     </div>
+
+                    <div id="topicAiFeedback" class="ai-feedback"></div>
                 </section>
 
                 <section class="card editor-card">
@@ -981,18 +1099,18 @@
                             <input type="hidden" name="topic" value="{{ topic }}">
 
                             <!-- ================= PDFs ================= -->
-                            <h3 style="margin-bottom:10px;">PDFs (Select for Assessment)</h3>
+                            <h3 style="margin-bottom:10px;">PDFs</h3>
                             <ul class="file-group">
                                 {% for file in files %}
                                 {% if file.type == 'pdf' %}
                                 <li style="display:flex; align-items:center; gap:10px;">
-                                    <input
-                                            type="checkbox"
-                                            name="selected_files"
-                                            value="{{ file.id }}"
-                                            class="file-checkbox"
-                                            placeholder="Nothing to show yet"
-                                    >
+<!--                                    <input-->
+<!--                                            type="checkbox"-->
+<!--                                            name="selected_files"-->
+<!--                                            value="{{ file.id }}"-->
+<!--                                            class="file-checkbox"-->
+<!--                                            placeholder="Nothing to show yet"-->
+<!--                                    >-->
                                     <a href="https://drive.google.com/uc?export=download&id={{ file.id }}"
                                        target="_blank">
                                         {{ file.name }}
@@ -1053,29 +1171,29 @@
                                 {% endfor %}
                             </ul>
                         </div>
-                        <!-- ================= Generate Button ================= -->
-                        {% if has_pdfs %}
-                        <div id="selectionInfo"
-                             style="font-size:13px; color:#6b7280; margin-top:10px;">
-                            No PDFs selected
-                        </div>
+<!--                        &lt;!&ndash; ================= Generate Button ================= &ndash;&gt;-->
+<!--                        {% if has_pdfs %}-->
+<!--                        <div id="selectionInfo"-->
+<!--                             style="font-size:13px; color:#6b7280; margin-top:10px;">-->
+<!--                            No PDFs selected-->
+<!--                        </div>-->
 
-                        <div class="submit-button-container"
-                             style="margin-top:12px; display:flex; justify-content:flex-end;">
-                            <button type="submit"
-                                    class="btn btn-primary btn-sm"
-                                    onclick="return validateAssessmentSelection();">
-                                Generate Assessment
-                            </button>
-                        </div>
-                        {% else %}
-                        <div style="margin-top:25px; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px;
-                    color:#475569;
-                    font-size:14px;
-                    text-align:center;">
-                            📄 Upload PDF notes to generate an assessment.
-                        </div>
-                        {% endif %}
+<!--&lt;!&ndash;                        <div class="submit-button-container"&ndash;&gt;-->
+<!--&lt;!&ndash;                             style="margin-top:12px; display:flex; justify-content:flex-end;">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <button type="submit"&ndash;&gt;-->
+<!--&lt;!&ndash;                                    class="btn btn-primary btn-sm"&ndash;&gt;-->
+<!--&lt;!&ndash;                                    onclick="return validateAssessmentSelection();">&ndash;&gt;-->
+<!--&lt;!&ndash;                                Generate Assessment&ndash;&gt;-->
+<!--&lt;!&ndash;                            </button>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </div>&ndash;&gt;-->
+<!--                        {% else %}-->
+<!--                        <div style="margin-top:25px; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px;-->
+<!--                    color:#475569;-->
+<!--                    font-size:14px;-->
+<!--                    text-align:center;">-->
+<!--                            📄 Upload PDF notes to generate an assessment.-->
+<!--                        </div>-->
+<!--                        {% endif %}-->
 
                     </form>
                 </section>
@@ -1118,50 +1236,149 @@
             {% endif %}
 
             {% if tab == "assessments" %}
-            <section class="card editor-card">
-                <h2 class="card-title">Your Generated Assessments</h2>
 
-                {% if assessments %}
-                <ul style="display:flex; flex-direction:column; gap:15px;">
-                    {% for a in assessments %}
-                    <li style="
-                padding:15px;
-                border:1px solid #e5e7eb;
-                border-radius:10px;
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-            ">
-                        <div>
-                            <strong>Assessment #{{ a.id }}</strong>
-                            <div style="font-size:13px; color:#6b7280;">
-                                Chapter {{ a.chapter.chapter_number }} · {{ a.topic|default:"General" }}
+            <div style="max-width:900px;margin:auto;display:flex;flex-direction:column;gap:24px;">
+
+                <!-- ================= SELECT PDFs ================= -->
+                <section class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-file-pdf"></i>
+                        Select Source PDFs
+                    </h2>
+
+                    <form method="POST" action="{% url 'generate_assessment' %}">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
+                        <input type="hidden" name="topic" value="{{ topic }}">
+
+                        <div class="files-scroll-container">
+
+                            {% for pdf in assessment_pdfs %}
+                            <label style="
+display:flex;
+gap:10px;
+padding:10px;
+border:1px solid #e5e7eb;
+border-radius:8px;
+margin-bottom:8px;
+cursor:pointer;
+">
+
+                                <input type="checkbox"
+                                       name="selected_files"
+                                       value="{{ pdf.id }}">
+
+                                <span>{{ pdf.name }}</span>
+
+                            </label>
+                            {% empty %}
+                            <p style="color:#6b7280;">No PDFs uploaded yet.</p>
+                            {% endfor %}
+
+                        </div>
+
+                </section>
+
+
+                <!-- ================= AI CONFIG ================= -->
+                <section class="card">
+
+                    <h2 class="card-title">
+                        <i class="fas fa-robot"></i>
+                        AI Configuration
+                    </h2>
+
+                    <textarea
+                            name="custom_prompt"
+                            placeholder="Optional: Generate conceptual + scenario based questions"
+                            style="
+width:100%;
+min-height:90px;
+padding:12px;
+border:1px solid #d1d5db;
+border-radius:8px;">
+</textarea>
+
+                    <div style="margin-top:15px;">
+                        <label><strong>Difficulty</strong></label>
+
+                        <select name="difficulty" class="btn btn-secondary btn-sm">
+                            <option>Easy</option>
+                            <option selected>Medium</option>
+                            <option>Hard</option>
+                        </select>
+                    </div>
+
+                </section>
+
+
+                <!-- ================= GENERATE ================= -->
+                <section class="card" style="text-align:center;">
+
+                    <button class="btn btn-primary"
+                            style="padding:12px 30px;font-size:15px;">
+                        ⚡ Generate Assessment
+                    </button>
+
+                </section>
+
+                </form>
+
+
+                <!-- ================= EXISTING ================= -->
+                <section class="card">
+
+                    <h2 class="card-title">Generated Assessments</h2>
+
+                    {% if assessments %}
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+
+                        {% for a in assessments %}
+                        <div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:14px;
+border:1px solid #e5e7eb;
+border-radius:10px;
+">
+
+                            <div>
+                                <strong>Assessment #{{ a.id }}</strong>
+                                <div style="font-size:13px;color:#6b7280;">
+                                    {{ a.created_at|date:"M d, Y" }}
+                                </div>
                             </div>
-                        </div>
 
-                        <div style="display:flex; gap:10px;">
                             <a href="{% url 'generated_assessment_form' a.id %}"
-                               class="submit-button"
-                               style="padding:8px 14px; font-size:14px;">
-                                View
+                               class="btn btn-secondary btn-sm">
+                                Open
                             </a>
+
                         </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <div style="
-            padding:15px;
-            border:1px dashed #cbd5e1;
-            border-radius:8px;
-            text-align:center;
-            color:#64748b;
-        ">
-                    📝 No assessments created yet.
-                </div>
-                {% endif %}
-            </section>
+                        {% endfor %}
+
+                    </div>
+
+                    {% else %}
+                    <div style="
+padding:18px;
+border:1px dashed #cbd5e1;
+border-radius:8px;
+text-align:center;
+color:#64748b;">
+                        No assessments generated yet.
+                    </div>
+                    {% endif %}
+
+                </section>
+
+            </div>
+
             {% endif %}
+        </div>
     </main>
 </section>
 
@@ -1197,6 +1414,8 @@
 
 
 <script>
+    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
     document.addEventListener('DOMContentLoaded', function() {
         const body = document.body;
 
@@ -1256,6 +1475,12 @@
           Array.from(files).forEach(file => {
             const div = document.createElement('div');
             div.className = 'file-item';
+
+            if(file.size > MAX_FILE_SIZE){
+                alert(`${file.name} exceeds 20MB limit`);
+                fileInput.value = "";
+                return;
+            }
 
             div.innerHTML = `
               <span class="file-details">
@@ -1539,5 +1764,61 @@
 
 </script>
 
+<script>
+    const topicCheckBtn = document.getElementById("aiTopicCheckBtn");
+const topicFeedback = document.getElementById("topicAiFeedback");
+
+if (topicCheckBtn) {
+
+    topicCheckBtn.addEventListener("click", async () => {
+
+        topicFeedback.style.display = "block";
+        topicFeedback.innerHTML =
+            "🤖 Evaluating topic content...";
+
+        const editor = tinymce.get("editor");
+        const notes = editor ? editor.getContent() : "";
+
+        const files = Array.from(
+            document.querySelectorAll(".file-group a")
+        ).map(a => a.textContent.trim());
+
+        try {
+
+            const res = await fetch(
+                "{% url 'check_topic_quality' %}",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        topic: "{{ topic }}",
+                        notes: notes,
+                        files: files
+                    })
+                }
+            );
+
+            const data = await res.json();
+
+            topicFeedback.innerHTML = `
+                <strong>Topic Quality Feedback</strong>
+                <ul>
+                    ${data.suggestions
+                        .map(s => `<li>${s}</li>`)
+                        .join("")}
+                </ul>
+            `;
+
+        } catch (e) {
+            topicFeedback.innerHTML =
+                "❌ AI evaluation failed.";
+        }
+
+    });
+}
+</script>
 </body>
 </html>
