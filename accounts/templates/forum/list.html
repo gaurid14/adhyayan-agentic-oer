@@ -150,9 +150,10 @@
       </form>
 
       <div class="row g-3">
+        
         <!-- Left: main list -->
         <div class="col-lg-8">
-
+          {% include "forum/partials/guidelines_card.html" %}
           <!-- Ask box -->
           <div id="ask" class="card forum-card forum-ask mb-3">
             <div class="card-body">
@@ -173,7 +174,9 @@
                 {% if user.is_authenticated %}
                   <form method="post" action="{% url 'forum_ask' %}" class="mt-3">
                     {% csrf_token %}
-
+{% if q_form.errors %}
+  <input type="hidden" id="askFormHasErrors" value="1">
+{% endif %}
                     <div class="mb-2">
                       <label class="form-label mb-1">Title</label>
                       {{ q_form.title }}
@@ -196,12 +199,12 @@
                         {{ q_form.chapter }}
                       </div>
                     </div>
-
+<div class="small text-muted mt-1" id="draftStatus" aria-live="polite"></div>
                     <div class="d-flex justify-content-end gap-2 mt-3">
-                      <button class="btn btn-primary">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        Post
-                      </button>
+                      <div class="d-flex gap-2 mt-2">
+  <button class="btn btn-primary" type="submit">Post</button>
+  <button class="btn btn-outline-secondary" type="button" id="clearDraftBtn">Clear draft</button>
+</div>
                     </div>
                   </form>
                 {% else %}
