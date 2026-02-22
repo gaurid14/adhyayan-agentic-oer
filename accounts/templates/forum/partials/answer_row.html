@@ -2,14 +2,19 @@
      class="thread-row {% if level > 0 %}thread-child{% endif %}"
      style="--lvl:{{ level }}">
 
-  <div class="answer-item {% if level > 0 %}answer-item--reply{% endif %}">
-    <div class="answer-avatar" aria-hidden="true">
+  <div class="answer-item {% if level > 0 %}answer-item--reply{% endif %} {% if answer.author_id == question.author_id %}answer-item--op{% endif %}">
+    <div class="answer-avatar {% if answer.author_id == question.author_id %}answer-avatar--op{% endif %}" aria-hidden="true">
       {{ answer.author.username|slice:":1"|upper }}
     </div>
 
     <div class="answer-main">
       <div class="answer-meta">
         <span class="answer-author">{{ answer.author.username }}</span>
+
+        {% if answer.author_id == question.author_id %}
+          <span class="badge badge-author">Author</span>
+        {% endif %}
+
         <span class="dot">•</span>
         <span>{{ answer.created_at|date:"M d, Y H:i" }}</span>
         <span class="dot">•</span>

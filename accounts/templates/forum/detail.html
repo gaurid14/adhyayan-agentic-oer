@@ -88,20 +88,31 @@
 {% endif %}
           </div>
 
-          {% if user.is_authenticated %}
-  <form method="post" action="{% url 'forum_question_upvote' question.id %}" class="vote-form">
-    {% csrf_token %}
-    <button
-      class="vote-btn"
-      data-upvote-url="{% url 'forum_question_upvote' question.id %}"
-      type="submit"
-      title="Upvote"
-    >
-      <span class="vote-icon">▲</span>
-      <span class="vote-count" data-upvote-count>{{ question.upvote_count  }}</span>
-    </button>
-  </form>
+          <div class="d-flex align-items-start gap-2">
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'forum_question_upvote' question.id %}" class="vote-form">
+      {% csrf_token %}
+      <button
+        class="vote-btn"
+        data-upvote-url="{% url 'forum_question_upvote' question.id %}"
+        type="submit"
+        title="Upvote"
+      >
+        <span class="vote-icon">▲</span>
+        <span class="vote-count" data-upvote-count>{{ question.upvote_count }}</span>
+      </button>
+    </form>
+  {% endif %}
+
+ {% if user.is_authenticated %}
+  {% if user.id == question.author_id or user.is_staff %}
+    <div class="d-flex flex-column gap-2">
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'forum_question_edit' question.id %}">Edit</a>
+      <a class="btn btn-sm btn-outline-danger" href="{% url 'forum_question_delete' question.id %}">Delete</a>
+    </div>
+  {% endif %}
 {% endif %}
+</div>
 
         </div>
       </div>

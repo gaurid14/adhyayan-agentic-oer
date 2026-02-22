@@ -1,0 +1,87 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Edit Post • OER Forum</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/sidebar-drawer.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/forum.css' %}">
+</head>
+
+<body class="forum-body">
+  <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu"
+    aria-controls="sidebar" aria-expanded="false">☰ Menu</button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
+    {% include "contributor/sidebar.html" %}
+  {% else %}
+    {% include "student/sidebar.html" %}
+  {% endif %}
+
+  <main class="main">
+    <div class="card forum-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+          <div>
+            <h4 class="mb-0">Edit your post</h4>
+            <div class="meta">Update your title/content. If it violates guidelines, it may go to Pending Review.</div>
+          </div>
+
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_detail' question.id %}">
+            Back
+          </a>
+        </div>
+
+        {% if messages %}
+          <div class="mt-3">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" class="mt-3">
+          {% csrf_token %}
+
+          <div class="mb-2">
+            <label class="form-label">Title</label>
+            {{ form.title }}
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">Content</label>
+            {{ form.content }}
+          </div>
+
+          <div class="row g-2 mt-2">
+            <div class="col-md-6">
+              <label class="form-label">Course</label>
+              {{ form.course }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Chapter (optional)</label>
+              {{ form.chapter }}
+            </div>
+          </div>
+
+          <div class="mt-2">
+            <label class="form-label">Topics (optional)</label>
+            {{ form.topics }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-primary" type="submit">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'accounts/sidebar-drawer.js' %}"></script>
+  <script src="{% static 'accounts/forum.js' %}"></script>
+</body>
+</html>

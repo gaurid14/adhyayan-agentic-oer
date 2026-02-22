@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
-
+from django.views.decorators.http import require_POST, require_http_methods
 from ..models import (
     Chapter, Course, ForumQuestion, ForumAnswer, ForumTopic,
     DmThread, DmMessage, User
@@ -21,6 +21,19 @@ from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
 
 from accounts.moderation_perspective import moderate_text, apply_decision_to_instance
 
+def _clean_int_param(v):
+    """
+    Convert GET params like "", None, "None", "null" into real None.
+    Return int for valid digits, else None.
+    """
+    if v is None:
+        return None
+    v = str(v).strip()
+    if not v or v.lower() in {"none", "null", "undefined"}:
+        return None
+    if v.isdigit():
+        return int(v)
+    return None
 
 def _clean_forum_text(text: str, max_len: int = 10000) -> str:
     text = (text or "").strip()
@@ -43,11 +56,13 @@ def _apply_question_visibility(request, qs):
 
 def forum_home(request):
     q = request.GET.get("q", "").strip()
-    topic_id = request.GET.get("topic")
     sort = request.GET.get("sort", "new").strip()
     page = request.GET.get("page", 1)
-    course_id = request.GET.get("course")
-    chapter_id = request.GET.get("chapter")
+
+    # ✅ sanitize params so "None" never breaks filters
+    topic_id = _clean_int_param(request.GET.get("topic"))
+    course_id = _clean_int_param(request.GET.get("course"))
+    chapter_id = _clean_int_param(request.GET.get("chapter"))
 
     base_qs = (
         ForumQuestion.objects
@@ -55,7 +70,11 @@ def forum_home(request):
         .prefetch_related("topics")
         .annotate(
             upvote_count=Count("upvotes", distinct=True),
-            top_answer_count=Count("answers", filter=Q(answers__parent__isnull=True), distinct=True),
+            top_answer_count=Count(
+                "answers",
+                filter=Q(answers__parent__isnull=True),
+                distinct=True
+            ),
         )
     )
 
@@ -66,11 +85,14 @@ def forum_home(request):
 
     if q:
         questions = questions.filter(Q(title__icontains=q) | Q(content__icontains=q))
-    if topic_id:
+
+    if topic_id is not None:
         questions = questions.filter(topics__id=topic_id).distinct()
-    if course_id:
+
+    if course_id is not None:
         questions = questions.filter(course_id=course_id)
-    if chapter_id:
+
+    if chapter_id is not None:
         questions = questions.filter(chapter_id=chapter_id)
 
     if sort == "upvotes":
@@ -118,14 +140,14 @@ def forum_home(request):
 
     courses = Course.objects.all().order_by("course_name", "course_code")
     chapters = Chapter.objects.none()
-    if course_id:
+    if course_id is not None:
         chapters = Chapter.objects.filter(course_id=course_id).order_by("chapter_number", "chapter_name")
 
     context = {
         "questions": page_obj.object_list,
         "page_obj": page_obj,
         "topics": topics,
-        "selected_topic": int(topic_id) if topic_id else None,
+        "selected_topic": topic_id,
         "q": q,
         "sort": sort,
         "q_form": ForumQuestionForm(),
@@ -135,8 +157,8 @@ def forum_home(request):
         "top_users": top_users,
         "courses": courses,
         "chapters": chapters,
-        "selected_course": int(course_id) if course_id else None,
-        "selected_chapter": int(chapter_id) if chapter_id else None,
+        "selected_course": course_id,
+        "selected_chapter": chapter_id,
     }
     return render(request, "forum/list.html", context)
 
@@ -682,3 +704,71 @@ def dm_inbox_updates(request):
         })
 
     return JsonResponse({"ok": True, "threads": payload})
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def forum_question_edit(request, pk):
+    question = get_object_or_404(ForumQuestion, pk=pk)
+
+    # only author or staff
+    if not (request.user.is_staff or request.user.id == question.author_id):
+        messages.error(request, "You can only edit your own post.")
+        return redirect("forum_detail", pk=question.id)
+
+    if request.method == "POST":
+        form = ForumQuestionForm(request.POST, instance=question)
+        if form.is_valid():
+            title = (form.cleaned_data.get("title") or "").strip()
+            content = (form.cleaned_data.get("content") or "").strip()
+
+            decision, err = moderate_text(f"{title}\n\n{content}")
+
+            # If BLOCK: don't save
+            if decision and getattr(decision, "action", "") == "block":
+                messages.error(request, "This edit violates the forum guidelines. Please revise and try again.")
+                return render(request, "forum/edit_question.html", {"form": form, "question": question})
+
+            obj = form.save(commit=False)
+
+            # Apply moderation decision fields (toxicity, categories, etc.)
+            if decision:
+                apply_decision_to_instance(obj, decision, kind="question")
+
+            needs_review = bool(err) or (decision and getattr(decision, "action", "") in ("review", "hide"))
+
+            # Staff edits stay visible; non-staff can be sent to review
+            if needs_review and not request.user.is_staff:
+                obj.is_hidden = True
+                obj.moderation_status = "pending_review"
+            else:
+                obj.is_hidden = False
+                obj.moderation_status = "approved"
+
+            obj.save()
+            form.save_m2m()
+
+            messages.success(request, "Post updated.")
+            return redirect("forum_detail", pk=obj.id)
+    else:
+        form = ForumQuestionForm(instance=question)
+
+    return render(request, "forum/edit_question.html", {"form": form, "question": question})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def forum_question_delete(request, pk):
+    question = get_object_or_404(ForumQuestion, pk=pk)
+
+    # only author or staff
+    if not (request.user.is_staff or request.user.id == question.author_id):
+        messages.error(request, "You can only delete your own post.")
+        return redirect("forum_detail", pk=question.id)
+
+    if request.method == "POST":
+        question.delete()
+        messages.success(request, "Post deleted.")
+        return redirect("forum_home")
+
+    return render(request, "forum/confirm_delete_question.html", {"question": question})
+

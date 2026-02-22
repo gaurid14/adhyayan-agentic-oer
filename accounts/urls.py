@@ -15,6 +15,7 @@ from .views.forum import (
     forum_home, forum_detail, post_question, post_answer, post_reply,
     toggle_question_upvote, toggle_answer_upvote,
     forum_course_chapters,
+    forum_question_edit, forum_question_delete,
     dm_inbox, dm_thread, dm_thread_updates, dm_inbox_updates,
 )
 
@@ -94,7 +95,8 @@ urlpatterns = [
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
     path("forum/moderation/", forum_moderation_queue, name="forum_moderation_queue"),
     path("forum/moderation/action/", forum_moderation_action, name="forum_moderation_action"),
-    
+    path("forum/<int:pk>/edit/", forum_question_edit, name="forum_question_edit"),
+path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---

@@ -617,3 +617,19 @@
     width: 100%;
   }
 }
+/* Author badge + subtle highlight */
+.forum-detail .badge-author{
+  background: rgba(30, 174, 152, .14);
+  border: 1px solid rgba(30, 174, 152, .25);
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.forum-detail .answer-item--op{
+  border-color: rgba(30, 174, 152, .35);
+}
+
+.forum-detail .answer-avatar--op{
+  background: rgba(30, 174, 152, .22);
+  border-color: rgba(30, 174, 152, .35);
+}
