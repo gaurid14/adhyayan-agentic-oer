@@ -221,7 +221,11 @@
     margin-left: calc(clamp(0, var(--lvl), 8) * 16px);
     padding-left: 12px;
   }
-
+/* Highlight the answer/reply when opened via #a<ID> */
+.thread-row:target .answer-item{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(30, 174, 152, 0.18);
+}
   .thread-child::before{
     content:"";
     position:absolute;
