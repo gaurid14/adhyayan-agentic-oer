@@ -160,7 +160,11 @@
 
         .file-drop-zone .browse-btn {
 
-            display: inline-block; padding: 8px 15px; background-color: #1EAE98;
+            display: inline-block; padding: 8px 15px; background: linear-gradient(
+                135deg,
+                var(--brand),
+                #178d79
+            );
 
             color: white; border-radius: 6px; font-weight: 500; font-size: 14px;
 
@@ -587,6 +591,44 @@
           background: #178d79;
         }
 
+        /* ===== ADHYAYAN PRIMARY GRADIENT BUTTON ===== */
+        .btn-gradient {
+            background: linear-gradient(
+                135deg,
+                var(--brand),
+                #178d79
+            );
+
+            color: white;
+            border: none;
+
+            padding: 12px 22px;
+            border-radius: 10px;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            cursor: pointer;
+            transition: all .25s ease;
+        }
+
+        /* Hover */
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30,174,152,.35);
+        }
+
+        /* Click feel */
+        .btn-gradient:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(30,174,152,.25);
+        }
+
         .btn-secondary {
           background: #ffffff;
           color: var(--text-primary);
@@ -855,8 +897,17 @@
             flex:1;
         }
 
-        .assessment-primary,
-        .assessment-secondary {
+
+        /* ===== Assessment Workspace ===== */
+
+        .assessment-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .assessment-primary {
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -865,6 +916,190 @@
         .assessment-secondary {
             position: sticky;
             top: 20px;
+        }
+
+        .pdf-select-row{
+            display:flex;
+            gap:10px;
+            align-items:center;
+            padding:10px;
+            border:1px solid #e5e7eb;
+            border-radius:8px;
+            margin-bottom:8px;
+            cursor:pointer;
+            transition:all .2s;
+        }
+
+        .pdf-select-row:hover{
+            background:#f9fafb;
+        }
+
+        .assessment-item{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:14px;
+            border:1px solid #e5e7eb;
+            border-radius:10px;
+        }
+
+        .assessment-meta{
+            font-size:13px;
+            color:#6b7280;
+        }
+
+        .empty-state{
+            padding:18px;
+            border:1px dashed #cbd5e1;
+            border-radius:8px;
+            text-align:center;
+            color:#64748b;
+        }
+
+        .assessment-layout .card-title{
+            font-size:16px;
+            font-weight:600;
+            color:#111827;
+
+            margin-bottom:14px;
+            padding-bottom:8px;
+
+            border-bottom:1px solid #f1f5f9;
+        }
+
+        .assessment-layout .card-title i{
+            font-size:14px;
+            opacity:0.7;
+            margin-right:6px;
+        }
+
+        .assessment-layout .card-title{
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+
+        /* ===============================
+           ASSESSMENT TAB POLISH
+        =================================*/
+
+        /* workspace breathing */
+        .assessment-primary .card{
+            padding:22px 26px;
+        }
+
+        /* ---------- TITLE ICON COLORS ---------- */
+        .card-title i{
+            color:#1EAE98;
+        }
+
+        .card-title .fa-robot{
+            color:#6366f1;   /* AI purple */
+        }
+
+        .card-title .fa-file-pdf{
+            color:#ef4444;   /* PDF red */
+        }
+
+
+        /* ---------- PDF LIST ---------- */
+        .pdf-select-row{
+            background:#ffffff;
+            border:1px solid #e5e7eb;
+            border-radius:10px;
+            padding:12px 14px;
+            transition:all .25s ease;
+        }
+
+        .pdf-select-row:hover{
+            background:#f8fafc;
+            border-color:#1EAE98;
+        }
+
+        /* checkbox spacing */
+        .pdf-select-row input{
+            accent-color:#1EAE98;
+            transform:scale(1.1);
+        }
+
+
+        /* ---------- CONFIGURATION AREA ---------- */
+        .assessment-config-grid{
+            display:grid;
+            gap:18px;
+        }
+
+        /* FIX SELECT LOOK */
+        .assessment-select{
+            width:160px;
+            padding:8px 10px;
+
+            border:1px solid #d1d5db;
+            border-radius:8px;
+
+            background:#fff;
+            font-size:14px;
+
+            transition:.2s;
+        }
+
+        .assessment-select:focus{
+            outline:none;
+            border-color:#1EAE98;
+            box-shadow:0 0 0 2px #e6f8f7;
+        }
+
+
+        /* textarea polish */
+        .assessment-textarea{
+            border:1px solid #d1d5db;
+            border-radius:10px;
+            padding:12px;
+            resize:none;
+        }
+
+        .assessment-textarea:focus{
+            outline:none;
+            border-color:#1EAE98;
+        }
+
+
+        /* ---------- GENERATE BUTTON ---------- */
+        .generate-card{
+            background:#f8fafc;
+            border:1px dashed #cbd5e1;
+        }
+
+        .generate-btn{
+            background:linear-gradient(
+                135deg,
+                var(--brand),
+                #178d79
+            );
+
+            border:none;
+            color:white;
+
+            padding:14px 30px;
+            font-size:15px;
+            font-weight:600;
+
+            border-radius:10px;
+
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+
+            transition:all .25s ease;
+        }
+
+        .generate-btn:hover{
+            transform:translateY(-2px);
+            box-shadow:0 8px 20px rgba(30,174,152,.35);
+        }
+
+        .generate-btn i{
+            opacity:0.9;
         }
     </style>
 </head>
@@ -1039,7 +1274,7 @@
                             <button class="btn btn-secondary important" type="submit" name="action" value="draft">Save
                                 Draft
                             </button>
-                            <button class="btn btn-primary" type="submit" name="action" value="submitDraft">Submit as
+                            <button class="btn btn-gradient " type="submit" name="action" value="submitDraft">Submit as
                                 PDF
                             </button>
                         </div>
@@ -1074,7 +1309,7 @@
                                 <option value="other">Other</option>
                             </select>
 
-                            <button type="submit" class="btn btn-primary btn-sm">
+                            <button type="submit" class="btn btn-gradient  btn-sm">
                                 + Add Resource
                             </button>
                         </div>
@@ -1181,7 +1416,7 @@
 <!--&lt;!&ndash;                        <div class="submit-button-container"&ndash;&gt;-->
 <!--&lt;!&ndash;                             style="margin-top:12px; display:flex; justify-content:flex-end;">&ndash;&gt;-->
 <!--&lt;!&ndash;                            <button type="submit"&ndash;&gt;-->
-<!--&lt;!&ndash;                                    class="btn btn-primary btn-sm"&ndash;&gt;-->
+<!--&lt;!&ndash;                                    class="btn btn-gradient  btn-sm"&ndash;&gt;-->
 <!--&lt;!&ndash;                                    onclick="return validateAssessmentSelection();">&ndash;&gt;-->
 <!--&lt;!&ndash;                                Generate Assessment&ndash;&gt;-->
 <!--&lt;!&ndash;                            </button>&ndash;&gt;-->
@@ -1237,14 +1472,10 @@
 
             {% if tab == "assessments" %}
 
-            <div style="max-width:900px;margin:auto;display:flex;flex-direction:column;gap:24px;">
+            <div class="assessment-layout">
 
-                <!-- ================= SELECT PDFs ================= -->
-                <section class="card">
-                    <h2 class="card-title">
-                        <i class="fas fa-file-pdf"></i>
-                        Select Source PDFs
-                    </h2>
+                <!-- ================= LEFT WORKSPACE ================= -->
+                <div class="assessment-primary">
 
                     <form method="POST" action="{% url 'generate_assessment' %}">
                         {% csrf_token %}
@@ -1253,127 +1484,165 @@
                         <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
                         <input type="hidden" name="topic" value="{{ topic }}">
 
-                        <div class="files-scroll-container">
+                        <!-- ===== SELECT PDFs ===== -->
+                        <section class="card">
+                            <h2 class="card-title">
+                                <i class="fas fa-file-pdf"></i>
+                                Select Source Material
+                            </h2>
 
-                            {% for pdf in assessment_pdfs %}
-                            <label style="
-display:flex;
-gap:10px;
-padding:10px;
-border:1px solid #e5e7eb;
-border-radius:8px;
-margin-bottom:8px;
-cursor:pointer;
-">
+                            <!-- ================= PDFs ================= -->
+                            <h3 style="margin-bottom:10px;">PDFs</h3>
+                            <ul class="file-group">
+                                {% for file in files %}
+                                {% if file.type == 'pdf' %}
+                                <li style="display:flex; align-items:center; gap:10px;">
+                                    <!--                                    <input-->
+                                    <!--                                            type="checkbox"-->
+                                    <!--                                            name="selected_files"-->
+                                    <!--                                            value="{{ file.id }}"-->
+                                    <!--                                            class="file-checkbox"-->
+                                    <!--                                            placeholder="Nothing to show yet"-->
+                                    <!--                                    >-->
+                                    <a href="https://drive.google.com/uc?export=download&id={{ file.id }}"
+                                       target="_blank">
+                                        {{ file.name }}
+                                    </a>
+                                    <button type="button"
+                                            class="delete-icon-btn"
+                                            title="Delete file"
+                                            data-fileid="{{ file.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </li>
+                                {% endif %}
+                                {% empty %}
+                                <li>No PDFs uploaded yet.</li>
+                                {% endfor %}
+                            </ul>
 
-                                <input type="checkbox"
-                                       name="selected_files"
-                                       value="{{ pdf.id }}">
+                <!--                        &lt;!&ndash; ================= Generate Button ================= &ndash;&gt;-->
+                <!--                        {% if has_pdfs %}-->
+                <!--                        <div id="selectionInfo"-->
+                <!--                             style="font-size:13px; color:#6b7280; margin-top:10px;">-->
+                <!--                            No PDFs selected-->
+                <!--                        </div>-->
 
-                                <span>{{ pdf.name }}</span>
+                <!--&lt;!&ndash;                        <div class="submit-button-container"&ndash;&gt;-->
+                <!--&lt;!&ndash;                             style="margin-top:12px; display:flex; justify-content:flex-end;">&ndash;&gt;-->
+                <!--&lt;!&ndash;                            <button type="submit"&ndash;&gt;-->
+                <!--&lt;!&ndash;                                    class="btn btn-primary btn-sm"&ndash;&gt;-->
+                <!--&lt;!&ndash;                                    onclick="return validateAssessmentSelection();">&ndash;&gt;-->
+                <!--&lt;!&ndash;                                Generate Assessment&ndash;&gt;-->
+                <!--&lt;!&ndash;                            </button>&ndash;&gt;-->
+                <!--&lt;!&ndash;                        </div>&ndash;&gt;-->
+                <!--                        {% else %}-->
+                                        <div style="margin-top:25px; padding:15px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:8px;
+                                    color:#475569;
+                                    font-size:14px;
+                                    text-align:center;">
+                                            📄 Upload PDF notes to generate an assessment.
+                                        </div>
+                                        {% endif %}
+                        </section>
 
-                            </label>
-                            {% empty %}
-                            <p style="color:#6b7280;">No PDFs uploaded yet.</p>
+
+                        <!-- ===== AI SETTINGS ===== -->
+                        <section class="card">
+                            <h2 class="card-title">
+                                <i class="fas fa-robot"></i>
+                                Assessment Configuration
+                            </h2>
+
+                            <div class="assessment-config-grid">
+
+                                <textarea
+                                        name="custom_prompt"
+                                        class="assessment-textarea"
+                                        placeholder="Optional instruction (e.g. conceptual + scenario based questions)">
+                                </textarea>
+
+                                <div style="display:flex;gap:20px;align-items:center;">
+
+                                    <div>
+                                        <label><strong>Difficulty</strong></label><br>
+                                        <select name="difficulty" class="assessment-select">
+                                            <option>Easy</option>
+                                            <option selected>Medium</option>
+                                            <option>Hard</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label><strong>No. of Questions</strong></label><br>
+                                        <select name="question_count" class="assessment-select">
+                                            <option>5</option>
+                                            <option selected>10</option>
+                                            <option>15</option>
+                                            <option>20</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </section>
+
+
+                        <!-- ===== GENERATE ===== -->
+                        <section class="card generate-card" style="text-align:right;">
+                            <button class="generate-btn">
+                                <i class="fas fa-bolt"></i>
+                                Generate Assessment
+                            </button>
+                        </section>
+
+                    </form>
+
+                </div>
+
+
+                <!-- ================= RIGHT PANEL ================= -->
+                <div class="assessment-secondary">
+
+                    <section class="card">
+
+                        <h2 class="card-title">
+                            Generated Assessments
+                        </h2>
+
+                        {% if assessments %}
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+
+                            {% for a in assessments %}
+                            <div class="assessment-item">
+
+                                <div>
+                                    <strong>Assessment #{{ a.id }}</strong>
+                                    <div class="assessment-meta">
+                                        {{ a.created_at|date:"M d, Y" }}
+                                    </div>
+                                </div>
+
+                                <a href="{% url 'generated_assessment_form' a.id %}"
+                                   class="btn btn-secondary btn-sm">
+                                    Open
+                                </a>
+
+                            </div>
                             {% endfor %}
 
                         </div>
 
-                </section>
-
-
-                <!-- ================= AI CONFIG ================= -->
-                <section class="card">
-
-                    <h2 class="card-title">
-                        <i class="fas fa-robot"></i>
-                        AI Configuration
-                    </h2>
-
-                    <textarea
-                            name="custom_prompt"
-                            placeholder="Optional: Generate conceptual + scenario based questions"
-                            style="
-width:100%;
-min-height:90px;
-padding:12px;
-border:1px solid #d1d5db;
-border-radius:8px;">
-</textarea>
-
-                    <div style="margin-top:15px;">
-                        <label><strong>Difficulty</strong></label>
-
-                        <select name="difficulty" class="btn btn-secondary btn-sm">
-                            <option>Easy</option>
-                            <option selected>Medium</option>
-                            <option>Hard</option>
-                        </select>
-                    </div>
-
-                </section>
-
-
-                <!-- ================= GENERATE ================= -->
-                <section class="card" style="text-align:center;">
-
-                    <button class="btn btn-primary"
-                            style="padding:12px 30px;font-size:15px;">
-                        ⚡ Generate Assessment
-                    </button>
-
-                </section>
-
-                </form>
-
-
-                <!-- ================= EXISTING ================= -->
-                <section class="card">
-
-                    <h2 class="card-title">Generated Assessments</h2>
-
-                    {% if assessments %}
-                    <div style="display:flex;flex-direction:column;gap:12px;">
-
-                        {% for a in assessments %}
-                        <div style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:14px;
-border:1px solid #e5e7eb;
-border-radius:10px;
-">
-
-                            <div>
-                                <strong>Assessment #{{ a.id }}</strong>
-                                <div style="font-size:13px;color:#6b7280;">
-                                    {{ a.created_at|date:"M d, Y" }}
-                                </div>
-                            </div>
-
-                            <a href="{% url 'generated_assessment_form' a.id %}"
-                               class="btn btn-secondary btn-sm">
-                                Open
-                            </a>
-
+                        {% else %}
+                        <div class="empty-state">
+                            No assessments generated yet.
                         </div>
-                        {% endfor %}
+                        {% endif %}
 
-                    </div>
+                    </section>
 
-                    {% else %}
-                    <div style="
-padding:18px;
-border:1px dashed #cbd5e1;
-border-radius:8px;
-text-align:center;
-color:#64748b;">
-                        No assessments generated yet.
-                    </div>
-                    {% endif %}
-
-                </section>
+                </div>
 
             </div>
 

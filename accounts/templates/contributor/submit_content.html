@@ -90,8 +90,27 @@
         .action-button:hover { transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
 
         /* Specific styles for Upload button */
-        .upload-button { background-color: #1EAE98; border-color: #1EAE98; }
-        .upload-button:hover { background-color: #178D79; border-color: #178D79; }
+        .upload-button{
+            background: linear-gradient(
+                135deg,
+                var(--brand),
+                #199c87
+            );
+
+            border: none;
+            color: white;
+
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+
+            transition: all .25s ease;
+        }
+
+        .upload-button:hover{
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30,174,152,.25);
+        }
 
         /* --- MODIFIED: "View" button is now an outline button --- */
         .view-past-button {
@@ -134,28 +153,37 @@
             color: #555;
             font-size: 15px;
         }
-        .final-submit-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px; /* Rounded pill shape */
-            background-color: #1EAE98;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+        .final-submit-button{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+
+            padding:14px 34px;
+
+            border:none;
+            border-radius:999px;
+
+            background:linear-gradient(
+                135deg,
+                var(--brand),
+                #178d79
+            );
+
+            color:white;
+            font-size:16px;
+            font-weight:700;
+
+            cursor:pointer;
+            transition:all .25s ease;
+        }
+
+        .final-submit-button:hover{
+            transform:translateY(-2px);
+            box-shadow:0 10px 24px rgba(30,174,152,.35);
         }
          .final-submit-button i {
             margin-right: 8px;
          }
-        .final-submit-button:hover {
-            background-color:#178D79;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-        }
 
         /* --- MODAL STYLES START --- */
         .modal-overlay {
