@@ -17,6 +17,7 @@ from .views.forum import (
     forum_course_chapters,
     forum_question_edit, forum_question_delete,
     dm_inbox, dm_thread, dm_thread_updates, dm_inbox_updates,
+    report_create, block_user, unblock_user,blocked_users,unsuspend_user,suspended_users,
 )
 
 from accounts.views.student.student_dashboard import student_dashboard, enroll_course
@@ -26,7 +27,7 @@ from accounts.views.student.student_profile import student_profile
 # from accounts.views.auth.logout import logout_view
 from accounts.views.student.chapter_topics import chapter_topics
 from accounts.views.student.student_dashboard import student_dashboard, student_topic_view
-from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action
+from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action, forum_reportcase_action
 
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
@@ -95,8 +96,17 @@ urlpatterns = [
     path("forum/answer/<int:pk>/upvote/", toggle_answer_upvote, name="forum_answer_upvote"),
     path("forum/moderation/", forum_moderation_queue, name="forum_moderation_queue"),
     path("forum/moderation/action/", forum_moderation_action, name="forum_moderation_action"),
+    path("forum/moderation/reports/action/", forum_reportcase_action, name="forum_reportcase_action"),
     path("forum/<int:pk>/edit/", forum_question_edit, name="forum_question_edit"),
     path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
+path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
+    path("forum/report/", report_create, name="forum_report"),
+    path("forum/block/<int:user_id>/", block_user, name="forum_block_user"),
+    path("forum/unblock/<int:user_id>/", unblock_user, name="forum_unblock_user"),
+    path("forum/blocked/", blocked_users, name="forum_blocked_users"),
+    path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_unsuspend_user"),
+    path("forum/moderation/suspended/",suspended_users, name="forum_suspended_users"),
+path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_unsuspend_user"),
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---

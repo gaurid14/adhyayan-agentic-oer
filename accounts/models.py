@@ -1,6 +1,7 @@
 # OER/accounts/models.py
 
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.db import models
 from django.db.models import UniqueConstraint
 from django.utils import timezone
@@ -8,6 +9,12 @@ from django.utils import timezone
 # Syllabus
 class Program(models.Model):
     program_name = models.CharField(max_length=200, unique=True)
+
+
+    # --- Forum moderation / suspension ---
+    forum_is_suspended = models.BooleanField(default=False)
+    forum_suspended_at = models.DateTimeField(null=True, blank=True)
+    forum_suspension_reason = models.TextField(blank=True)
 
     def __str__(self):
         return self.program_name
@@ -525,6 +532,124 @@ class DmMessage(models.Model):
             self.save(update_fields=["is_read", "read_at"])
 
 # External Resources
+
+
+# ---------- Reporting / Blocking --------------------------------------------------------------------------------------
+
+class ReportCaseKind(models.TextChoices):
+    QUESTION = "question", "Question"
+    ANSWER = "answer", "Answer / Reply"
+    USER = "user", "User"
+    DM_MESSAGE = "dm_message", "Direct message"
+
+
+class ReportCaseStatus(models.TextChoices):
+    OPEN = "open", "Open"
+    ACTIONED = "actioned", "Action taken"
+    DISMISSED = "dismissed", "Dismissed"
+
+
+class ReportReason(models.TextChoices):
+    ABUSE_HARASSMENT = "abuse_harassment", "Abusive / Harassing"
+    HATE_DISCRIMINATION = "hate_discrimination", "Hate / Discrimination"
+    VIOLENCE_THREAT = "violence_threat", "Violence / Threat"
+    SEXUAL_OBSCENE = "sexual_obscene", "Sexual / Obscene"
+    SPAM = "spam", "Spam"
+    PRIVACY = "privacy", "Privacy / Personal info"
+    CHEATING = "cheating", "Cheating / Academic dishonesty"
+    OTHER = "other", "Other"
+
+
+class ReportCase(models.Model):
+    """
+    A rollup case for a single target (question / answer / user / DM message),
+    containing aggregated counts and (for DM) a snapshot of the last 5 messages.
+    """
+    kind = models.CharField(max_length=20, choices=ReportCaseKind.choices)
+    target_key = models.CharField(max_length=40, unique=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=ReportCaseStatus.choices,
+        default=ReportCaseStatus.OPEN,
+    )
+    needs_review = models.BooleanField(default=False)
+
+    total_reports = models.PositiveIntegerField(default=0)
+    distinct_reporters = models.PositiveIntegerField(default=0)
+
+    last_5_messages = models.JSONField(null=True, blank=True)
+
+    # Targets (only one should be set, based on kind)
+    question = models.ForeignKey(
+        "ForumQuestion",
+        on_delete=models.CASCADE,
+        related_name="report_cases",
+        null=True,
+        blank=True,
+    )
+    answer = models.ForeignKey(
+        "ForumAnswer",
+        on_delete=models.CASCADE,
+        related_name="report_cases",
+        null=True,
+        blank=True,
+    )
+    dm_message = models.ForeignKey(
+        "DmMessage",
+        on_delete=models.CASCADE,
+        related_name="report_cases",
+        null=True,
+        blank=True,
+    )
+    target_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reported_cases",
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def recompute_counts(self):
+        qs = self.reports.all()
+        self.total_reports = qs.count()
+        self.distinct_reporters = qs.values("reporter_id").distinct().count()
+
+    def __str__(self):
+        return f"{self.kind}:{self.target_key} ({self.status})"
+
+
+class Report(models.Model):
+    case = models.ForeignKey("ReportCase", on_delete=models.CASCADE, related_name="reports")
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reports_made")
+
+    reason = models.CharField(max_length=30, choices=ReportReason.choices)
+    note = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (("case", "reporter"),)
+
+    def __str__(self):
+        return f"Report by {self.reporter_id} on {self.case_id}"
+
+
+class UserBlock(models.Model):
+    blocker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocks_made")
+    blocked = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocked_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (("blocker", "blocked"),)
+
+    def __str__(self):
+        return f"{self.blocker_id} blocked {self.blocked_id}"
+
+
 class ExternalResource(models.Model):
     course = models.ForeignKey("Course", on_delete=models.CASCADE)
     chapter = models.ForeignKey("Chapter", on_delete=models.CASCADE)

@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 def trigger_decision_if_due(chapter_id: int):
     policy = ChapterPolicy.objects.filter(chapter_id=chapter_id).first()
     if not policy:
-        logger.info("[DM] chapter=%s no policy", chapter_id)
+        logger.info("[DM] chapter id=%s no policy", chapter_id)
         return None
 
     if policy.is_open:
-        logger.info("[DM] chapter=%s not due yet (deadline=%s)", chapter_id, policy.current_deadline)
+        logger.info("[DM] chapter id=%s not due yet (deadline=%s)", chapter_id, policy.current_deadline)
         return None
 
     from accounts.models import ContentScore
@@ -35,17 +35,17 @@ def trigger_decision_if_due(chapter_id: int):
 
     min_req = int(policy.min_contributions or 0)
     if evaluated_count < min_req:
-        logger.info("[DM] chapter=%s not enough evaluated uploads (%s/%s)", chapter_id, evaluated_count, min_req)
+        logger.info("[DM] chapter id=%s not enough evaluated uploads (%s/%s)", chapter_id, evaluated_count, min_req)
         return None
 
     if DecisionRun is not None:
         latest = DecisionRun.objects.filter(chapter_id=chapter_id, is_latest=True).first()
         if latest and latest.status == "ok" and latest.selected_upload_id:
-            logger.info("[DM] chapter=%s already decided selected=%s (skip)", chapter_id, latest.selected_upload_id)
+            logger.info("[DM] chapter id=%s already decided selected=%s (skip)", chapter_id, latest.selected_upload_id)
             return None
 
 
-    logger.info("[DM] chapter=%s RUNNING decision maker...", chapter_id)
+    logger.info("[DM] chapter id=%s RUNNING decision maker...", chapter_id)
     service = DecisionMakerService()    
 
     with transaction.atomic():
@@ -59,7 +59,7 @@ def trigger_decision_if_due(chapter_id: int):
             top_k_audit=5,
         )
 
-    logger.info("[DM] chapter=%s decision done result=%s", chapter_id, getattr(run, "status", run))
+    logger.info("[DM] chapter id=%s decision done result=%s", chapter_id, getattr(run, "status", run))
     return run
 
 def trigger_due_decisions(*, max_chapters: int = 2):

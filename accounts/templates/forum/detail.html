@@ -67,6 +67,73 @@
     by <strong>{{ question.author.username }}</strong>
     • {{ question.created_at|date:"M d, Y H:i" }}
     • {{ question.created_at|timesince }} ago
+
+  {% if user.is_authenticated and user.id != question.author_id %}
+    <div class="mt-2 d-flex flex-wrap gap-2">
+      <details>
+        <summary class="btn btn-sm btn-outline-danger">Report post</summary>
+        <form class="mt-2" method="post" action="{% url 'forum_report' %}">
+          {% csrf_token %}
+          <input type="hidden" name="kind" value="question">
+          <input type="hidden" name="target_id" value="{{ question.id }}">
+          <select name="reason" class="form-select form-select-sm mb-2" required>
+            <option value="" selected disabled>Select reason…</option>
+            <option value="abuse_harassment">Abusive / Harassing</option>
+            <option value="hate_discrimination">Hate / Discrimination</option>
+            <option value="violence_threat">Violence / Threat</option>
+            <option value="sexual_obscene">Sexual / Obscene</option>
+            <option value="spam">Spam</option>
+            <option value="privacy">Privacy / Personal info</option>
+            <option value="cheating">Cheating / Academic dishonesty</option>
+            <option value="other">Other</option>
+          </select>
+          <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note (what happened?)"></textarea>
+          <button class="btn btn-sm btn-danger" type="submit">Send report</button>
+        </form>
+      </details>
+
+      <details>
+        <summary class="btn btn-sm btn-outline-secondary">Report user</summary>
+        <form class="mt-2" method="post" action="{% url 'forum_report' %}">
+          {% csrf_token %}
+          <input type="hidden" name="kind" value="user">
+          <input type="hidden" name="target_id" value="{{ question.author_id }}">
+          <select name="reason" class="form-select form-select-sm mb-2" required>
+            <option value="" selected disabled>Select reason…</option>
+            <option value="abuse_harassment">Abusive / Harassing</option>
+            <option value="hate_discrimination">Hate / Discrimination</option>
+            <option value="violence_threat">Violence / Threat</option>
+            <option value="sexual_obscene">Sexual / Obscene</option>
+            <option value="spam">Spam</option>
+            <option value="privacy">Privacy / Personal info</option>
+            <option value="cheating">Cheating / Academic dishonesty</option>
+            <option value="other">Other</option>
+          </select>
+          <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note"></textarea>
+          <button class="btn btn-sm btn-secondary" type="submit">Send report</button>
+        </form>
+      </details>
+
+      {% if is_blocking_author %}
+<form method="post" action="{% url 'forum_unblock_user' question.author_id %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <button type="submit" class="btn btn-outline-secondary btn-sm">
+    Unblock
+  </button>
+</form>
+      {% else %}
+        <form method="post" action="{% url 'forum_block_user' question.author_id %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{% url 'forum_home' %}">
+  <button type="submit" class="btn btn-outline-danger btn-sm">
+    Block
+  </button>
+</form>
+      {% endif %}
+    </div>
+  {% endif %}
+
   </div>
 
   <div class="q-pills mt-2">

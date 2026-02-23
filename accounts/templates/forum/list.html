@@ -54,6 +54,9 @@
 
           <div class="d-flex flex-wrap align-items-center gap-2">
   {% if user.is_authenticated %}
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_blocked_users' %}">
+  Blocked users
+</a>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_inbox' %}">
       <i class="fa-regular fa-envelope"></i>
       Messages
@@ -66,6 +69,7 @@
       Moderation
     </a>
   {% endif %}
+  
 </div>
 
         </div>

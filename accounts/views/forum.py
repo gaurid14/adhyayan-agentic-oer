@@ -15,12 +15,89 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.http import require_POST, require_http_methods
 from ..models import (
     Chapter, Course, ForumQuestion, ForumAnswer, ForumTopic,
-    DmThread, DmMessage, User
+    DmThread, DmMessage, User,
+    ReportCase, Report, UserBlock, ReportReason
 )
 from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
-
 from accounts.moderation_perspective import moderate_text, apply_decision_to_instance
+from django.shortcuts import redirect
+from django.utils.http import url_has_allowed_host_and_scheme
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from accounts.models import User, UserBlock
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
+from accounts.models import User
+
+@staff_member_required
+def suspended_users(request):
+    users = (
+        User.objects
+        .filter(forum_is_suspended=True)
+        .order_by("-forum_suspended_at", "-id")
+    )
+    return render(request, "forum/suspended_users.html", {"users": users})
+
+@staff_member_required
+@require_POST
+def unsuspend_user(request, user_id):
+    u = get_object_or_404(User, pk=user_id)
+    u.forum_is_suspended = False
+    u.forum_suspended_at = None
+    u.forum_suspension_reason = ""
+    u.save(update_fields=["forum_is_suspended", "forum_suspended_at", "forum_suspension_reason"])
+    messages.success(request, f"Unsuspended {u.username}.")
+    return redirect("forum_suspended_users")
+
+def _safe_next(request, fallback="forum_blocked_users"):
+    nxt = request.POST.get("next") or request.GET.get("next")
+    if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+        return nxt
+    return fallback
+
+@login_required
+def blocked_users(request):
+    blocks = (
+        UserBlock.objects
+        .filter(blocker=request.user)
+        .select_related("blocked")
+        .order_by("-created_at")
+    )
+    return render(request, "forum/blocked_users.html", {"blocks": blocks})
+
+@login_required
+@require_POST
+def unblock_user(request, user_id):
+    UserBlock.objects.filter(blocker=request.user, blocked_id=user_id).delete()
+    return redirect(_safe_next(request))
+
+def _safe_next(request, default_name="forum_home"):
+    nxt = request.POST.get("next") or request.GET.get("next")
+    if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
+        return nxt
+    return None
+
+@login_required
+def block_user(request, user_id):
+    if request.method != "POST":
+        return redirect("forum_home")
+
+    target = get_object_or_404(User, pk=user_id)
+    if target == request.user:
+        return redirect("forum_home")
+
+    UserBlock.objects.get_or_create(blocker=request.user, blocked=target)
+
+    nxt = _safe_next(request)
+    return redirect(nxt or "forum_home")
 def _clean_int_param(v):
     """
     Convert GET params like "", None, "None", "null" into real None.
@@ -54,6 +131,40 @@ def _apply_question_visibility(request, qs):
 
 
 
+def _blocked_user_ids_for(user):
+    """Users whose content should be hidden from `user` (either direction of block)."""
+    if not user.is_authenticated:
+        return set()
+    blocked = set(UserBlock.objects.filter(blocker=user).values_list("blocked_id", flat=True))
+    blocked_by = set(UserBlock.objects.filter(blocked=user).values_list("blocker_id", flat=True))
+    return blocked | blocked_by
+
+
+def _is_blocked_between(a, b) -> bool:
+    if not a.is_authenticated:
+        return False
+    return UserBlock.objects.filter(
+        Q(blocker=a, blocked=b) | Q(blocker=b, blocked=a)
+    ).exists()
+
+
+def _apply_block_filter(request, qs):
+    if request.user.is_authenticated:
+        ids = _blocked_user_ids_for(request.user)
+        if ids:
+            return qs.exclude(author_id__in=ids)
+    return qs
+
+
+def _require_not_suspended(request) -> bool:
+    """Return False if user is forum-suspended (and emit a message)."""
+    if getattr(request.user, "forum_is_suspended", False):
+        messages.error(request, "Your account is temporarily restricted due to reports/moderation. Please contact staff.")
+        return False
+    return True
+
+
+
 def forum_home(request):
     q = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "new").strip()
@@ -82,6 +193,9 @@ def forum_home(request):
 
     # ✅ visibility rules (hidden content only for staff/author)
     questions = _apply_question_visibility(request, questions)
+
+    # ✅ block rules (hide blocked users' content)
+    questions = _apply_block_filter(request, questions)
 
     if q:
         questions = questions.filter(Q(title__icontains=q) | Q(content__icontains=q))
@@ -171,6 +285,10 @@ def forum_detail(request, pk: int):
         pk=pk
     )
 
+    # ✅ block rules (viewer <-> author)
+    if request.user.is_authenticated and _is_blocked_between(request.user, question.author):
+        raise Http404()
+
     # ✅ Question visibility
     if question.is_hidden:
         if request.user.is_authenticated and request.user.is_staff:
@@ -192,6 +310,7 @@ def forum_detail(request, pk: int):
         ForumAnswer.objects
         .filter(question=question)
         .select_related("author")
+        .exclude(author_id__in=_blocked_user_ids_for(request.user) if request.user.is_authenticated else [])
         .annotate(upvote_count=Count("upvotes", distinct=True))
         .order_by("created_at")
     )
@@ -231,13 +350,24 @@ def forum_detail(request, pk: int):
     question.thread_groups = thread_groups
     question.top_answers = top_answers
 
+    q = get_object_or_404(ForumQuestion, pk=pk)
+
+    if UserBlock.objects.filter(blocker=request.user, blocked=q.author).exists() or \
+    UserBlock.objects.filter(blocker=q.author, blocked=request.user).exists():
+        messages.info(request, "You blocked this user (or they blocked you), so this post is hidden.")
+        return redirect("forum_home")
+
     return render(request, "forum/detail.html", {
         "question": question,
         "a_form": ForumAnswerForm(),
+        "is_blocking_author": (request.user.is_authenticated and UserBlock.objects.filter(blocker=request.user, blocked=question.author).exists()),
     })
 @login_required
 @require_POST
 def post_question(request):
+    if not _require_not_suspended(request):
+        return redirect("forum_home")
+
     form = ForumQuestionForm(request.POST)
     if not form.is_valid():
         messages.error(request, "Please fix the errors in the form.")
@@ -316,6 +446,9 @@ from django.views.decorators.http import require_POST
 @login_required
 @require_POST
 def post_answer(request, question_id):
+    if not _require_not_suspended(request):
+        return redirect("forum_detail", pk=question_id)
+
     question = get_object_or_404(ForumQuestion, pk=question_id)
 
     # If question is hidden, only staff OR author can interact (optional)
@@ -370,6 +503,9 @@ def post_answer(request, question_id):
 @login_required
 @require_POST
 def post_reply(request, question_id, parent_id):
+    if not _require_not_suspended(request):
+        return redirect("forum_detail", pk=question_id)
+
     question = get_object_or_404(ForumQuestion, pk=question_id)
     parent = get_object_or_404(ForumAnswer, pk=parent_id, question=question)
 
@@ -565,6 +701,8 @@ def dm_inbox(request):
     thread_data = []
     for t in threads:
         other = t.user_b if t.user_a == request.user else t.user_a
+        if _is_blocked_between(request.user, other):
+            continue
         last_text = (t.last_text or "").strip()
         if len(last_text) > 70:
             last_text = last_text[:70] + "…"
@@ -586,6 +724,16 @@ def dm_thread(request, user_id: int):
     other = get_object_or_404(User, pk=user_id)
     if other == request.user:
         raise Http404()
+
+    if _is_blocked_between(request.user, other):
+        return JsonResponse({"ok": False, "blocked": True})
+
+    if not _require_not_suspended(request):
+        return redirect("dm_inbox")
+
+    if _is_blocked_between(request.user, other):
+        messages.error(request, "You can’t message this user because one of you has blocked the other.")
+        return redirect("dm_inbox")
 
     a, b = (request.user, other) if request.user.id < other.id else (other, request.user)
 
@@ -691,6 +839,8 @@ def dm_inbox_updates(request):
     payload = []
     for t in threads:
         other = t.user_b if t.user_a_id == request.user.id else t.user_a
+        if _is_blocked_between(request.user, other):
+            continue
         last_text = (t.last_text or "").strip()
         if len(last_text) > 70:
             last_text = last_text[:70] + "…"
@@ -772,3 +922,206 @@ def forum_question_delete(request, pk):
 
     return render(request, "forum/confirm_delete_question.html", {"question": question})
 
+
+# ---------- Report & Block actions ------------------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def report_create(request):
+    """
+    Create a report for:
+    - question
+    - answer (includes replies)
+    - user
+    - dm_message (stores last 5 messages snapshot)
+    """
+    if not _require_not_suspended(request):
+        return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+    kind = (request.POST.get("kind") or "").strip()
+    reason = (request.POST.get("reason") or "").strip()
+    note = (request.POST.get("note") or "").strip()
+
+    # basic validation
+    valid_kinds = {"question", "answer", "user", "dm_message"}
+    if kind not in valid_kinds:
+        messages.error(request, "Invalid report target.")
+        return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+    if reason not in {c[0] for c in ReportReason.choices}:
+        messages.error(request, "Please select a valid reason.")
+        return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+    target_id_raw = request.POST.get("target_id")
+    if not (target_id_raw and str(target_id_raw).isdigit()):
+        messages.error(request, "Invalid report target.")
+        return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+    target_id = int(target_id_raw)
+
+    case = None
+    target_user_for_scoring = None
+
+    if kind == "question":
+        obj = get_object_or_404(ForumQuestion, pk=target_id)
+        if obj.author_id == request.user.id:
+            messages.error(request, "You can’t report your own post.")
+            return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+        key = f"question:{obj.id}"
+        case, _ = ReportCase.objects.get_or_create(
+            target_key=key,
+            defaults={"kind": kind, "question": obj},
+        )
+        target_user_for_scoring = obj.author
+
+    elif kind == "answer":
+        obj = get_object_or_404(ForumAnswer, pk=target_id)
+        if obj.author_id == request.user.id:
+            messages.error(request, "You can’t report your own reply.")
+            return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+        key = f"answer:{obj.id}"
+        case, _ = ReportCase.objects.get_or_create(
+            target_key=key,
+            defaults={"kind": kind, "answer": obj},
+        )
+        target_user_for_scoring = obj.author
+
+    elif kind == "user":
+        obj = get_object_or_404(User, pk=target_id)
+        if obj.id == request.user.id:
+            messages.error(request, "You can’t report your own account.")
+            return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+        key = f"user:{obj.id}"
+        case, _ = ReportCase.objects.get_or_create(
+            target_key=key,
+            defaults={"kind": kind, "target_user": obj},
+        )
+        target_user_for_scoring = obj
+
+    else:  # dm_message
+        obj = get_object_or_404(DmMessage, pk=target_id)
+        if obj.sender_id == request.user.id:
+            messages.error(request, "You can’t report your own message.")
+            return redirect(request.META.get("HTTP_REFERER", "dm_inbox"))
+
+        # must be a participant
+        if not (obj.thread.user_a_id == request.user.id or obj.thread.user_b_id == request.user.id):
+            raise Http404()
+
+        other = obj.thread.other_of(request.user)
+        if _is_blocked_between(request.user, other):
+            messages.error(request, "You can’t report messages in a blocked conversation.")
+            return redirect("dm_inbox")
+
+        key = f"dm:{obj.id}"
+        case, _ = ReportCase.objects.get_or_create(
+            target_key=key,
+            defaults={"kind": kind, "dm_message": obj},
+        )
+        target_user_for_scoring = obj.sender
+
+        # store the last 5 messages snapshot (most recent 5)
+        last5 = (
+            DmMessage.objects
+            .filter(thread=obj.thread)
+            .select_related("sender")
+            .order_by("-created_at")[:5]
+        )
+        case.last_5_messages = [
+            {
+                "id": m.id,
+                "sender_id": m.sender_id,
+                "sender": m.sender.username,
+                "content": m.content,
+                "created_at": timezone.localtime(m.created_at).isoformat(),
+            }
+            for m in reversed(list(last5))
+        ]
+
+    try:
+        Report.objects.create(case=case, reporter=request.user, reason=reason, note=note)
+    except IntegrityError:
+        messages.info(request, "You already reported this.")
+        return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+    case.recompute_counts()
+    case.needs_review = case.distinct_reporters >= 3 and case.status == "open"
+    case.save(update_fields=["total_reports", "distinct_reporters", "needs_review", "last_5_messages", "updated_at"])
+
+    # If threshold reached, push forum content to moderation queue (hide + pending_review)
+    if case.needs_review:
+        if case.question_id:
+            q = case.question
+            if not q.is_hidden:
+                q.is_hidden = True
+                q.moderation_status = "pending_review"
+            details = q.moderation_details or {}
+            details["report_case_id"] = case.id
+            details["report_counts"] = {"total": case.total_reports, "distinct": case.distinct_reporters}
+            details.setdefault("source", "reports")
+            q.moderation_details = details
+            q.save(update_fields=["is_hidden", "moderation_status", "moderation_details"])
+        elif case.answer_id:
+            a = case.answer
+            if not a.is_hidden:
+                a.is_hidden = True
+                a.moderation_status = "pending_review"
+            details = a.moderation_details or {}
+            details["report_case_id"] = case.id
+            details["report_counts"] = {"total": case.total_reports, "distinct": case.distinct_reporters}
+            details.setdefault("source", "reports")
+            a.moderation_details = details
+            a.save(update_fields=["is_hidden", "moderation_status", "moderation_details"])
+
+    # Auto-suspend for frequent reports (safe default)
+    if target_user_for_scoring and (not target_user_for_scoring.is_staff):
+        # count distinct reporters across open cases in last 30 days
+        since = timezone.now() - timedelta(days=30)
+        distinct = (
+            Report.objects
+            .filter(
+                created_at__gte=since,
+                case__status="open",
+            )
+            .filter(
+                Q(case__target_user=target_user_for_scoring) |
+                Q(case__question__author=target_user_for_scoring) |
+                Q(case__answer__author=target_user_for_scoring) |
+                Q(case__dm_message__sender=target_user_for_scoring)
+            )
+            .values("reporter_id")
+            .distinct()
+            .count()
+        )
+        if distinct >= 10 and not target_user_for_scoring.forum_is_suspended:
+            target_user_for_scoring.forum_is_suspended = True
+            target_user_for_scoring.forum_suspended_at = timezone.now()
+            target_user_for_scoring.forum_suspension_reason = "Auto-suspended due to repeated reports."
+            target_user_for_scoring.save(update_fields=["forum_is_suspended", "forum_suspended_at", "forum_suspension_reason"])
+
+    messages.success(request, "Thanks — your report has been sent to the moderators.")
+    return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+
+@login_required
+@require_POST
+def block_user(request, user_id: int):
+    other = get_object_or_404(User, pk=user_id)
+    if other.id == request.user.id:
+        messages.error(request, "You can’t block yourself.")
+        return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+    UserBlock.objects.get_or_create(blocker=request.user, blocked=other)
+    messages.success(request, f"You blocked {other.username}. You won’t see their posts or messages.")
+    return redirect(request.META.get("HTTP_REFERER", "forum_home"))
+
+
+@login_required
+@require_POST
+def unblock_user(request, user_id: int):
+    other = get_object_or_404(User, pk=user_id)
+    UserBlock.objects.filter(blocker=request.user, blocked=other).delete()
+    messages.success(request, f"You unblocked {other.username}.")
+    return redirect(request.META.get("HTTP_REFERER", "forum_home"))

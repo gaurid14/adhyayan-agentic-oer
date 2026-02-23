@@ -3,11 +3,30 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
-from accounts.models import ForumQuestion, ForumAnswer
+from accounts.models import ForumQuestion, ForumAnswer, ReportCase
 from django.contrib.auth.decorators import login_required
 from django.db import transaction, IntegrityError
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from accounts.models import DmThread, DmMessage
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+
+from accounts.models import User
+
+@staff_member_required
+@require_POST
+def unsuspend_user(request, user_id):
+    u = get_object_or_404(User, pk=user_id)
+    u.forum_is_suspended = False
+    u.forum_suspended_at = None
+    u.forum_suspension_reason = ""
+    u.save(update_fields=["forum_is_suspended", "forum_suspended_at", "forum_suspension_reason"])
+    messages.success(request, f"Unsuspended {u.username}.")
+    return redirect("forum_moderation_queue")
 
 def _get_moderator_user():
     """
@@ -62,9 +81,19 @@ def forum_moderation_queue(request):
         .order_by("-created_at")[:200]
     )
 
+
+    reported_cases = (
+        ReportCase.objects
+        .filter(needs_review=True, status="open")
+        .select_related("question", "answer", "dm_message", "target_user")
+        .order_by("-updated_at")[:200]
+    )
+
+
     return render(request, "forum/moderation_queue.html", {
         "pending_questions": pending_questions,
         "pending_answers": pending_answers,
+        "reported_cases": reported_cases,
     })
 
 
@@ -138,4 +167,66 @@ def forum_moderation_action(request):
     else:
         messages.error(request, "Invalid action.")
 
+    return redirect("forum_moderation_queue")
+
+
+@require_POST
+@login_required
+def forum_reportcase_action(request):
+    if not request.user.is_staff:
+        raise Http404()
+
+    case_id = request.POST.get("case_id")
+    action = request.POST.get("action")  # dismiss | actioned | suspend_user
+    note = (request.POST.get("note") or "").strip()
+
+    case = ReportCase.objects.filter(pk=case_id).select_related("question", "answer", "dm_message", "target_user").first()
+    if not case:
+        raise Http404("Report case not found")
+
+    if action == "dismiss":
+        case.status = "dismissed"
+        case.needs_review = False
+        case.save(update_fields=["status", "needs_review", "updated_at"])
+        messages.success(request, "Report dismissed.")
+        return redirect("forum_moderation_queue")
+
+    if action == "actioned":
+        case.status = "actioned"
+        case.needs_review = False
+        case.save(update_fields=["status", "needs_review", "updated_at"])
+        messages.success(request, "Marked as action taken.")
+        return redirect("forum_moderation_queue")
+
+    if action == "suspend_user":
+        # Determine user to suspend based on target
+        u = case.target_user
+        if u is None and case.question_id:
+            u = case.question.author
+        elif u is None and case.answer_id:
+            u = case.answer.author
+        elif u is None and case.dm_message_id:
+            u = case.dm_message.sender
+
+        if not u:
+            messages.error(request, "No user found for this case.")
+            return redirect("forum_moderation_queue")
+
+        if u.is_staff:
+            messages.error(request, "Staff accounts cannot be auto-suspended here.")
+            return redirect("forum_moderation_queue")
+
+        u.forum_is_suspended = True
+        u.forum_suspended_at = timezone.now()
+        u.forum_suspension_reason = note or "Suspended due to reports."
+        u.save(update_fields=["forum_is_suspended", "forum_suspended_at", "forum_suspension_reason"])
+
+        case.status = "actioned"
+        case.needs_review = False
+        case.save(update_fields=["status", "needs_review", "updated_at"])
+
+        messages.success(request, f"User {u.username} suspended.")
+        return redirect("forum_moderation_queue")
+
+    messages.error(request, "Invalid action.")
     return redirect("forum_moderation_queue")

@@ -40,6 +40,9 @@
           </div>
 
           <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_suspended_users' %}">
+  View suspended users
+</a>
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_home' %}">
               <i class="fa-solid fa-arrow-left"></i> Back to Forum
             </a>
@@ -55,7 +58,96 @@
         </div>
       {% endif %}
 
-      <div class="row g-3">
+      
+      <div class="card forum-card mb-3">
+        <div class="card-body">
+          <h5 class="mb-2">Reported Items (needs review)</h5>
+
+          {% for c in reported_cases %}
+            <div class="border rounded-3 p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="min-w-0">
+                  <div class="small text-muted">
+                    {{ c.kind|capfirst }} • {{ c.distinct_reporters }} distinct reporters • {{ c.total_reports }} total • Updated {{ c.updated_at|date:"M d, Y H:i" }}
+                  </div>
+
+                  {% if c.question %}
+                    <div class="fw-semibold">Question: {{ c.question.title }}</div>
+                    <div class="text-muted mt-1" style="white-space: pre-wrap;">{{ c.question.content|truncatechars:280 }}</div>
+                    <div class="mt-2">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_detail' c.question.id %}">View</a>
+                    </div>
+                  {% elif c.answer %}
+                    <div class="fw-semibold">Answer / Reply on: {{ c.answer.question.title }}</div>
+                    <div class="text-muted mt-1" style="white-space: pre-wrap;">{{ c.answer.content|truncatechars:280 }}</div>
+                    <div class="mt-2">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_detail' c.answer.question.id %}">View thread</a>
+                    </div>
+                  {% elif c.dm_message %}
+                    <div class="fw-semibold">Direct message report</div>
+                    <div class="text-muted mt-1">Message id: {{ c.dm_message.id }} • Sender: {{ c.dm_message.sender.username }}</div>
+
+                    {% if c.last_5_messages %}
+                      <div class="mt-2 small">
+                        <div class="text-muted mb-1">Last 5 messages snapshot:</div>
+                        <div class="border rounded-3 p-2 bg-light" style="white-space: pre-wrap;">
+                          {% for m in c.last_5_messages %}
+                            <div class="mb-2">
+                              <strong>{{ m.sender }}</strong>:
+                              {{ m.content }}
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% elif c.target_user %}
+                    <div class="fw-semibold">User report: {{ c.target_user.username }}</div>
+                  {% endif %}
+                      <div class="mt-3">
+  <div class="fw-semibold mb-2">Reporter notes</div>
+
+  {% for r in c.reports.all %}
+    <div class="border rounded p-2 mb-2 bg-white">
+      <div class="small text-muted">
+        {{ r.reporter.username }} • {{ r.created_at|date:"d M Y, H:i" }}
+      </div>
+
+      <div class="mt-1">
+        {{ r.note|default:"(No note provided)"|linebreaksbr }}
+      </div>
+    </div>
+  {% empty %}
+    <div class="text-muted small">No reports found.</div>
+  {% endfor %}
+</div>
+                </div>
+
+                <div class="d-flex flex-column gap-2" style="min-width: 220px;">
+                  <form method="post" action="{% url 'forum_reportcase_action' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="case_id" value="{{ c.id }}">
+                    <input class="form-control form-control-sm mb-2" name="note" placeholder="Optional staff note"
+                           onkeydown="if(event.key==='Enter'){event.preventDefault();}">
+                    <button class="btn btn-sm btn-outline-secondary w-100" name="action" value="dismiss">
+                      Dismiss
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary w-100 mt-2" name="action" value="actioned">
+                      Mark action taken
+                    </button>
+                    <button class="btn btn-sm btn-danger w-100 mt-2" name="action" value="suspend_user">
+                      Suspend user
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-muted">No report cases needing review.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+<div class="row g-3">
         <div class="col-lg-6">
 
           <div class="card forum-card mb-3">

@@ -1,4 +1,4 @@
-{% load static %}
+    {% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -312,6 +312,7 @@
                     </div>
                 </div>
                 <button type="button" class="edit-btn" onclick="enableEdit()">Edit Profile</button>
+                <a href="{% url 'forum_blocked_users' %}">>Blocked users</a>
             </section>
 
             <!-- MAIN PROFILE CONTENT -->

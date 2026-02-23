@@ -19,6 +19,38 @@
         <span>{{ answer.created_at|date:"M d, Y H:i" }}</span>
         <span class="dot">•</span>
         <span>{{ answer.created_at|timesince }} ago</span>
+
+      {% if user.is_authenticated and user.id != answer.author_id %}
+        <div class="mt-2 d-flex flex-wrap gap-2">
+          <details>
+            <summary class="btn btn-sm btn-outline-danger">Report</summary>
+            <form class="mt-2" method="post" action="{% url 'forum_report' %}">
+              {% csrf_token %}
+              <input type="hidden" name="kind" value="answer">
+              <input type="hidden" name="target_id" value="{{ answer.id }}">
+              <select name="reason" class="form-select form-select-sm mb-2" required>
+                <option value="" selected disabled>Select reason…</option>
+                <option value="abuse_harassment">Abusive / Harassing</option>
+                <option value="hate_discrimination">Hate / Discrimination</option>
+                <option value="violence_threat">Violence / Threat</option>
+                <option value="sexual_obscene">Sexual / Obscene</option>
+                <option value="spam">Spam</option>
+                <option value="privacy">Privacy / Personal info</option>
+                <option value="cheating">Cheating / Academic dishonesty</option>
+                <option value="other">Other</option>
+              </select>
+              <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note"></textarea>
+              <button class="btn btn-sm btn-danger" type="submit">Send</button>
+            </form>
+          </details>
+
+          <form method="post" action="{% url 'forum_block_user' answer.author_id %}">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-secondary" type="submit">Block</button>
+          </form>
+        </div>
+      {% endif %}
+
       </div>
 {% if answer.is_hidden and answer.moderation_status == "pending_review" %}
   {% if user.is_authenticated %}

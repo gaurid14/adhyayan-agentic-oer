@@ -21,6 +21,11 @@ DEFAULT_MISSING_STRATEGY: str = "ignore"  # ignore in average; still used in tie
 ALGORITHM_VERSION: str = "decision-v1"
 
 
+def _p(msg: str) -> None:
+    # Prints immediately to terminal (useful while running commands/cron/management commands)
+    print(f"[DECISION] {msg}", flush=True)
+
+
 @dataclass(frozen=True)
 class RankedCandidate:
     upload_id: int
@@ -129,6 +134,9 @@ class DecisionMakerService:
         self.primary_strategy: str = cfg.get("primary_strategy", DEFAULT_PRIMARY_STRATEGY)
         self.missing_strategy: str = cfg.get("missing_strategy", DEFAULT_MISSING_STRATEGY)  # ignore | zero
         self.algorithm_version: str = cfg.get("algorithm_version", ALGORITHM_VERSION)
+        _p(
+            f"version={self.algorithm_version}"
+        )
 
     def decide_for_chapter(
         self,
@@ -141,11 +149,15 @@ class DecisionMakerService:
         persist: bool = True,
         top_k_audit: int = 10,
     ):
+        
         chapter = Chapter.objects.get(id=chapter_id)
         policy = ChapterPolicy.objects.filter(chapter_id=chapter_id).first()
 
+        _p(f"Loaded | chapter={chapter_id} | policy={'yes' if policy else 'no'}")            
+
         # deadline gate
         if policy and (not force) and policy.is_open:
+            _p("Gate: deadline_not_passed -> returning None (not_due)")
             return self._persist_or_return_none(
                 chapter=chapter,
                 policy=policy,
@@ -164,7 +176,10 @@ class DecisionMakerService:
         uploads = list(uploads_qs)
 
         if policy and min_contributions_policy == "respect":
-            if len(uploads) < int(policy.min_contributions or 0):
+            need = int(policy.min_contributions or 0)
+            _p(f"Min contributions check | have={len(uploads)} need={need}")
+            if len(uploads) < need:
+                _p("Gate: min_contributions_not_met -> returning None (not_ready)")
                 return self._persist_or_return_none(
                     chapter=chapter,
                     policy=policy,
@@ -173,9 +188,15 @@ class DecisionMakerService:
                     persist=persist,
                 )
 
+        _p("Ranking uploads...")
         ranked = self.rank_uploads(chapter_id=chapter_id, uploads=uploads)
 
+        _p(f"Ranking done | ranked_count={len(ranked)}")
+        if ranked:
+            _p(f"Top candidate | upload_id={ranked[0].upload_id} composite={ranked[0].composite_score:.4f}")
+
         if not ranked:
+            _p("No ranked candidates -> returning None (no_candidates)")
             return self._persist_or_return_none(
                 chapter=chapter,
                 policy=policy,
@@ -186,8 +207,10 @@ class DecisionMakerService:
 
         winner = ranked[0]
         top_k = max(1, int(top_k_audit or 3))
+        _p(f"Winner selected | upload_id={winner.upload_id} composite={winner.composite_score:.4f} top_k={top_k}")
 
         run_obj = None
+        _p("Persisting decision run..." if persist else "Persist disabled -> skipping DecisionRun")
         if persist:
             run_obj = self._persist_decision(
                 chapter=chapter,
@@ -196,12 +219,17 @@ class DecisionMakerService:
                 ranked=ranked[:top_k],
                 top_k=top_k,
             )
+            _p(f"Persist complete | run_obj={'yes' if run_obj else 'none'}")
 
+        _p(f"Marking best upload | chapter_id={chapter_id} upload_id={winner.upload_id}")
         self._mark_best_upload(chapter_id=chapter_id, upload_id=winner.upload_id)
 
+        _p("Auto release enabled -> releasing winner" if auto_release else "Auto release disabled")
         if auto_release:
             self._auto_release(chapter_id=chapter_id, winner_upload_id=winner.upload_id)
+            _p("Auto release complete")
 
+        _p("Decision complete -> returning result")
         return run_obj or {
             "status": "ok",
             "chapter_id": chapter_id,
@@ -211,28 +239,42 @@ class DecisionMakerService:
         }
 
     def rank_uploads(self, *, chapter_id: int, uploads: Sequence[UploadCheck]) -> List[RankedCandidate]:
+        _p(f"rank_uploads start | chapter_id={chapter_id} uploads_in={len(uploads)}")
+
         available = _available_score_fields()
+        _p(f"Available score fields = {available}")
         if not available:
+            _p("No numeric score fields found in ContentScore -> returning []")
             return []
 
         priority = _resolve_priority(available)
         weights = _resolve_weights(available)
 
+        _p(f"Priority order = {priority}")
+        _p(f"Weights = {weights}")
+        _p(f"Primary strategy = {self.primary_strategy} | missing strategy = {self.missing_strategy}")
+
         candidates: List[RankedCandidate] = []
         for u in uploads:
+            _p(f"Scoring upload_id={u.id} contributor_id={u.contributor_id} ts={u.timestamp}")
             try:
                 score_obj = u.content_score
             except Exception:
+                _p(f"Skip upload_id={u.id} (no content_score attached)")
                 continue
 
             scores: Dict[str, Optional[float]] = {f: _float_or_none(getattr(score_obj, f, None)) for f in available}
+            _p(f"Scores upload_id={u.id} => {scores}")
 
             if self.primary_strategy == "simple_average":
                 composite = _simple_average(scores, available, self.missing_strategy)
+                _p(f"Composite strategy=simple_average upload_id={u.id} => {composite}")
             else:
                 composite = _weighted_average(scores, weights, self.missing_strategy)
+                _p(f"Composite strategy=weighted_average upload_id={u.id} => {composite}")
 
             if composite == float("-inf"):
+                _p(f"Skip upload_id={u.id} (composite=-inf)")
                 continue
 
             candidates.append(
@@ -247,6 +289,7 @@ class DecisionMakerService:
             )
 
         if not candidates:
+            _p("No candidates after scoring -> returning []")
             return []
 
         def sort_key(c: RankedCandidate) -> Tuple:
@@ -263,13 +306,28 @@ class DecisionMakerService:
                 c.upload_id,
             )
 
+        _p(f"Sorting candidates | count={len(candidates)}")
         candidates.sort(key=sort_key, reverse=True)
+
+        _p("Sorted. Top 3 candidates:")
+        for i, cc in enumerate(candidates[:3], start=1):
+            _p(f" #{i} upload_id={cc.upload_id} composite={cc.composite_score:.4f} ts={cc.timestamp}")
+
         return candidates
 
     # ---------------------------
     # persistence helpers
     # ---------------------------
-    def _persist_or_return_none(self, *, chapter: Chapter, policy: Optional[ChapterPolicy], status: str, reason: str, persist: bool):
+    def _persist_or_return_none(
+        self,
+        *,
+        chapter: Chapter,
+        policy: Optional[ChapterPolicy],
+        status: str,
+        reason: str,
+        persist: bool
+    ):
+        _p(f"_persist_or_return_none | status={status} reason={reason} persist={persist} DecisionRun={'yes' if DecisionRun else 'no'}")
         if persist and DecisionRun:
             self._create_decision_run(
                 chapter=chapter,
@@ -291,6 +349,7 @@ class DecisionMakerService:
         ranked: Sequence[RankedCandidate],
         top_k: int = 3,
     ):
+        _p(f"_persist_decision | chapter_id={chapter.id} winner_upload_id={winner.upload_id} top_k={top_k}")
         return self._create_decision_run(
             chapter=chapter,
             policy=policy,
@@ -312,10 +371,13 @@ class DecisionMakerService:
         ranked: Optional[Sequence[RankedCandidate]],
         top_k: int = 3,
     ):
+        _p(f"Creating DecisionRun | chapter_id={chapter.id} status={status} reason={reason}")
         if not DecisionRun:
+            _p("DecisionRun model not available -> skipping persistence")
             return None
 
         DecisionRun.objects.filter(chapter=chapter, is_latest=True).update(is_latest=False)
+        _p("Unset previous DecisionRun.is_latest (if existed)")
 
         release_threshold = float(getattr(policy, "release_threshold", 0.0) or 0.0) if policy else 0.0
 
@@ -330,6 +392,8 @@ class DecisionMakerService:
                     }
                 )
 
+        _p(f"Leaderboard built | entries={len(leaderboard)} top_k={top_k}")
+
         available_scores: List[str] = []
         if ranked:
             seen = set()
@@ -340,7 +404,8 @@ class DecisionMakerService:
         weights = _resolve_weights(available_scores)
         thresholds = {"release_threshold": release_threshold}
 
-        return DecisionRun.objects.create(
+        _p(f"Saving DecisionRun | selected_upload_id={winner.upload_id if winner else None}")
+        obj = DecisionRun.objects.create(
             chapter=chapter,
             selected_upload_id=winner.upload_id if winner else None,
             status=status,
@@ -352,17 +417,24 @@ class DecisionMakerService:
             explanation=reason,
             is_latest=True,
         )
+        _p("DecisionRun saved")
+        return obj
 
     def _mark_best_upload(self, *, chapter_id: int, upload_id: int) -> None:
+        _p(f"_mark_best_upload | chapter_id={chapter_id} upload_id={upload_id}")
         field_names = {f.name for f in ContentScore._meta.get_fields() if getattr(f, "concrete", False)}
         if "is_best" not in field_names:
+            _p("ContentScore has no is_best field -> skipping")
             return
         ContentScore.objects.filter(upload__chapter_id=chapter_id).update(is_best=False)
         ContentScore.objects.filter(upload_id=upload_id).update(is_best=True)
+        _p("ContentScore.is_best updated")
 
     def _auto_release(self, *, chapter_id: int, winner_upload_id: int) -> None:
+        _p(f"_auto_release | chapter_id={chapter_id} winner_upload_id={winner_upload_id}")
         ReleasedContent.objects.filter(upload__chapter_id=chapter_id).update(release_status=False)
         ReleasedContent.objects.update_or_create(
             upload_id=winner_upload_id,
             defaults={"release_status": True},
         )
+        _p("ReleasedContent updated (winner True, others False)")

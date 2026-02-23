@@ -465,6 +465,36 @@
       <a class="btn btn-soft btn-sm" href="{% url 'dm_inbox' %}">← Inbox</a>
       <a class="btn btn-soft btn-sm" href="{% url 'forum_home' %}">Forum</a>
     </nav>
+    {% if user.is_authenticated and other.username != "moderator" %}
+      <div class="d-flex gap-2 flex-wrap">
+        <form method="post" action="{% url 'forum_block_user' other.id %}">
+          {% csrf_token %}
+          <button class="btn btn-soft btn-sm" type="submit">Block</button>
+        </form>
+
+        <details>
+          <summary class="btn btn-soft btn-sm">Report user</summary>
+          <form class="mt-2" method="post" action="{% url 'forum_report' %}">
+            {% csrf_token %}
+            <input type="hidden" name="kind" value="user">
+            <input type="hidden" name="target_id" value="{{ other.id }}">
+            <select name="reason" class="form-select form-select-sm mb-2" required>
+              <option value="" selected disabled>Select reason…</option>
+              <option value="abuse_harassment">Abusive / Harassing</option>
+              <option value="hate_discrimination">Hate / Discrimination</option>
+              <option value="violence_threat">Violence / Threat</option>
+              <option value="sexual_obscene">Sexual / Obscene</option>
+              <option value="spam">Spam</option>
+              <option value="privacy">Privacy / Personal info</option>
+              <option value="cheating">Cheating / Academic dishonesty</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note"></textarea>
+            <button class="btn btn-sm btn-danger" type="submit">Send report</button>
+          </form>
+        </details>
+      </div>
+    {% endif %}
   </header>
 
   <!-- Panel -->
@@ -488,6 +518,31 @@
               </div>
             </div>
           </div>
+              {% if user.is_authenticated and m.sender != user and other.username != "moderator" %}
+                <div class="mt-1">
+                  <details>
+                    <summary class="btn btn-soft btn-sm">Report</summary>
+                    <form class="mt-2" method="post" action="{% url 'forum_report' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="kind" value="dm_message">
+                      <input type="hidden" name="target_id" value="{{ m.id }}">
+                      <select name="reason" class="form-select form-select-sm mb-2" required>
+                        <option value="" selected disabled>Select reason…</option>
+                        <option value="abuse_harassment">Abusive / Harassing</option>
+                        <option value="hate_discrimination">Hate / Discrimination</option>
+                        <option value="violence_threat">Violence / Threat</option>
+                        <option value="sexual_obscene">Sexual / Obscene</option>
+                        <option value="spam">Spam</option>
+                        <option value="privacy">Privacy / Personal info</option>
+                        <option value="cheating">Cheating / Academic dishonesty</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note"></textarea>
+                      <button class="btn btn-sm btn-danger" type="submit">Send</button>
+                    </form>
+                  </details>
+                </div>
+              {% endif %}
         {% empty %}
           <div class="text-center text-muted py-5">Say hello 👋</div>
         {% endfor %}
