@@ -2,487 +2,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{{ course.name }} | {{ chapter.name }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ course.course_name }} | {{ chapter.chapter_name }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        body {
-          margin: 0;
-          font-family: "Segoe UI", sans-serif;
-          background: #f5f7fb;
-          color: #111;
+
+        body{
+            margin:0;
+            font-family:Inter,sans-serif;
+            background:#f4f7fb;
         }
 
-        .container {
-          width: 92%;
-          max-width: 1350px;
-          margin: 25px auto;
+        /* ===== HEADER ===== */
+
+        .learning-header{
+            background:linear-gradient(135deg,#0f5f56,#157a6e);
+            color:white;
+            padding:28px 6%;
         }
 
-        .topbar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 18px;
+        .learning-header h1{
+            margin:0;
+            font-size:26px;
+            font-weight:800;
         }
 
-        .back-btn {
-          text-decoration: none;
-          color: #00796b;
-          font-weight: 700;
+        .learning-header p{
+            margin-top:6px;
+            opacity:.9;
         }
 
-        .page-title {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          margin-bottom: 16px;
+        /* ===== LAYOUT ===== */
+
+        .container{
+            width:92%;
+            max-width:1400px;
+            margin:25px auto;
         }
 
-        .page-title h1 {
-          margin: 0;
-          font-size: 24px;
-          font-weight: 800;
+        .layout{
+            display:grid;
+            grid-template-columns:360px 1fr;
+            gap:24px;
         }
 
-        .page-title p {
-          margin: 0;
-          font-size: 14px;
-          color: #666;
+        @media(max-width:1000px){
+        .layout{grid-template-columns:1fr;}
         }
 
-        .layout {
-          display: grid;
-          grid-template-columns: 380px 1fr;
-          gap: 20px;
-          align-items: start;
+        /* ===== SIDEBAR ===== */
+
+        .sidebar{
+            background:white;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 8px 24px rgba(0,0,0,.06);
+            position:sticky;
+            top:20px;
+            height:fit-content;
         }
 
-        @media (max-width: 1000px) {
-          .layout {
-            grid-template-columns: 1fr;
-          }
+        .sidebar h2{
+            margin:0 0 15px;
+            font-size:17px;
         }
 
-        .card {
-          background: white;
-          border: 1px solid #eef1f5;
-          border-radius: 18px;
-          box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-          padding: 18px;
+        /* dropdown */
+
+        select{
+            width:100%;
+            padding:10px;
+            border-radius:10px;
+            border:1px solid #ddd;
+            margin-bottom:18px;
         }
 
-        .card-title {
-          margin: 0 0 14px;
-          font-size: 16px;
-          font-weight: 800;
-          display: flex;
-          align-items: center;
-          gap: 8px;
+        /* topics */
+
+        .topic-item{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:12px;
+            border-radius:12px;
+            text-decoration:none;
+            color:#222;
+            font-weight:600;
+            transition:.25s;
         }
 
-        /* Topics table */
-        .topics-table {
-          width: 100%;
-          border-collapse: collapse;
-          overflow: hidden;
-          border-radius: 14px;
+        .topic-item:hover{
+            background:#eef7f6;
         }
 
-        .topics-table thead th {
-          text-align: left;
-          padding: 12px;
-          font-size: 13px;
-          color: #444;
-          background: #f7fafc;
-          border-bottom: 1px solid #eef1f5;
+        .topic-active{
+            background:#dff4f1;
+            color:#0f5f56;
         }
 
-        .topics-table tbody td {
-          padding: 12px;
-          font-size: 14px;
-          border-bottom: 1px solid #f0f2f6;
-          vertical-align: middle;
+        /* ===== CONTENT AREA ===== */
+
+        .content{
+            background:white;
+            border-radius:18px;
+            padding:24px;
+            box-shadow:0 8px 24px rgba(0,0,0,.06);
         }
 
-        .topic-link {
-          text-decoration: none;
-          font-weight: 700;
-          color: #00796b;
+        /* topic title */
+
+        .topic-title{
+            font-size:22px;
+            font-weight:800;
         }
 
-        .topic-link:hover {
-          text-decoration: underline;
+        .topic-meta{
+            color:#666;
+            margin-top:4px;
         }
 
-        .active-topic {
-          background: #e0f2f1;
+        /* divider */
+
+        .divider{
+            height:1px;
+            background:#eee;
+            margin:18px 0;
         }
 
-        .action-column {
-          width: 120px;
-          text-align: right;
-          white-space: nowrap;
+        /* PLAYER */
+
+        .player{
+            border-radius:14px;
+            overflow:hidden;
+            border:1px solid #ddd;
+            margin-top:12px;
         }
 
-        .action-btn {
-          text-decoration: none;
-          font-weight: 700;
-          font-size: 13px;
-          padding: 8px 12px;
-          border-radius: 12px;
-          border: 1.5px solid #00796b;
-          color: #00796b;
-          display: inline-block;
-          transition: 0.2s;
+        iframe{
+            width:100%;
+            border:none;
         }
 
-        .action-btn:hover {
-          background: #e0f2f1;
+        /* empty */
+
+        .empty{
+            background:#f7fafc;
+            padding:30px;
+            border-radius:14px;
+            text-align:center;
+            color:#666;
         }
 
-        /* Right panel */
-        .topic-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 12px;
-          flex-wrap: wrap;
+        .badge{
+            background:#e6f6f4;
+            color:#0f5f56;
+            padding:5px 10px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:700;
         }
 
-        .topic-name {
-          font-size: 18px;
-          font-weight: 900;
-          margin: 0;
+        /* ===== TOP NAV ===== */
+
+        .top-nav{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            margin-bottom:15px;
         }
 
-        .topic-meta {
-          color: #666;
-          font-size: 13px;
-          margin: 0;
+        .back-btn{
+            text-decoration:none;
+            background:white;
+            color:#0f5f56;
+            padding:8px 14px;
+            border-radius:10px;
+            font-weight:600;
+            border:1px solid rgba(0,0,0,0.08);
+            box-shadow:0 3px 8px rgba(0,0,0,.05);
+            transition:.25s;
         }
 
-        .chip-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-top: 10px;
+        .back-btn:hover{
+            background:#eaf6f4;
         }
 
-        .chip {
-          padding: 7px 10px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 800;
-          background: #f1f3f5;
-          color: #444;
-        }
-
-        .grid-resources {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-          margin-top: 14px;
-        }
-
-        @media (max-width: 900px) {
-          .grid-resources {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .resource-card {
-          border: 1px solid #eef1f5;
-          border-radius: 16px;
-          padding: 14px;
-          background: #fff;
-        }
-
-        .resource-title {
-          font-size: 14px;
-          font-weight: 900;
-          margin: 0 0 6px;
-          display: flex;
-          justify-content: space-between;
-          gap: 10px;
-          align-items: center;
-        }
-
-        .resource-type {
-          font-size: 12px;
-          font-weight: 800;
-          padding: 5px 10px;
-          border-radius: 999px;
-          background: #e0f2f1;
-          color: #00796b;
-          white-space: nowrap;
-        }
-
-        .resource-desc {
-          font-size: 13px;
-          color: #666;
-          margin: 0 0 10px;
-          line-height: 1.4;
-        }
-
-        .resource-actions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          align-items: center;
-        }
-
-        .btn-primary {
-          background: #00796b;
-          color: white;
-          border: none;
-          padding: 9px 14px;
-          border-radius: 12px;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-          text-decoration: none;
-          display: inline-block;
-        }
-
-        .btn-primary:hover {
-          opacity: 0.92;
-        }
-
-        .btn-outline {
-          background: transparent;
-          color: #00796b;
-          border: 1.5px solid #00796b;
-          padding: 9px 14px;
-          border-radius: 12px;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-          text-decoration: none;
-          display: inline-block;
-        }
-
-        .btn-outline:hover {
-          background: #e0f2f1;
-        }
-
-        .empty-state {
-          padding: 20px;
-          background: #f7fafc;
-          border-radius: 16px;
-          border: 1px dashed #d7dde6;
-          color: #666;
-          font-size: 14px;
-          line-height: 1.5;
-        }
-
-        .divider {
-          height: 1px;
-          background: #eef1f5;
-          margin: 14px 0;
-        }
     </style>
 </head>
 
 <body>
+
+<!-- HEADER -->
+<div class="learning-header">
+
+    <div class="top-nav">
+
+        <!-- BACK BUTTON -->
+        <a href="{% url 'student_dashboard' %}" class="back-btn">
+            ← Back to Dashboard
+        </a>
+
+        <span style="opacity:.85;font-weight:600;">
+            Student Learning Mode
+        </span>
+
+    </div>
+
+    <h1>{{ course.course_name }} • {{ chapter.chapter_name }}</h1>
+    <p>{{ course.course_code }} • Semester {{ course.semester }}</p>
+</div>
+
 <div class="container">
-
-    <!-- Top bar -->
-    <div class="topbar">
-        {% comment %} <a class="back-btn" href="{% url 'student_course_chapters' course_id=course.id %}">← Back to Chapters</a> {% endcomment %}
-
-        <div style="font-size:13px;color:#666;font-weight:700;">
-            Student Dashboard
-        </div>
-    </div>
-
-    <!-- Heading -->
-    <div class="page-title">
-        <h1>{{ course.name }} • {{ chapter.name }}</h1>
-        <p>{{ course.code }} • Semester {{ course.semester }}</p>
-    </div>
 
     <div class="layout">
 
-        <!-- LEFT: Topics -->
-        <section class="card topics-card">
-            <h2 class="card-title">📚 Chapter Topics</h2>
+        <!-- ================= SIDEBAR ================= -->
+        <div class="sidebar">
 
-            <table class="topics-table">
-                <thead>
-                <tr>
-                    <th>Topic Name</th>
-                    <th class="action-column">Open</th>
-                </tr>
-                </thead>
+            <h2>📘 Syllabus Explorer</h2>
 
-                <tbody>
-                {% for topic in topics %}
-                {% if topic %}
-                <tr class="{% if selected_topic and selected_topic == topic %}active-topic{% endif %}">
-                    <td>
-                        <a class="topic-link"
-                           href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}&topic={{ topic|urlencode }}">
-                            {{ topic }}
-                        </a>
-                    </td>
-
-                    <td class="action-column">
-                        <a class="action-btn"
-                           href="{% url 'student_topic_view' %}?course_id={{ course.id }}&chapter_id={{ chapter.id }}&topic={{ topic|urlencode }}">
-                            View →
-                        </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="2" style="color:red;">⚠️ Empty topic found</td>
-                </tr>
-                {% endif %}
-                {% empty %}
-                <tr>
-                    <td colspan="2" style="text-align:center;color:#666;">
-                        No topics found for this chapter.
-                    </td>
-                </tr>
+            <select onchange="location=this.value;">
+                {% for ch in chapters %}
+                <option value="?course_id={{course.id}}&chapter_id={{ch.id}}"
+                        {% if ch.id == chapter.id %}selected{% endif %}>
+                    Chapter {{ch.chapter_number}}: {{ch.chapter_name}}
+                </option>
                 {% endfor %}
-                </tbody>
-            </table>
-        </section>
+            </select>
 
-        <!-- RIGHT: Topic content -->
-        <section class="card">
+            {% for topic in topics %}
+            <a class="topic-item {% if selected_topic == topic %}topic-active{% endif %}"
+               href="?course_id={{course.id}}&chapter_id={{chapter.id}}&topic={{topic|urlencode}}">
+                <span>{{topic}}</span>
+                <span>→</span>
+            </a>
+            {% endfor %}
+
+        </div>
+
+        <!-- ================= CONTENT ================= -->
+        <div class="content">
 
             {% if selected_topic %}
-            <div class="topic-header">
-                <div>
-                    <p class="topic-name">{{ selected_topic }}</p>
-                    <p class="topic-meta">
-                        Course: <b>{{ course.name }}</b> • Chapter: <b>{{ chapter.name }}</b>
-                    </p>
 
-                    <div class="chip-row">
-                        <span class="chip">🎥 Videos: {{ topic_resources.videos|length }}</span>
-                        <span class="chip">📄 Files: {{ topic_resources.files|length }}</span>
-                        <span class="chip">📝 Assessments: {{ topic_resources.assessments|length }}</span>
-                    </div>
-                </div>
+            <div class="topic-title">{{selected_topic}}</div>
 
-                <div>
-                    <a class="btn-outline"
-                       href="{% url 'student_course_chapters' %}?course_id={{ course.id }}">
-                        Back
-                    </a>
-                </div>
+            <div class="topic-meta">
+                Course: <b>{{course.course_name}}</b>
+                &nbsp;•&nbsp;
+                Chapter {{chapter.chapter_number}}
             </div>
 
             <div class="divider"></div>
 
-            <!-- Videos -->
-            <h3 style="margin:0;font-size:15px;font-weight:900;">🎥 Videos</h3>
+            <!-- VIDEO -->
+            <h3>🎥 Video Lecture</h3>
 
-            {% if topic_resources.videos %}
-            <div class="grid-resources">
-                {% for v in topic_resources.videos %}
-                <div class="resource-card">
-                    <div class="resource-title">
-                        <span>{{ v.title }}</span>
-                        <span class="resource-type">VIDEO</span>
-                    </div>
-                    <p class="resource-desc">
-                        {{ v.description }}
-                    </p>
-                    <div class="resource-actions">
-                        <a class="btn-primary" href="{{ v.url }}" target="_blank">Watch</a>
-                        {% if v.duration %}
-                        <span style="font-size:12px;color:#888;font-weight:700;">⏱ {{ v.duration }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+            {% if video_id %}
+            <div class="player">
+                <iframe height="480"
+                        src="https://drive.google.com/file/d/{{video_id}}/preview"
+                        allow="autoplay">
+                </iframe>
             </div>
             {% else %}
-            <div class="empty-state">No videos available for this topic yet.</div>
+            <div class="empty">No video available</div>
             {% endif %}
 
             <div class="divider"></div>
 
-            <!-- Files -->
-            <h3 style="margin:0;font-size:15px;font-weight:900;">📄 Notes / Files</h3>
+            <!-- PDF -->
+            <h3>📄 Study Material</h3>
 
-            {% if topic_resources.files %}
-            <div class="grid-resources">
-                {% for f in topic_resources.files %}
-                <div class="resource-card">
-                    <div class="resource-title">
-                        <span>{{ f.title }}</span>
-                        <span class="resource-type">FILE</span>
-                    </div>
-                    <p class="resource-desc">
-                        {{ f.description }}
-                    </p>
-                    <div class="resource-actions">
-                        {% if f.view_url %}
-                        <a class="btn-primary" href="{{ f.view_url }}" target="_blank">Open</a>
-                        {% endif %}
-                        {% if f.download_url %}
-                        <a class="btn-outline" href="{{ f.download_url }}" target="_blank">Download</a>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+            {% if pdf_id %}
+            <div class="player">
+                <iframe height="600"
+                        src="https://drive.google.com/file/d/{{pdf_id}}/preview">
+                </iframe>
             </div>
             {% else %}
-            <div class="empty-state">No files available for this topic yet.</div>
-            {% endif %}
-
-            <div class="divider"></div>
-
-            <!-- Assessments -->
-            <h3 style="margin:0;font-size:15px;font-weight:900;">📝 Assessments</h3>
-
-            {% if topic_resources.assessments %}
-            <div class="grid-resources">
-                {% for a in topic_resources.assessments %}
-                <div class="resource-card">
-                    <div class="resource-title">
-                        <span>{{ a.title }}</span>
-                        <span class="resource-type">QUIZ</span>
-                    </div>
-                    <p class="resource-desc">
-                        {{ a.description }}
-                    </p>
-                    <div class="resource-actions">
-                        {% if a.start_url %}
-                        <a class="btn-primary" href="{{ a.start_url }}">Start</a>
-                        {% endif %}
-                        {% if a.total_marks %}
-                        <span style="font-size:12px;color:#888;font-weight:700;">
-                      ⭐ Marks: {{ a.total_marks }}
-                    </span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">No assessments available for this topic yet.</div>
+            <div class="empty">No PDF notes uploaded</div>
             {% endif %}
 
             {% else %}
-            <div class="empty-state">
-                <b>Select any topic from the left</b> 👈<br>
-                Then you’ll see its videos, files and assessments here.
+
+            <div class="empty">
+                <h3>Select a topic 👈</h3>
+                <p>Video lecture and study material will appear here.</p>
             </div>
+
             {% endif %}
 
-        </section>
+        </div>
 
     </div>
-
 </div>
+
 </body>
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard | OER</title>
+    <title>Student Dashboard | Adhyayan</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
 
@@ -498,7 +498,7 @@
 <body>
 
 <div class="dashboard-layout">
-   {% include "student/sidebar.html" %}
+    {% include "student/sidebar.html" %}
     <!-- MAIN -->
     <main class="main-content">
 
@@ -546,69 +546,66 @@
             <section id="dashboard-content" class="content-section active">
 
                 <div class="kpi-grid">
-<div class="kpi-card">
-    <h3>{{ enrolled_courses|length }}</h3>
-    <p>Enrolled Subjects</p>
-</div>
-<div class="kpi-card">
-    <h3>{{ completed_courses|length }}</h3>
-    <p>Completed Subjects</p>
-</div>
+                    <div class="kpi-card">
+                        <h3>{{ enrolled_courses|length }}</h3>
+                        <p>Enrolled Subjects</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>{{ completed_courses|length }}</h3>
+                        <p>Completed Subjects</p>
+                    </div>
                 </div>
 
-                <section class="flat-section">
-                    <h2 class="section-heading">
-                        Available Courses
-                        <!-- <span class="section-subtext">Subjects for your current semester</span> -->
-                    </h2>
-
-             <!--         <div class="course-grid">
-                        {% for course in recommended_courses %}
-                        <div class="course-card" data-course-id="{{ course.id }}" data-course-name="{{ course.course_name }}">
-                          <span class="status approved">Recommended</span>-->
-                            <!-- <h4>{{ course.course_name }}</h4>
-                            <p>Curriculum-aligned subject</p>
-                            <button
-                                    class="primary-btn view-chapters-btn"
-                                    data-course-id="{{ course.id }}"
-                                    data-course-name="{{ course.course_name }}">
-                                Browse Chapters
-                            </button>
-
-                        </div>
-                        {% empty %}
-                        <p>No recommendations available.</p>
-                        {% endfor %} -->
-                    <!-- </div> --> 
-                </section>
-
-
-
+                {% comment %} <section class="flat-section">
+                <h2 class="section-heading">Available Courses</h2>
+                <div class="course-grid">
+                    {% for course in courses %}
+                    <div class="course-card">
+                        <span class="status approved">Active</span>
+                        <h4>{{ course.course_name }}</h4>
+                        <p>Subject Code: {{ course.course_code }}</p>
+                        <button class="primary-btn view-chapters-btn"
+                                data-course-id="{{ course.id }}"
+                                data-course-name="{{ course.course_name }}">
+                            View Chapters
+                        </button>
+                    </div>
+                    {% empty %}
+                    <p>No courses found.</p>
+                    {% endfor %}
+                </div>
+            </section> {% endcomment %}
 
 
 
                 <!-- STUDENT SUBJECTS -->
-<section class="flat-section">
-    <h2 class="section-heading">
-        Information Technology – Semester 5 Subjects
-    </h2>
+                <section class="flat-section">
+                    <h2 class="section-heading">Information Technology – Semester 5 Subjects</h2>
 
-   <div class="course-grid student-subject-grid">
-    {% for course in courses %}
-        <div class="course-card student-subject-card">
-            <h4>{{ course.name }}</h4>
-            <p class="subject-code">Subject Code: {{ course.code }}</p>
-            <p class="subject-meta">Third Year · Semester 5</p>
+                    <div class="course-grid">
+                        {% for course in all_courses %}
+                        <div class="course-card">
+                            <h4>{{ course.course_name }}</h4>
+                            <p class="subject-code">Subject Code: {{ course.course_code|default:"--" }}</p>
+                            <p class="subject-meta">Third Year · Semester {{ course.semester|default:"5" }}</p>
 
-            <a href="{% url 'student_chapter_topics' course.id %}"
-               class="view-link">
-                View Chapters
-            </a>
-        </div>
-    {% endfor %}
-</div>
-
-</section>
+                            {% if course.id in enrolled_course_ids %}
+                            <a href="{% url 'student_course_chapters' course.id %}" class="primary-btn" style="background: #0F766E; text-decoration: none; display: inline-block;">
+                                View Chapters
+                            </a>
+                            {% else %}
+                            <form action="{% url 'enroll_course' %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="course_id" value="{{ course.id }}">
+                                <button type="submit" class="primary-btn" style="background: #1EAE98; border: none;">
+                                    Enroll Now
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
 
             </section>
 
@@ -660,19 +657,45 @@
             const chapters = chaptersData[courseId] || [];
 
             if (chapters.length > 0) {
+                // Sort chapters by number just in case
+                chapters.sort((a, b) => a.chapter_number - b.chapter_number);
+
                 chapters.forEach(chap => {
                     const li = document.createElement('li');
-                    const a = document.createElement('a');
+                    li.style.display = "flex";
+                    li.style.justifyContent = "space-between";
+                    li.style.alignItems = "center";
 
-                    a.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_name}`;
-                    // a.href = `/dashboard/contributor/submit_content/?course_id=${courseId}&chapter_id=${chap.id}`;
-                
+                    // Chapter Label
+                    const span = document.createElement('span');
+                    span.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_name}`;
+                    span.style.fontWeight = "500";
 
-                    li.appendChild(a);
+                    // Drive Link Button
+                    if (chap.drive_url) {
+                        const a = document.createElement('a');
+                        a.href = chap.drive_url;
+                        a.target = "_blank";
+                        a.innerHTML = '<i class="fab fa-google-drive"></i> View';
+                        a.className = "primary-btn"; // Use your existing button style
+                        a.style.textDecoration = "none";
+                        a.style.fontSize = "12px";
+                        a.style.padding = "5px 10px";
+
+                        li.appendChild(span);
+                        li.appendChild(a);
+                    } else {
+                        li.appendChild(span);
+                        const small = document.createElement('small');
+                        small.textContent = "Pending";
+                        small.style.color = "#94A3B8";
+                        li.appendChild(small);
+                    }
+
                     drawerList.appendChild(li);
                 });
             } else {
-                drawerList.innerHTML = '<li>No chapters available.</li>';
+                drawerList.innerHTML = '<li style="color: #64748B;">This course has not reached the release threshold yet.</li>';
             }
 
             body.classList.add('drawer-open');

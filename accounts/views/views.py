@@ -10,7 +10,7 @@ from .contributor.generate_expertise import generate_expertise
 from .contributor.recommendation_service import recommend_courses_for_contributor, \
     save_expertise_and_generate_course_links
 from .email.email_service import RegistrationSuccessEmail
-from ..models import User
+from ..models import User, Course
 from ..forms import ProfilePictureForm # Add this new import at the top
 from .syllabus_upload import extract_and_upload
 from django.shortcuts import render, redirect
@@ -134,6 +134,7 @@ def register_view(request):
             user.course = request.POST.get('course', '').strip()
             user.year = request.POST.get('year', '').strip()
             messages.success(request, "Registration successful. You can log in now.")
+            user.save()
             return redirect("login")
 
         elif role == "contributor":

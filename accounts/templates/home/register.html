@@ -391,8 +391,8 @@ Up{% endblock %} {% block content %}
     </div>
 
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
-<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>-->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
       // ---- Tab switching code (unchanged) ----
@@ -451,23 +451,7 @@ Up{% endblock %} {% block content %}
       }
       updateFormRequirements("student");
 
-      // ---- SIMPLE Tagify Initialization ----
-      var domainInput = document.getElementById("domain-input-tagify");
-      if (domainInput) {
-        // Initialize Tagify with no whitelist or restrictions
-        var tagify = new Tagify(domainInput, {
-          maxTags: 10, // optional limit
-          enforceWhitelist: false, // allow free text input
-          dropdown: {
-            enabled: 0, // no dropdown suggestions
-          },
-        });
 
-        // Ensure form validation works properly
-        tagify.on("change", function (e) {
-          domainInput.required = e.detail.value.length === 0;
-      });
-  }
 
       // LinkedIn UI button (for now redirect / later OAuth)
       const linkedinBtn = document.getElementById("linkedin-signup-btn");

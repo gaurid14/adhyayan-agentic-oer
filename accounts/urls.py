@@ -19,7 +19,7 @@ from .views.forum import (
     dm_inbox, dm_thread, dm_thread_updates, dm_inbox_updates,
 )
 
-from accounts.views.student.student_dashboard import student_dashboard
+from accounts.views.student.student_dashboard import student_dashboard, enroll_course
 
 from accounts.views.student.student_courses import student_courses
 from accounts.views.student.student_profile import student_profile
@@ -27,7 +27,6 @@ from accounts.views.student.student_profile import student_profile
 from accounts.views.student.chapter_topics import chapter_topics
 from accounts.views.student.student_dashboard import student_dashboard, student_topic_view
 from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action
-
 
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
@@ -54,19 +53,20 @@ urlpatterns = [
     # needed for JS
     # path('dashboard/contributor/submit_content/submit_assessment', submit_assessment, name='submit_assessment'),
     path('dashboard/contributor/submit_content/gemini_chat', gemini_chat, name='gemini_chat'),
-    
+
     path('dashboard/contributor/submit_content/after_submission/', after_submission, name='after_submission'),
-   
-   #student
-   path("dashboard/student/", student_dashboard, name="student_dashboard"),
+
+    # student
+    path("dashboard/student/", student_dashboard, name="student_dashboard"),
+    path("dashboard/student/enroll/", enroll_course, name="enroll_course"),
     path("student/courses/", student_courses, name="student_courses"),
     path("student/profile/", student_profile, name="student_profile"),
     path("forum/", forum_home, name="forum_home"),
     path("check_content_quality/", check_topic_quality, name="check_topic_quality"),
     path("forum/course/<int:course_id>/chapters/", forum_course_chapters, name="forum_course_chapters"),
     # path("logout/", logout_view, name="logout"),
-    #path("dashboard/student/course/<int:course_id>/chapters/", chapter_topics, name="student_chapter_topics"),
- path(
+    # path("dashboard/student/course/<int:course_id>/chapters/", chapter_topics, name="student_chapter_topics"),
+    path(
         "dashboard/student/course/<int:course_id>/chapters/",
         chapter_topics,
         name="student_chapter_topics"
@@ -75,14 +75,14 @@ urlpatterns = [
     # 1. Course Chapters List View
     path(
         "dashboard/student/course/<int:course_id>/chapters/",
-        chapter_topics, # This is your student_course_chapters view
-        name="student_course_chapters" 
+        chapter_topics,  # This is your student_course_chapters view
+        name="student_course_chapters"
     ),
 
     # 2. Topic Detail View (The one that uses ?course_id=...&chapter_id=...)
     path(
-        "dashboard/student/topics/", 
-        student_topic_view, 
+        "dashboard/student/topics/",
+        student_topic_view,
         name="student_topic_view"
     ),
 
@@ -96,7 +96,7 @@ urlpatterns = [
     path("forum/moderation/", forum_moderation_queue, name="forum_moderation_queue"),
     path("forum/moderation/action/", forum_moderation_action, name="forum_moderation_action"),
     path("forum/<int:pk>/edit/", forum_question_edit, name="forum_question_edit"),
-path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
+    path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---
@@ -122,7 +122,7 @@ path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delet
             html_email_template_name='emails/password_reset_email.html',  # HTML email
             subject_template_name='emails/password_reset_subject.txt'
         ),
-        name = 'password_reset'
+        name='password_reset'
     ),
 
     path(
@@ -158,7 +158,7 @@ path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delet
             html_email_template_name='emails/password_reset_email.html',  # HTML email
             subject_template_name='emails/password_reset_subject.txt'
         ),
-        name = 'password_reset'
+        name='password_reset'
     ),
 
     path(
@@ -197,4 +197,3 @@ path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delet
     path("dashboard/contributor/notes/delete/<int:note_id>/", delete_note, name="delete_note"),
     path("dashboard/contributor/notes/<id>/", get_note, name="get_note"),
 ]
-
