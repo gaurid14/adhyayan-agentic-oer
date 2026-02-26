@@ -1,5 +1,6 @@
 from langgraph.constants import END
 from langgraph.graph import StateGraph
+from langsmith import traceable
 
 from langgraph_agents.agents.clarity import evaluate_clarity
 from langgraph_agents.agents.coherence import evaluate_coherence
@@ -9,18 +10,23 @@ from langgraph_agents.agents.accuracy import evaluate_accuracy
 
 
 # Wrapper nodes (IMPORTANT)
+@traceable(name="Clarity Agent")
 async def clarity_node(state: dict) -> dict:
     return await evaluate_clarity.ainvoke({"state": state})
 
+@traceable(name="Engagement Agent")
 async def engagement_node(state: dict) -> dict:
     return await evaluate_engagement.ainvoke({"state": state})
 
+@traceable(name="Coherence Agent")
 async def coherence_node(state: dict) -> dict:
     return await evaluate_coherence.ainvoke({"state": state})
 
+@traceable(name="Completeness Agent")
 async def completeness_node(state: dict) -> dict:
     return await evaluate_completeness.ainvoke({"state": state})
 
+@traceable(name="Accuracy Agent")
 async def accuracy_node(state: dict) -> dict:
     return await evaluate_accuracy.ainvoke({"state": state})
 

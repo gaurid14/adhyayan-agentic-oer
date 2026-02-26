@@ -1,5 +1,6 @@
 from langgraph.graph import StateGraph
 from langgraph.constants import END
+from langsmith import traceable
 
 from langgraph_agents.review_agents.clarity_review import review_clarity
 from langgraph_agents.review_agents.engagement_review import review_engagement
@@ -9,13 +10,14 @@ from langgraph_agents.review_agents.engagement_review import review_engagement
 # WRAPPER NODES (IMPORTANT FOR LANGGRAPH)
 # =====================================================
 
+@traceable(name="AI Review Pipeline")
 async def clarity_node(state: dict) -> dict:
     result = await review_clarity.ainvoke({
         "state": state
     })
     return result
 
-
+@traceable(name="AI Review Pipeline")
 async def engagement_node(state: dict) -> dict:
     result = await review_engagement.ainvoke({
         "state": state

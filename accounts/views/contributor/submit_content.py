@@ -21,6 +21,7 @@ from docx import Document
 from exceptiongroup import ExceptionGroup
 from google.auth.exceptions import RefreshError
 from langchain_core.messages import HumanMessage
+from langsmith import traceable
 from xhtml2pdf import pisa
 from googleapiclient.http import (
     MediaFileUpload,
@@ -33,6 +34,7 @@ from accounts.models import (
     Question, Option, Course, User, ExternalResource, ChapterContributionProgress, ChapterPolicy, AssessmentSource
 )
 from accounts.views.email.email_service import ContributionSuccessEmail
+from langgraph_agents.review_graph.review_runner import run_review_pipeline
 
 from langgraph_agents.services.drive_service import (
     GoogleDriveAuthService,
@@ -170,6 +172,7 @@ class ContributorEditorService:
 
 class SubmissionOrchestrator:
     @staticmethod
+    @traceable(name="Submission + Evaluation Orchestrator")
     def submit_and_evaluate(state: dict):
 
         # 1) submission agent sync safe
@@ -221,6 +224,7 @@ class SubmissionOrchestrator:
                 print("Extraction timeout. Evaluation graph NOT started.")
                 return False
 
+            @traceable(name="Adhyayan Evaluation Pipeline")
             async def runner():
                 ok = await wait_for_extraction()
                 if not ok:
@@ -247,7 +251,12 @@ class SubmissionOrchestrator:
                         graph_input = {**state, **result}
                         graph_input["mcp_session"] = session   # shared for all agents
 
-                        await compiled_graph.ainvoke(graph_input)
+                        await compiled_graph.ainvoke(
+                            graph_input,
+                            config={
+                                "run_name": "Adhyayan Evaluation Graph"
+                            }
+                        )
 
                         await sync_to_async(UploadCheck.objects.filter(id=upload_id).update)(evaluation_status=True)
                         print(f"✅ Marked upload {upload_id} as evaluated.")    
@@ -1379,6 +1388,37 @@ from langgraph_agents.review_graph.review_workflow import (
 )
 
 
+# async def check_topic_quality(request):
+#
+#     data = json.loads(request.body)
+#
+#     topic = data.get("topic")
+#     notes = data.get("notes")
+#     files = data.get("files", [])
+#     level = data.get("target_level", "undergrad")
+#
+#     result = await compiled_review_graph.ainvoke({
+#         "topic": topic,
+#         "notes": notes,
+#         "files": files,
+#         "target_level": level
+#     })
+#
+#     clarity = result.get("clarity_review", {})
+#     engagement = result.get("engagement_review", {})
+#
+#     suggestions = (
+#             clarity.get("suggestions", [])
+#             + engagement.get("suggestions", [])
+#     )
+#
+#     return JsonResponse({
+#         # "clarity_score": clarity.get("clarity_score"),
+#         # "engagement_score": engagement.get("engagement_score"),
+#         "suggestions": suggestions
+#     })
+
+
 async def check_topic_quality(request):
 
     data = json.loads(request.body)
@@ -1388,7 +1428,7 @@ async def check_topic_quality(request):
     files = data.get("files", [])
     level = data.get("target_level", "undergrad")
 
-    result = await compiled_review_graph.ainvoke({
+    result = await run_review_pipeline({
         "topic": topic,
         "notes": notes,
         "files": files,
@@ -1404,7 +1444,5 @@ async def check_topic_quality(request):
     )
 
     return JsonResponse({
-        # "clarity_score": clarity.get("clarity_score"),
-        # "engagement_score": engagement.get("engagement_score"),
         "suggestions": suggestions
     })
