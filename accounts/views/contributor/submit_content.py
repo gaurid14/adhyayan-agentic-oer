@@ -1371,7 +1371,40 @@ def auto_submit_expired_deadlines():
             progress.auto_submitted = True
             progress.save()
 
-def check_topic_quality():
-    print("After submission view called")
-    # generate_expertise()
-    # Clear all session data safely
+import json
+from django.http import JsonResponse
+
+from langgraph_agents.review_graph.review_workflow import (
+    compiled_review_graph
+)
+
+
+async def check_topic_quality(request):
+
+    data = json.loads(request.body)
+
+    topic = data.get("topic")
+    notes = data.get("notes")
+    files = data.get("files", [])
+    level = data.get("target_level", "undergrad")
+
+    result = await compiled_review_graph.ainvoke({
+        "topic": topic,
+        "notes": notes,
+        "files": files,
+        "target_level": level
+    })
+
+    clarity = result.get("clarity_review", {})
+    engagement = result.get("engagement_review", {})
+
+    suggestions = (
+            clarity.get("suggestions", [])
+            + engagement.get("suggestions", [])
+    )
+
+    return JsonResponse({
+        # "clarity_score": clarity.get("clarity_score"),
+        # "engagement_score": engagement.get("engagement_score"),
+        "suggestions": suggestions
+    })

@@ -1197,6 +1197,28 @@
             border:1px solid #bbf7d0;
             color:#065f46;
         }
+
+        .ai-feedback{
+            animation: fadeInAI .25s ease;
+        }
+
+        @keyframes fadeInAI{
+            from{
+                opacity:0;
+                transform:translateY(6px);
+            }
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        .ai-feedback li{
+            background:#ffffff;
+            border:1px solid #e5e7eb;
+            padding:10px 12px;
+            border-radius:8px;
+        }
     </style>
 </head>
 <script>
@@ -2207,13 +2229,39 @@ if (topicCheckBtn) {
 
             const data = await res.json();
 
+            const suggestions = data.suggestions || [];
+
             topicFeedback.innerHTML = `
-                <strong>Topic Quality Feedback</strong>
-                <ul>
-                    ${data.suggestions
-                        .map(s => `<li>${s}</li>`)
-                        .join("")}
-                </ul>
+            <strong>🤖 AI Suggestions</strong>
+            ${
+            suggestions.length
+            ? `<div>
+            ${suggestions.map(s => {
+
+                // ✅ HANDLE STRING suggestions
+                if (typeof s === "string") {
+                    return `
+                    <div class="ai-suggestion">
+                        ⚠ Writing suggestion
+                        <br>✅ ${s}
+                    </div>`;
+                }
+
+                // ✅ HANDLE OBJECT suggestions safely
+                const issue = s.issue || "Writing improvement";
+                const fix = s.fix || "";
+                const example = s.example || "";
+
+                return `
+                <div class="ai-suggestion">
+                    ⚠ ${issue}
+                    ${fix ? `<br>✅ ${fix}` : ""}
+                    ${example ? `<br>✏ ${example}` : ""}
+                </div>`;
+            }).join("")}
+            </div>`
+            : `<p>✅ Your content looks clear and well structured.</p>`
+            }
             `;
 
         } catch (e) {

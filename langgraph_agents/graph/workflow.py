@@ -8,7 +8,7 @@ from langgraph_agents.agents.completeness import evaluate_completeness
 from langgraph_agents.agents.accuracy import evaluate_accuracy
 
 
-# ✅ Wrapper nodes (IMPORTANT)
+# Wrapper nodes (IMPORTANT)
 async def clarity_node(state: dict) -> dict:
     return await evaluate_clarity.ainvoke({"state": state})
 
@@ -27,7 +27,7 @@ async def accuracy_node(state: dict) -> dict:
 
 graph = StateGraph(dict)
 
-# ✅ Add wrapper nodes, not tool directly
+# Add wrapper nodes, not tool directly
 graph.add_node("evaluate_clarity", clarity_node)
 graph.add_node("evaluate_engagement", engagement_node)
 graph.add_node("evaluate_coherence", coherence_node)
