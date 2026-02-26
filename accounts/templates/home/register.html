@@ -1,6 +1,7 @@
 {% extends "home/base.html" %} {% load static %} {% block title %}Login / Sign
 Up{% endblock %} {% block content %}
-
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
     :root {
         --primary: #0f5f56;
@@ -256,6 +257,38 @@ Up{% endblock %} {% block content %}
         }
     }
 
+    /* ===== PASSWORD EYE ===== */
+
+    .toggle-password {
+        position: absolute;
+        right: 14px;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .toggle-password:hover {
+        color: var(--primary);
+    }
+
+    .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .password-wrapper input {
+        width: 100%;
+        box-sizing: border-box;
+        padding-right: 42px;
+    }
+
+    .login-form .password-wrapper {
+        margin-bottom: 18px;
+    }
+
 </style>
 
 <div class="container">
@@ -275,7 +308,14 @@ Up{% endblock %} {% block content %}
 
                 <input type="email" name="email" placeholder="Email" required>
 
-                <input type="password" name="password" placeholder="Password" required>
+                <div class="password-wrapper">
+                    <input type="password" name="password"
+                           placeholder="Password"
+                           class="password-field"
+                           required>
+
+                    <i class="fa-solid fa-eye toggle-password"></i>
+                </div>
 
                 <a href="{% url 'password_reset' %}" class="forgot">
                     Forgot your password?
@@ -380,7 +420,14 @@ Up{% endblock %} {% block content %}
                     </div>
                     <div class="form-group">
                         <label>Create Password</label>
-                        <input type="password" name="password" required>
+                        <div class="password-wrapper">
+                            <input type="password"
+                                   name="password"
+                                   class="password-field"
+                                   required>
+
+                            <i class="fa-solid fa-eye toggle-password"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -477,6 +524,27 @@ Up{% endblock %} {% block content %}
       }
     });
 
+</script>
+
+<script>
+    // ===== PASSWORD TOGGLE =====
+    document.querySelectorAll(".toggle-password").forEach(icon => {
+        icon.addEventListener("click", () => {
+
+            const input =
+                icon.parentElement.querySelector(".password-field");
+
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        });
+    });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
