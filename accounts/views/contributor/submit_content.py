@@ -43,6 +43,7 @@ from langgraph_agents.services.drive_service import (
 
 from langgraph_agents.agents.submission_agent import submission_agent
 from langgraph_agents.graph.workflow import compiled_graph
+from langgraph_agents.services.evaluation_score import finalize_evaluation
 from langgraph_agents.services.gemini_service import llm
 
 import traceback
@@ -259,6 +260,9 @@ class SubmissionOrchestrator:
                         )
 
                         await sync_to_async(UploadCheck.objects.filter(id=upload_id).update)(evaluation_status=True)
+
+                        # writing scores to blockchain
+                        await finalize_evaluation(upload_id)
                         print(f"✅ Marked upload {upload_id} as evaluated.")    
 
                 print("Evaluation graph invoked!!")
