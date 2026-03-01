@@ -29,6 +29,8 @@ from accounts.views.student.chapter_topics import chapter_topics
 from accounts.views.student.student_dashboard import student_dashboard, student_topic_view
 from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action, forum_reportcase_action
 
+from accounts.views.student.drive_proxy import drive_stream
+
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
     path('login/', views.login_view, name='login'),
@@ -86,7 +88,7 @@ urlpatterns = [
         student_topic_view,
         name="student_topic_view"
     ),
-
+path("student/drive/<int:course_id>/<str:file_id>/", drive_stream, name="drive_stream"),
     # Forum
     path("forum/<int:pk>/", forum_detail, name="forum_detail"),
     path("forum/ask/", post_question, name="forum_ask"),

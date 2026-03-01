@@ -4,303 +4,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>{{ course.course_name }} | {{ chapter.chapter_name }}</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-
-        body{
-            margin:0;
-            font-family:Inter,sans-serif;
-            background:#f4f7fb;
-        }
-
-        /* ===== HEADER ===== */
-
-        .learning-header{
-            background:linear-gradient(135deg,#0f5f56,#157a6e);
-            color:white;
-            padding:28px 6%;
-        }
-
-        .learning-header h1{
-            margin:0;
-            font-size:26px;
-            font-weight:800;
-        }
-
-        .learning-header p{
-            margin-top:6px;
-            opacity:.9;
-        }
-
-        /* ===== LAYOUT ===== */
-
-        .container{
-            width:92%;
-            max-width:1400px;
-            margin:25px auto;
-        }
-
-        .layout{
-            display:grid;
-            grid-template-columns:360px 1fr;
-            gap:24px;
-        }
-
-        @media(max-width:1000px){
-        .layout{grid-template-columns:1fr;}
-        }
-
-        /* ===== SIDEBAR ===== */
-
-        .sidebar{
-            background:white;
-            border-radius:18px;
-            padding:20px;
-            box-shadow:0 8px 24px rgba(0,0,0,.06);
-            position:sticky;
-            top:20px;
-            height:fit-content;
-        }
-
-        .sidebar h2{
-            margin:0 0 15px;
-            font-size:17px;
-        }
-
-        /* dropdown */
-
-        select{
-            width:100%;
-            padding:10px;
-            border-radius:10px;
-            border:1px solid #ddd;
-            margin-bottom:18px;
-        }
-
-        /* topics */
-
-        .topic-item{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            padding:12px;
-            border-radius:12px;
-            text-decoration:none;
-            color:#222;
-            font-weight:600;
-            transition:.25s;
-        }
-
-        .topic-item:hover{
-            background:#eef7f6;
-        }
-
-        .topic-active{
-            background:#dff4f1;
-            color:#0f5f56;
-        }
-
-        /* ===== CONTENT AREA ===== */
-
-        .content{
-            background:white;
-            border-radius:18px;
-            padding:24px;
-            box-shadow:0 8px 24px rgba(0,0,0,.06);
-        }
-
-        /* topic title */
-
-        .topic-title{
-            font-size:22px;
-            font-weight:800;
-        }
-
-        .topic-meta{
-            color:#666;
-            margin-top:4px;
-        }
-
-        /* divider */
-
-        .divider{
-            height:1px;
-            background:#eee;
-            margin:18px 0;
-        }
-
-        /* PLAYER */
-
-        .player{
-            border-radius:14px;
-            overflow:hidden;
-            border:1px solid #ddd;
-            margin-top:12px;
-        }
-
-        iframe{
-            width:100%;
-            border:none;
-        }
-
-        /* empty */
-
-        .empty{
-            background:#f7fafc;
-            padding:30px;
-            border-radius:14px;
-            text-align:center;
-            color:#666;
-        }
-
-        .badge{
-            background:#e6f6f4;
-            color:#0f5f56;
-            padding:5px 10px;
-            border-radius:999px;
-            font-size:12px;
-            font-weight:700;
-        }
-
-        /* ===== TOP NAV ===== */
-
-        .top-nav{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            margin-bottom:15px;
-        }
-
-        .back-btn{
-            text-decoration:none;
-            background:white;
-            color:#0f5f56;
-            padding:8px 14px;
-            border-radius:10px;
-            font-weight:600;
-            border:1px solid rgba(0,0,0,0.08);
-            box-shadow:0 3px 8px rgba(0,0,0,.05);
-            transition:.25s;
-        }
-
-        .back-btn:hover{
-            background:#eaf6f4;
-        }
-
+        body{margin:0;font-family:Inter,sans-serif;background:#f4f7fb;}
+        .learning-header{background:linear-gradient(135deg,#0f5f56,#157a6e);color:white;padding:28px 6%;}
+        .learning-header h1{margin:0;font-size:26px;font-weight:800;}
+        .learning-header p{margin-top:6px;opacity:.9;}
+        .container{width:92%;max-width:1400px;margin:25px auto;}
+        .layout{display:grid;grid-template-columns:360px 1fr;gap:24px;}
+        @media(max-width:1000px){.layout{grid-template-columns:1fr;}}
+        .sidebar{background:white;border-radius:18px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.06);position:sticky;top:20px;height:fit-content;}
+        .sidebar h2{margin:0 0 15px;font-size:17px;}
+        select{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-bottom:18px;}
+        .topic-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;text-decoration:none;color:#222;font-weight:600;transition:.25s;}
+        .topic-item:hover{background:#eef7f6;}
+        .topic-active{background:#dff4f1;color:#0f5f56;}
+        .content{background:white;border-radius:18px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.06);}
+        .divider{height:1px;background:#eee;margin:18px 0;}
+        .player{border-radius:14px;overflow:hidden;border:1px solid #ddd;margin-top:12px;background:#000;}
+        iframe{width:100%;border:none;}
+        .empty{background:#f7fafc;padding:30px;border-radius:14px;text-align:center;color:#666;}
+        .badge{background:#e6f6f4;color:#0f5f56;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;}
+        .top-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;}
+        .back-btn{text-decoration:none;background:white;color:#0f5f56;padding:8px 14px;border-radius:10px;font-weight:600;border:1px solid rgba(0,0,0,0.08);box-shadow:0 3px 8px rgba(0,0,0,.05);}
+        .file-list{margin:0;padding:0;list-style:none;display:grid;gap:10px;}
+        .file-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+        .file-name{font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .file-actions{display:flex;gap:8px;flex-wrap:wrap;}
+        .btn{display:inline-block;text-decoration:none;padding:6px 10px;border-radius:10px;font-weight:700;font-size:12px;border:1px solid #e5e7eb;color:#0f5f56;background:#fff;}
+        .btn:hover{background:#eef7f6;}
+        .hint{font-size:12px;color:#64748b;margin-top:6px;}
     </style>
 </head>
 
 <body>
-
-<!-- HEADER -->
-<div class="learning-header">
-
-    <div class="top-nav">
-
-        <!-- BACK BUTTON -->
-        <a href="{% url 'student_dashboard' %}" class="back-btn">
-            ← Back to Dashboard
-        </a>
-
-        <span style="opacity:.85;font-weight:600;">
-            Student Learning Mode
-        </span>
-
-    </div>
-
-    <h1>{{ course.course_name }} • {{ chapter.chapter_name }}</h1>
-    <p>{{ course.course_code }} • Semester {{ course.semester }}</p>
-</div>
-
-<div class="container">
-
-    <div class="layout">
-
-        <!-- ================= SIDEBAR ================= -->
-        <div class="sidebar">
-
-            <h2>📘 Syllabus Explorer</h2>
-
-            <select onchange="location=this.value;">
-                {% for ch in chapters %}
-                <option value="?course_id={{course.id}}&chapter_id={{ch.id}}"
-                        {% if ch.id == chapter.id %}selected{% endif %}>
-                    Chapter {{ch.chapter_number}}: {{ch.chapter_name}}
-                </option>
-                {% endfor %}
-            </select>
-
-            {% for topic in topics %}
-            <a class="topic-item {% if selected_topic == topic %}topic-active{% endif %}"
-               href="?course_id={{course.id}}&chapter_id={{chapter.id}}&topic={{topic|urlencode}}">
-                <span>{{topic}}</span>
-                <span>→</span>
-            </a>
-            {% endfor %}
-
+    <div class="learning-header">
+        <div class="top-nav">
+            <a class="back-btn" href="/dashboard/student/">← Back to Dashboard</a>
+            <div class="badge">Student Learning Mode</div>
         </div>
 
-        <!-- ================= CONTENT ================= -->
-        <div class="content">
+        <h1>{{ course.course_name }} • {{ chapter.chapter_name }}</h1>
+        <p>{{ course.course_code }} • Semester {{ course.semester }}</p>
+    </div>
 
-            {% if selected_topic %}
+    <div class="container">
+        <div class="layout">
 
-            <div class="topic-title">{{selected_topic}}</div>
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h2>📘 Syllabus Explorer</h2>
 
-            <div class="topic-meta">
-                Course: <b>{{course.course_name}}</b>
-                &nbsp;•&nbsp;
-                Chapter {{chapter.chapter_number}}
+                <form method="get">
+                    <select name="chapter_id" onchange="this.form.submit()">
+                        {% for ch in chapters %}
+                            <option value="{{ ch.id }}" {% if ch.id == chapter.id %}selected{% endif %}>
+                                Chapter {{ ch.chapter_number }}: {{ ch.chapter_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if topics %}
+                    {% for t in topics %}
+                        <a href="?chapter_id={{ chapter.id }}&topic={{ t }}"
+                           class="topic-item {% if selected_topic == t %}topic-active{% endif %}">
+                            <span>{{ t }}</span> <span>→</span>
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:#666;margin:0;">No description available</p>
+                {% endif %}
             </div>
 
-            <div class="divider"></div>
+            <!-- Content -->
+            <div class="content">
+                {% if not is_released %}
+                    <div class="empty">
+                        <h3 style="margin:0 0 6px;">Content not released yet</h3>
+                        <p style="margin:0;">This chapter will appear here once it meets the release rules.</p>
+                    </div>
+                {% else %}
+                    <div style="text-align:left;">
+                        <h3 style="margin:0 0 6px;">Study Materials</h3>
+                        <p style="margin:0;">Files available for this chapter:</p>
+                        <div class="divider"></div>
 
-            <!-- VIDEO -->
-            <h3>🎥 Video Lecture</h3>
+                        {% if files_for_ui %}
+                            <ul class="file-list">
+                                {% for f in files_for_ui %}
+                                    <li class="file-card">
+                                        <div style="min-width:0;">
+                                            <div class="file-name" title="{{ f.name }}">{{ f.name }}</div>
+                                            <div style="color:#64748b;font-size:12px;">{{ f.mimeType }}</div>
+                                            <div class="hint">Opens inside OER (no Google Drive navigation)</div>
+                                        </div>
+                                        <div class="file-actions">
+                                            <a class="btn" href="{{ f.stream_url }}" target="_blank" rel="noopener">Open</a>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p style="margin:0;color:#666;">No files found for this chapter.</p>
+                        {% endif %}
+                    </div>
 
-            {% if video_id %}
-            <div class="player">
-                <iframe height="480"
-                        src="https://drive.google.com/file/d/{{video_id}}/preview"
-                        allow="autoplay">
-                </iframe>
+                    {% if pdf_id %}
+                        <div class="divider"></div>
+                        <h3 style="margin:0 0 10px;">PDF Preview</h3>
+                        <div class="player">
+                            <iframe src="{% url 'drive_stream' course.id pdf_id %}" height="520"></iframe>
+                        </div>
+                    {% endif %}
+
+                    {% if video_id %}
+                        <div class="divider"></div>
+                        <h3 style="margin:0 0 10px;">Video Preview</h3>
+                        <div class="player" style="padding:12px;background:#000;">
+                            <video
+                                controls
+                                preload="metadata"
+                                style="width:100%;border-radius:12px;"
+                                src="{% url 'drive_stream' course.id video_id %}">
+                            </video>
+                        </div>
+                    {% endif %}
+                {% endif %}
             </div>
-            {% else %}
-            <div class="empty">No video available</div>
-            {% endif %}
-
-            <div class="divider"></div>
-
-            <!-- PDF -->
-            <h3>📄 Study Material</h3>
-
-            {% if pdf_id %}
-            <div class="player">
-                <iframe height="600"
-                        src="https://drive.google.com/file/d/{{pdf_id}}/preview">
-                </iframe>
-            </div>
-            {% else %}
-            <div class="empty">No PDF notes uploaded</div>
-            {% endif %}
-
-            {% else %}
-
-            <div class="empty">
-                <h3>Select a topic 👈</h3>
-                <p>Video lecture and study material will appear here.</p>
-            </div>
-
-            {% endif %}
 
         </div>
-
     </div>
-</div>
-
 </body>
 </html>

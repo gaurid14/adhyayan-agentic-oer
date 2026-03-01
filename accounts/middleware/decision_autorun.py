@@ -13,8 +13,9 @@ class DecisionAutoRunMiddleware(MiddlewareMixin):
         if not user or not user.is_authenticated:
             return None
 
-        # ✅ Allow staff OR contributor dashboard
-        allowed = user.is_staff or request.path.startswith("/dashboard/contributor/")
+        # ✅ Run on any authenticated request, but keep it lightweight with per-user throttling
+        # (meets requirement: auto runs when the system is touched / navigated)
+        allowed = True
         if not allowed:
             return None
 
@@ -31,6 +32,12 @@ class DecisionAutoRunMiddleware(MiddlewareMixin):
         try:
             from accounts.services.auto_decision import trigger_due_decisions
             trigger_due_decisions(max_chapters=2)
+            # Trigger admin agent for recent courses (lightweight)
+            try:
+                from accounts.services.admin_agent import AdminAgentService
+                AdminAgentService().auto_release_recent(window_seconds=3600)
+            except Exception:
+                logger.exception("AdminAgent run failed")
         except Exception:
             logger.exception("DM middleware failed")
 
