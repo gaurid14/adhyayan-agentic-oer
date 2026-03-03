@@ -111,6 +111,9 @@ def drive_stream(request, course_id: int, file_id: str):
 
         resp = StreamingHttpResponse(stream(), content_type=mime_type, status=status_code)
         resp["Content-Disposition"] = f'inline; filename="{filename}"'
+        resp["X-Frame-Options"] = "SAMEORIGIN"
+        resp["Content-Security-Policy"] = "frame-ancestors 'self'"
+        resp["Cache-Control"] = "no-store"
         for k, v in headers.items():
             resp[k] = v
         return resp

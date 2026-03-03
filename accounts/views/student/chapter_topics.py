@@ -55,25 +55,39 @@ def _is_folder(mime_type: str) -> bool:
     return (mime_type or "") == "application/vnd.google-apps.folder"
 
 
+
 @login_required
 def chapter_topics(request, course_id):
     course = get_object_or_404(Course, id=course_id)
 
     # Ensure student is enrolled
     if not EnrolledCourse.objects.filter(student=request.user, course=course).exists():
-        return render(request, "student/locked_error.html", {"error_message": "Enrollment required."})
+        return render(request, "student/locked_error.html", {
+            "error_message": "Enrollment required."
+        })
 
     chapters = Chapter.objects.filter(course=course).order_by("chapter_number")
 
     selected_chapter_id = request.GET.get("chapter_id")
     if selected_chapter_id:
-        current_chapter = get_object_or_404(Chapter, id=selected_chapter_id, course=course)
+        current_chapter = get_object_or_404(
+            Chapter,
+            id=selected_chapter_id,
+            course=course
+        )
     else:
         current_chapter = chapters.first()
 
+    # Topics from chapter description
     topics = []
     if current_chapter and current_chapter.description:
-        topics = [t.strip() for t in current_chapter.description.split(",") if t.strip()]
+        topics = [
+            t.strip()
+            for t in current_chapter.description.split(",")
+            if t.strip()
+        ]
+
+    selected_topic = request.GET.get("topic")
 
     pdf_id = None
     video_id = None
@@ -93,11 +107,15 @@ def chapter_topics(request, course_id):
 
                 def add_file(file_obj):
                     nonlocal pdf_id, video_id, files_for_ui
+
                     fid = file_obj.get("id")
                     name = file_obj.get("name") or "Untitled"
                     mt = file_obj.get("mimeType") or ""
 
-                    stream_url = reverse("drive_stream", args=[course.id, fid])
+                    stream_url = reverse(
+                        "drive_stream",
+                        args=[course.id, fid]
+                    )
 
                     files_for_ui.append({
                         "id": fid,
@@ -113,14 +131,15 @@ def chapter_topics(request, course_id):
                         video_id = fid
 
                 for any_id in ids:
-                    # First: check what this id is (folder or file)
                     meta = service.files().get(
                         fileId=any_id,
                         fields="id,name,mimeType"
                     ).execute()
 
+                    # If it's a folder (like 11_30_2)
                     if _is_folder(meta.get("mimeType")):
-                        # List children of folder
+
+                        # LEVEL 1 → topic folders
                         query = f"'{any_id}' in parents and trashed=false"
                         results = service.files().list(
                             q=query,
@@ -128,27 +147,53 @@ def chapter_topics(request, course_id):
                             pageSize=200
                         ).execute()
 
-                        for f in results.get("files", []):
-                            # ignore nested folders in UI (optional)
-                            if _is_folder(f.get("mimeType")):
+                        topic_folders = results.get("files", [])
+
+                        for topic_folder in topic_folders:
+
+                            # We only care about folders at this level
+                            if not _is_folder(topic_folder.get("mimeType")):
                                 continue
-                            add_file(f)
+
+                            topic_name = topic_folder.get("name")
+
+                            # If topic is selected → filter
+                            if selected_topic and topic_name != selected_topic:
+                                continue
+
+                            # LEVEL 2 → actual files inside topic folder
+                            sub_query = f"'{topic_folder.get('id')}' in parents and trashed=false"
+                            sub_results = service.files().list(
+                                q=sub_query,
+                                fields="files(id,name,mimeType)",
+                                pageSize=200
+                            ).execute()
+
+                            for file_obj in sub_results.get("files", []):
+                                if _is_folder(file_obj.get("mimeType")):
+                                    continue
+                                add_file(file_obj)
+
                     else:
-                        # It's a file id, use directly
+                        # If directly file
                         add_file(meta)
 
             except Exception as e:
-                logger.exception("Failed to load Drive content for chapter: %s", e)
+                logger.exception(
+                    "Failed to load Drive content for chapter: %s",
+                    e
+                )
 
     context = {
         "course": course,
         "chapters": chapters,
         "chapter": current_chapter,
         "topics": topics,
-        "selected_topic": request.GET.get("topic"),
+        "selected_topic": selected_topic,
         "pdf_id": pdf_id,
         "video_id": video_id,
         "files_for_ui": files_for_ui,
         "is_released": bool(released_info and released_info.release_status),
     }
+
     return render(request, "student/chapter_topics.html", context)
