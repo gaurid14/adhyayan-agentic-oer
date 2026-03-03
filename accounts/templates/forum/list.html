@@ -233,7 +233,7 @@
                     <div class="min-w-0">
                       <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                         <h5 class="mb-0 text-truncate">
-                          <a class="text-decoration-none" href="{% url 'forum_detail' q.id %}">
+                          <a class="text-decoration-none" href="{% url 'forum_detail' q.id %}" style="color: #1eae98;">
                             {{ q.title }}
                           </a>
                         </h5>
@@ -383,7 +383,7 @@
                 {% for t in trending %}
                   <div class="side-row">
                     <div class="side-title">
-                      <a href="{% url 'forum_detail' t.id %}" class="fw-semibold">
+                      <a class="text-decoration-none" href="{% url 'forum_detail' t.id %}" class="fw-semibold" style="color: #1eae98;">
                         {{ t.title|truncatechars:60 }}
                       </a>
                     </div>
@@ -405,7 +405,7 @@
                   {% for m in my_discussions %}
                     <div class="side-row">
                       <div class="side-title">
-                        <a href="{% url 'forum_detail' m.id %}" class="fw-semibold">
+                        <a class="text-decoration-none" href="{% url 'forum_detail' m.id %}" class="fw-semibold" style="color: #1eae98;">
                           {{ m.title|truncatechars:60 }}
                         </a>
                       </div>
