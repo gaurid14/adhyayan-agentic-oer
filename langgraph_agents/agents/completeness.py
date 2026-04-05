@@ -5,17 +5,16 @@ Adaptive Completeness Evaluation Agent.
 
 Six adaptive pillars:
   1. Domain / context-aware dynamic prompts   — live syllabus via get_rag_context()
-  2. Multi-run self-consistency               — ParameterStats updated each run; Run N+1 learns from Run N
+  2. Multi-run self-consistency               — ParameterStats updated each run
   3. Confidence scoring                       — within-run py↔gemini agreement proxy
-  4. Variance-based adaptive weights          — blend shifts toward Python when AI is historically unreliable
-  5. Guardrail layer                          — clamp, disagreement detection, minimum-content cap
+  4. Variance-based adaptive weights          — blend shifts toward Python when AI is unreliable
+  5. Guardrail layer                          — clamp, disagreement, minimum-content cap
   6. Final scoring                            — guardrailed, adaptively-blended 0–10 score
 """
 
 from __future__ import annotations
 
 import json
-import logging
 import os
 import re
 from typing import Any, Dict, List, Optional
@@ -33,8 +32,6 @@ from langgraph_agents.services.adaptive_stats import (
     update_parameter_stats,
 )
 
-logger = logging.getLogger(__name__)
-
 # -----------------------------------------------------------------------
 # PATH SETTINGS
 # -----------------------------------------------------------------------
@@ -42,8 +39,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 EXTRACTED_JSON_DIR = os.path.join(BASE_DIR, "storage", "extracted_content")
 
 _METRIC = "completeness"
-
-# Completeness-specific guardrail: below this word count cap score at 4.0
 _MIN_WORDS_GUARDRAIL = 300
 
 
@@ -75,7 +70,7 @@ def safe_extract_json(text: str) -> dict:
 
 
 # -----------------------------------------------------------------------
-# RAG CONTEXT  (live syllabus from DB — OutcomeChapterMapping)
+# RAG CONTEXT  (live syllabus from DB)
 # -----------------------------------------------------------------------
 @sync_to_async
 def get_rag_context(upload_id: int) -> dict:
@@ -123,7 +118,7 @@ def get_rag_context(upload_id: int) -> dict:
 
 
 # -----------------------------------------------------------------------
-# TOPIC TERMS  (chapter description + live syllabus outcomes)
+# TOPIC TERMS  (chapter + syllabus outcomes)
 # -----------------------------------------------------------------------
 _STOPWORDS = {
     "the", "and", "for", "with", "this", "that", "from", "into", "onto", "over",
@@ -171,18 +166,12 @@ def _term_coverage_ratio(text: str, terms: List[str]) -> float:
 
 
 # -----------------------------------------------------------------------
-# LEVEL SETTINGS  (completeness-specific)
+# LEVEL SETTINGS
 # -----------------------------------------------------------------------
 _COMPLETENESS_TARGET_WORDS = {
-    "preschool":  250,
-    "primary":    400,
-    "middle":     650,
-    "secondary":  900,
-    "hsc":        1100,
-    "undergrad":  1400,
-    "postgrad":   1700,
-    "phd":        2000,
-    "default":    1400,
+    "preschool":  250,  "primary":   400, "middle":   650,
+    "secondary":  900,  "hsc":       1100, "undergrad":1400,
+    "postgrad":   1700, "phd":       2000, "default":  1400,
 }
 
 _COMPLETENESS_BLEND = {
@@ -200,7 +189,6 @@ _COMPLETENESS_BLEND = {
 
 def _count_words(text: str) -> int:
     return len(re.findall(r"\b\w+\b", text or ""))
-
 
 def _section_cues(text: str) -> Dict[str, bool]:
     lower = (text or "").lower()
@@ -223,29 +211,20 @@ def python_completeness_score(
     syllabus_outcomes: Optional[List[str]] = None,
     target_level: str = "undergrad",
 ) -> dict:
-    """
-    Three-component heuristic:
-      Component 1 (0–4): length vs. level target
-      Component 2 (0–3): structural flow cues (intro/core/example/summary/practice)
-      Component 3 (0–3): syllabus term coverage (live outcomes, not just description)
-    """
     text         = (content or "").strip()
     words        = _count_words(text)
     target_words = _COMPLETENESS_TARGET_WORDS.get(target_level, _COMPLETENESS_TARGET_WORDS["default"])
 
-    # Component 1 — length
-    length_ratio  = min(1.0, words / max(target_words, 1))
-    length_score  = 4.0 * length_ratio
+    length_ratio    = min(1.0, words / max(target_words, 1))
+    length_score    = 4.0 * length_ratio
 
-    # Component 2 — structure
-    cues          = _section_cues(text)
-    cue_count     = sum(1 for v in cues.values() if v)
+    cues            = _section_cues(text)
+    cue_count       = sum(1 for v in cues.values() if v)
     structure_score = min(3.0, (cue_count / 5.0) * 3.0)
 
-    # Component 3 — syllabus coverage
-    terms         = _extract_topic_terms(chapter_name, chapter_description, syllabus_outcomes)
-    coverage      = _term_coverage_ratio(text, terms)
-    topic_score   = min(3.0, coverage * 3.0)
+    terms           = _extract_topic_terms(chapter_name, chapter_description, syllabus_outcomes)
+    coverage        = _term_coverage_ratio(text, terms)
+    topic_score     = min(3.0, coverage * 3.0)
 
     final = length_score + structure_score + topic_score
 
@@ -259,7 +238,6 @@ def python_completeness_score(
         "topic_terms":          terms,
         "topic_coverage_ratio": round(coverage, 3),
         "target_level":         target_level,
-        # Guardrail-compatible fields (accuracy re-uses these keys)
         "placeholder_hits":     0,
         "ai_disclaimer_hits":   0,
     }
@@ -268,17 +246,12 @@ def python_completeness_score(
 # -----------------------------------------------------------------------
 # GEMINI COMPLETENESS ANALYSIS  (context-aware + adaptive insight)
 # -----------------------------------------------------------------------
-async def analyze_completeness_with_gemini(
+def analyze_completeness_with_gemini_sync(
     content: str,
     rag: dict,
-    target_level: str,
-    insight: str,
+    target_level: str = "undergrad",
+    insight: str = "",
 ) -> dict:
-    """
-    Gemini completeness judge with:
-      - Full domain / syllabus context (pillar 1)
-      - Adaptive insight injected into prompt (pillars 2/3/4)
-    """
     prompt = f"""
 You are evaluating COMPLETENESS of educational content.
 
@@ -301,7 +274,7 @@ REFERENCE (well-scored content for this chapter):
 {rag.get("best_content", "")}
 
 -------------------------
-PAST LEARNING INSIGHTS (adaptive signal — follow these directives):
+PAST LEARNING INSIGHTS (adaptive signal):
 {insight}
 -------------------------
 
@@ -313,7 +286,7 @@ Definition of completeness:
 - Technical terms are ALLOWED.
 - Do NOT browse the web.
 
-Return JSON ONLY (no extra text):
+Return JSON ONLY:
 {{
   "completeness":  <1-10>,
   "topic_coverage":<0-5>,
@@ -330,7 +303,7 @@ Content:
     data = safe_extract_json(raw)
 
     if not data:
-        logger.error("[completeness] Gemini JSON parse failed: %s", raw[:300])
+        print("[ERROR] Gemini JSON parsing failed (completeness):", raw[:300])
         return {"completeness": 5, "topic_coverage": 2, "depth": 2, "learning_flow": 2}
 
     return {
@@ -341,38 +314,30 @@ Content:
     }
 
 
+async def analyze_completeness_with_gemini(
+    content: str,
+    rag: dict,
+    target_level: str = "undergrad",
+    insight: str = "",
+) -> dict:
+    return analyze_completeness_with_gemini_sync(content=content, rag=rag, target_level=target_level, insight=insight)
+
+
 # -----------------------------------------------------------------------
-# ADAPTIVE COMBINE  (pillar 4)
+# ADAPTIVE COMBINE
 # -----------------------------------------------------------------------
-def combine_completeness_adaptive(
-    py: dict,
-    ai: dict,
-    target_level: str,
-) -> float:
-    """
-    Blend Python heuristic and Gemini scores with adaptive weights.
-    Shifts py_weight higher when ParameterStats show low AI confidence.
-    """
+def combine_completeness_adaptive(py: dict, ai: dict, target_level: str = "undergrad") -> float:
     base = _COMPLETENESS_BLEND.get(target_level, _COMPLETENESS_BLEND["default"])
-    py_w, ai_w = get_adaptive_blend(
-        parameter=_METRIC,
-        base_py=base["py"],
-        base_ai=base["ai"],
-    )
+    py_w, ai_w = get_adaptive_blend(parameter=_METRIC, base_py=base["py"], base_ai=base["ai"])
 
     py_score = float(py.get("score", 5))
     ai_main  = float(ai.get("completeness", 5))
-
-    # Subscores 0–5 → scale to 0–10
     coverage = float(ai.get("topic_coverage", 2)) * 2
     depth    = float(ai.get("depth",          2)) * 2
     flow     = float(ai.get("learning_flow",  2)) * 2
 
     ai_internal = (0.40 * ai_main) + (0.20 * coverage) + (0.20 * depth) + (0.20 * flow)
-    final       = (py_w  * py_score) + (ai_w * ai_internal)
-
-    logger.debug("[completeness] combine: py=%.2f ai=%.2f final=%.2f (py_w=%.2f ai_w=%.2f)",
-                 py_score, ai_internal, final, py_w, ai_w)
+    final       = (py_w * py_score) + (ai_w * ai_internal)
 
     return round(min(10.0, max(0.0, final)), 2)
 
@@ -382,19 +347,8 @@ def combine_completeness_adaptive(
 # -----------------------------------------------------------------------
 @tool
 async def evaluate_completeness(state: dict) -> dict:
-    """
-    Adaptive Completeness Agent:
+    """Adaptive Completeness Agent — syllabus-aware, multi-run adaptive, guardrailed."""
 
-    1. Reads extracted JSON (storage/extracted_content/upload_{id}.json)
-    2. Fetches live syllabus from DB (OutcomeChapterMapping) → RAG context
-    3. Reads ParameterStats → adaptive insight for Gemini prompt
-    4. Python heuristic score (length + structure + syllabus term coverage)
-    5. Gemini completeness + sub-scores (insight-injected prompt)
-    6. Adaptive blend (py/ai weights shift based on historical confidence)
-    7. Guardrail layer (clamp, disagreement, minimum-words cap at 4.0)
-    8. Saves via MCP tool: db_save_scores_generic
-    9. Updates ParameterStats so Run N+1 learns from this run
-    """
     upload_id    = state.get("upload_id")
     target_level = state.get("target_level", "undergrad")
 
@@ -413,50 +367,50 @@ async def evaluate_completeness(state: dict) -> dict:
     chapter_name    = (chapter_details.get("chapter_name")        or "").strip()
     chapter_desc    = (chapter_details.get("chapter_description") or "").strip()
 
-    # ── Pillar 1: live RAG context ─────────────────────────────────────
+    # ── Pillar 1: live RAG context ──
     rag               = await get_rag_context(upload_id)
     syllabus_outcomes = rag.get("outcomes", [])
+    print(f"\n{'='*60}")
+    print(f"📦 [COMPLETENESS] upload_id={upload_id} level={target_level}")
+    print(f"📚 [COMPLETENESS] Domain={rag.get('domain','-')} | Subject={rag.get('subject','-')} | Chapter={rag.get('chapter','-')}")
+    print(f"📋 [COMPLETENESS] Syllabus outcomes loaded: {len(syllabus_outcomes)}")
 
-    # ── Pillar 2: adaptive insight ─────────────────────────────────────
+    # ── Pillar 2: adaptive insight ──
     insight = await get_insight_async(_METRIC)
+    print(f"🧠 [COMPLETENESS] Adaptive insight: {insight}")
 
-    # ── Pillars 3/4: scoring ───────────────────────────────────────────
-    py_result  = python_completeness_score(
-        combined_text,
-        chapter_name=chapter_name,
-        chapter_description=chapter_desc,
-        syllabus_outcomes=syllabus_outcomes,
-        target_level=target_level,
+    # ── Pillars 3/4: scoring ──
+    py_result = python_completeness_score(
+        combined_text, chapter_name=chapter_name, chapter_description=chapter_desc,
+        syllabus_outcomes=syllabus_outcomes, target_level=target_level,
     )
+    print(f"🐍 [COMPLETENESS] Python score={py_result['score']} | words={py_result['word_count']}/{py_result['target_word_count']} | sections={py_result['section_cue_count']}/5 | coverage={py_result['topic_coverage_ratio']}")
+
     gem_result = await analyze_completeness_with_gemini(
-        combined_text,
-        rag=rag,
-        target_level=target_level,
-        insight=insight,
+        combined_text, rag=rag, target_level=target_level, insight=insight,
     )
-    raw_score = combine_completeness_adaptive(py_result, gem_result, target_level)
+    print(f"🤖 [COMPLETENESS] Gemini score={gem_result['completeness']} | coverage={gem_result['topic_coverage']} | depth={gem_result['depth']} | flow={gem_result['learning_flow']}")
 
-    # ── Pillar 5: guardrail ────────────────────────────────────────────
-    word_count  = py_result.get("word_count", 0)
+    raw_score = combine_completeness_adaptive(py_result, gem_result, target_level)
+    print(f"🔀 [COMPLETENESS] Combined raw score={raw_score}")
+
+    # ── Pillar 5: guardrail ──
+    word_count = py_result.get("word_count", 0)
     final_score, guard_warnings = apply_guardrails(
-        raw_score,
-        py_result,
-        gem_result,
-        metric_name=_METRIC,
-        min_words_cap=_MIN_WORDS_GUARDRAIL,
-        word_count=word_count,
+        raw_score, py_result, gem_result, metric_name=_METRIC,
+        min_words_cap=_MIN_WORDS_GUARDRAIL, word_count=word_count,
     )
     if guard_warnings:
-        logger.warning("[completeness] upload_id=%s guardrails: %s", upload_id, guard_warnings)
+        for w in guard_warnings:
+            print(w)
+    print(f"✅ [COMPLETENESS] FINAL SCORE = {final_score}")
 
-    # ── Pillar 2 continued: update ParameterStats ──────────────────────
-    run_confidence = compute_run_confidence(
-        py_score=float(py_result.get("score", 5)),
-        gem_score=float(gem_result.get(_METRIC, 5)),
-    )
+    # ── Update stats for next run ──
+    run_confidence = compute_run_confidence(float(py_result["score"]), float(gem_result["completeness"]))
+    print(f"📊 [COMPLETENESS] Run confidence={run_confidence}")
     await update_parameter_stats(_METRIC, final_score, run_confidence)
 
-    # ── Pillar 6: save ─────────────────────────────────────────────────
+    # ── Save ──
     session = state.get("mcp_session")
     if session:
         save_resp = await session.call_tool(
@@ -464,11 +418,12 @@ async def evaluate_completeness(state: dict) -> dict:
             {"upload_id": upload_id, "scores": {"completeness": final_score}},
         )
         try:
-            logger.info("✅ MCP saved completeness: %s", save_resp.content[0].text)
+            print("💾 [COMPLETENESS] MCP saved:", save_resp.content[0].text)
         except Exception:
-            logger.info("✅ MCP saved completeness (upload_id=%s score=%.2f)", upload_id, final_score)
+            print(f"💾 [COMPLETENESS] MCP saved (score={final_score})")
     else:
-        logger.warning("⚠️ mcp_session missing in state (completeness agent)")
+        print("⚠️ [COMPLETENESS] mcp_session missing in state")
+    print(f"{'='*60}\n")
 
     return {
         **state,
@@ -478,25 +433,19 @@ async def evaluate_completeness(state: dict) -> dict:
         "gemini":             gem_result,
         "guardrails":         guard_warnings,
         "run_confidence":     run_confidence,
-        "adaptive_insight":   insight,
     }
 
 
 # -----------------------------------------------------------------------
-# MCP TOOL REGISTRATION  (optional — for direct calls outside graph)
+# MCP TOOL REGISTRATION  (optional)
 # -----------------------------------------------------------------------
 def mcp_register(mcp) -> None:
     @mcp.tool(
         name="evaluate_completeness",
-        description=(
-            "Adaptive completeness evaluation (0-10) using live syllabus, "
-            "ParameterStats-driven prompts, guardrails, and adaptive blending."
-        ),
+        description="Adaptive completeness evaluation (0-10) with live syllabus and guardrails.",
     )
     async def evaluate_completeness_tool(
-        upload_id: int,
-        target_level: str = "undergrad",
-        save: bool = True,
+        upload_id: int, target_level: str = "undergrad", save: bool = True,
     ) -> Dict[str, Any]:
         extracted_data = load_extracted_json(upload_id)
         if not extracted_data:
@@ -515,25 +464,19 @@ def mcp_register(mcp) -> None:
         insight           = await get_insight_async(_METRIC)
 
         py_result  = python_completeness_score(
-            combined_text,
-            chapter_name=chapter_name,
-            chapter_description=chapter_desc,
-            syllabus_outcomes=syllabus_outcomes,
-            target_level=target_level,
+            combined_text, chapter_name=chapter_name, chapter_description=chapter_desc,
+            syllabus_outcomes=syllabus_outcomes, target_level=target_level,
         )
-        gem_result = await analyze_completeness_with_gemini(
+        gem_result = analyze_completeness_with_gemini_sync(
             combined_text, rag=rag, target_level=target_level, insight=insight,
         )
-        raw_score   = combine_completeness_adaptive(py_result, gem_result, target_level)
-        final_score, _ = apply_guardrails(
+        raw_score         = combine_completeness_adaptive(py_result, gem_result, target_level)
+        final_score, _    = apply_guardrails(
             raw_score, py_result, gem_result, _METRIC,
-            min_words_cap=_MIN_WORDS_GUARDRAIL,
-            word_count=py_result.get("word_count", 0),
+            min_words_cap=_MIN_WORDS_GUARDRAIL, word_count=py_result.get("word_count", 0),
         )
 
-        run_confidence = compute_run_confidence(
-            float(py_result.get("score", 5)), float(gem_result.get(_METRIC, 5))
-        )
+        run_confidence = compute_run_confidence(float(py_result["score"]), float(gem_result["completeness"]))
         await update_parameter_stats(_METRIC, final_score, run_confidence)
 
         if save:

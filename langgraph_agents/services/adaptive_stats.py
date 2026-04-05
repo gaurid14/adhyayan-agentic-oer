@@ -91,11 +91,10 @@ def update_parameter_stats_sync(
 
         stats.usage_count += 1
         stats.save(update_fields=["avg_confidence", "avg_variance", "usage_count", "updated_at"])
-        logger.debug("[adaptive_stats] %s stats updated → conf=%.3f var=%.3f",
-                     parameter, stats.avg_confidence, stats.avg_variance)
+        print(f"📊 [ADAPTIVE] {parameter} stats updated → conf={stats.avg_confidence:.3f} var={stats.avg_variance:.3f} runs={stats.usage_count}")
 
     except Exception as exc:
-        logger.warning("[adaptive_stats] update_parameter_stats failed for '%s': %s", parameter, exc)
+        print(f"⚠️ [ADAPTIVE] update_parameter_stats failed for '{parameter}': {exc}")
 
 
 # Async wrapper for use inside async agent functions
@@ -151,18 +150,20 @@ def get_adaptive_blend(
 
     adjustment = 0.0
     if avg_conf < low_conf:
-        # AI has been inconsistent historically → trust deterministic Python more
         adjustment += 0.10
+        print(f"🔄 [ADAPTIVE] {parameter}: low confidence ({avg_conf:.3f} < {low_conf}) → shifting +10% to Python")
     if avg_var > high_var:
-        # Large long-term variance → further penalise AI weight
         adjustment += 0.07
+        print(f"🔄 [ADAPTIVE] {parameter}: high variance ({avg_var:.3f} > {high_var}) → shifting +7% to Python")
 
     final_py = min(0.60, base_py + adjustment)
     final_ai = round(1.0 - final_py, 4)
     final_py  = round(final_py, 4)
 
-    logger.debug("[adaptive_stats] %s blend → py=%.2f ai=%.2f (conf=%.3f var=%.3f)",
-                 parameter, final_py, final_ai, avg_conf, avg_var)
+    if adjustment > 0:
+        print(f"⚖️  [ADAPTIVE] {parameter} blend SHIFTED → py={final_py:.0%} ai={final_ai:.0%} (was py={base_py:.0%} ai={base_ai:.0%})")
+    else:
+        print(f"⚖️  [ADAPTIVE] {parameter} blend STABLE → py={final_py:.0%} ai={final_ai:.0%}")
 
     return final_py, final_ai
 
@@ -243,15 +244,11 @@ def apply_guardrails(
     disagreement = abs(py_score - gem_score)
     if disagreement > 3.5:
         midpoint = (py_score + gem_score) / 2.0
-        # Allow up to 0.5 above midpoint (do not punish too aggressively)
         cap = round(midpoint + 0.5, 2)
         if score > cap:
-            msg = (
-                f"[GUARDRAIL-G1] {metric_name}: py={py_score:.1f} gem={gem_score:.1f} "
-                f"gap={disagreement:.1f} > 3.5 → cap to {cap}"
-            )
+            msg = f"🛡️ [GUARDRAIL-G1] {metric_name}: py={py_score:.1f} gem={gem_score:.1f} gap={disagreement:.1f} → capped to {cap}"
+            print(msg)
             warnings.append(msg)
-            logger.warning(msg)
             score = cap
 
     # G2 — artefact signals (placeholder text, AI refusals)
@@ -260,12 +257,9 @@ def apply_guardrails(
     if placeholders > 2 or ai_hits > 0:
         artefact_cap = 5.0
         if score > artefact_cap:
-            msg = (
-                f"[GUARDRAIL-G2] {metric_name}: artefact detected "
-                f"(placeholders={placeholders}, ai_hits={ai_hits}) → cap to {artefact_cap}"
-            )
+            msg = f"🛡️ [GUARDRAIL-G2] {metric_name}: artefact detected (placeholders={placeholders}, ai_hits={ai_hits}) → capped to {artefact_cap}"
+            print(msg)
             warnings.append(msg)
-            logger.warning(msg)
             score = artefact_cap
 
     # G3 — minimum content length (completeness-specific)
@@ -273,12 +267,9 @@ def apply_guardrails(
         if word_count < min_words_cap:
             min_content_cap = 4.0
             if score > min_content_cap:
-                msg = (
-                    f"[GUARDRAIL-G3] {metric_name}: word_count={word_count} < {min_words_cap} "
-                    f"→ cap to {min_content_cap}"
-                )
+                msg = f"🛡️ [GUARDRAIL-G3] {metric_name}: word_count={word_count} < {min_words_cap} → capped to {min_content_cap}"
+                print(msg)
                 warnings.append(msg)
-                logger.warning(msg)
                 score = min_content_cap
 
     # G4 — hard clamp
