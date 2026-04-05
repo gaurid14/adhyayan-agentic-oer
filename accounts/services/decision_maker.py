@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import logging
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 from django.db.models import Prefetch
 
 from accounts.models import Chapter, ChapterPolicy, ContentScore, UploadCheck, ReleasedContent
@@ -90,6 +93,153 @@ def _resolve_weights(available_fields: Sequence[str]) -> Dict[str, float]:
             w = 1.0
         out[f] = w
     return out
+
+
+# -----------------------------------------------------------------------
+# CONFIDENCE-WEIGHTED METRIC INCLUSION  (adaptive Decision Agent)
+# -----------------------------------------------------------------------
+
+#: Metrics that carry their own confidence/variance columns in ContentScore
+_ADAPTIVE_METRICS = frozenset(["accuracy", "completeness", "clarity", "coherence", "engagement"])
+
+#: Critical core metrics that must NEVER be excluded or heavily down-weighted
+_PROTECTED_METRICS = frozenset(["accuracy", "clarity"])
+
+#: Both conditions must be true to EXCLUDE a metric (conservative AND logic)
+_DEFAULT_EXCL_LOW_CONF = 0.5
+_DEFAULT_EXCL_HIGH_VAR = 1.0
+
+
+def _get_metric_thresholds(metric: str) -> tuple[float, float]:
+    """Load ParameterConfig thresholds; fall back to defaults. Sync-safe."""
+    try:
+        from accounts.models import ParameterConfig
+        cfg = ParameterConfig.objects.get(parameter=metric)
+        return float(cfg.low_conf_threshold), float(cfg.high_var_threshold)
+    except Exception:
+        return _DEFAULT_EXCL_LOW_CONF, _DEFAULT_EXCL_HIGH_VAR
+
+
+def _get_reliable_metrics(
+    content_score,
+    available_fields: Sequence[str],
+) -> tuple[list[str], list[str]]:
+    """
+    For a given upload's ContentScore, determine which metrics are reliable
+    enough to include in the composite score.
+
+    A metric is EXCLUDED when BOTH:
+      - Its per-upload confidence < ParameterConfig.low_conf_threshold
+      - Its per-upload variance   > ParameterConfig.high_var_threshold
+
+    Using AND logic (not OR) to be conservative — we only exclude a metric
+    when we are *confident* that it was evaluated unreliably.
+
+    Returns
+    -------
+    reliable_fields : list[str]  — metrics to include
+    excluded_fields : list[str]  — metrics excluded with reason logged
+    """
+    reliable: list[str] = []
+    excluded: list[str] = []
+
+    for field_name in available_fields:
+        if field_name not in _ADAPTIVE_METRICS:
+            # Non-base metric (e.g., final_score variants) — always include
+            reliable.append(field_name)
+            continue
+
+        conf = getattr(content_score, f"{field_name}_confidence", None)
+        var  = getattr(content_score, f"{field_name}_variance",   None)
+
+        # No multi-run data yet → include unconditionally
+        if conf is None and var is None:
+            reliable.append(field_name)
+            continue
+
+        low_conf, high_var = _get_metric_thresholds(field_name)
+
+        conf_too_low = (conf is not None) and (float(conf) < low_conf)
+        var_too_high = (var  is not None) and (float(var)  > high_var)
+
+        if conf_too_low and var_too_high:
+            if field_name in _PROTECTED_METRICS:
+                # Protected guardrail: never exclude core metrics
+                reliable.append(field_name)
+                logger.info(
+                    "[decision] metric '%s' had low conf/high var, but is PROTECTED. Ignored exclusion.",
+                    field_name
+                )
+            else:
+                excluded.append(field_name)
+                logger.info(
+                    "[decision] metric '%s' excluded for upload_id=%s "
+                    "(conf=%.3f < %.2f AND var=%.3f > %.2f)",
+                    field_name,
+                    getattr(content_score, "upload_id", "?"),
+                    float(conf or 0), low_conf,
+                    float(var  or 0), high_var,
+                )
+        else:
+            reliable.append(field_name)
+
+    # Safety: never exclude everything — fall back to all fields
+    if not reliable:
+        logger.warning(
+            "[decision] All metrics excluded for upload — falling back to full set."
+        )
+        return list(available_fields), []
+
+    return reliable, excluded
+
+
+def _confidence_weighted_average(
+    scores: Mapping[str, Optional[float]],
+    content_score,
+    weights: Mapping[str, float],
+    missing: str,
+) -> tuple[float, list[str]]:
+    """
+    Weighted average that:
+      1. Excludes unreliable metrics (low conf AND high var)
+      2. Boosts reliable metric weights proportional to their confidence
+
+    Returns (composite_score, excluded_fields).
+    """
+    available = [k for k in weights if k in scores or scores.get(k) is not None]
+    reliable, excluded = _get_reliable_metrics(content_score, available)
+
+    # Build confidence-boosted weights for reliable metrics
+    boosted: Dict[str, float] = {}
+    for m in reliable:
+        base_w = float(weights.get(m, 1.0))
+        conf   = getattr(content_score, f"{m}_confidence", None)
+        if conf is not None and m in _ADAPTIVE_METRICS:
+            if m in _PROTECTED_METRICS:
+                # Protected guardrail: preserve high weight for core metrics (min 0.8)
+                boost = max(0.8, float(conf))
+            else:
+                # Standard metrics: weight scales with confidence (min 0.5)
+                boost = max(0.5, float(conf))
+            boosted[m] = base_w * boost
+        else:
+            boosted[m] = base_w
+
+    num = 0.0
+    den = 0.0
+    for m, w in boosted.items():
+        if w == 0:
+            continue
+        v = scores.get(m)
+        if v is None:
+            if missing == "zero":
+                den += w
+            continue
+        num += float(v) * w
+        den += w
+
+    composite = num / den if den > 0 else float("-inf")
+    return composite, excluded
 
 
 def _weighted_average(scores: Mapping[str, Optional[float]], weights: Mapping[str, float], missing: str) -> float:
@@ -263,15 +413,41 @@ class DecisionMakerService:
                 _p(f"Skip upload_id={u.id} (no content_score attached)")
                 continue
 
-            scores: Dict[str, Optional[float]] = {f: _float_or_none(getattr(score_obj, f, None)) for f in available}
+            scores: Dict[str, Optional[float]] = {
+                f: _float_or_none(getattr(score_obj, f, None)) for f in available
+            }
             _p(f"Scores upload_id={u.id} => {scores}")
+
+            excluded_metrics: list[str] = []
 
             if self.primary_strategy == "simple_average":
                 composite = _simple_average(scores, available, self.missing_strategy)
                 _p(f"Composite strategy=simple_average upload_id={u.id} => {composite}")
+
             else:
-                composite = _weighted_average(scores, weights, self.missing_strategy)
-                _p(f"Composite strategy=weighted_average upload_id={u.id} => {composite}")
+                # ── Adaptive confidence-weighted scoring ────────────────────────
+                # Checks per-upload confidence/variance; excludes unreliable metrics.
+                # Falls back to plain weighted_average when no multi-run data exists.
+                has_multirun_data = any(
+                    getattr(score_obj, f"{m}_confidence", None) is not None
+                    for m in _ADAPTIVE_METRICS
+                    if m in available
+                )
+
+                if has_multirun_data:
+                    composite, excluded_metrics = _confidence_weighted_average(
+                        scores, score_obj, weights, self.missing_strategy
+                    )
+                    if excluded_metrics:
+                        _p(
+                            f"Adaptive: upload_id={u.id} excluded metrics={excluded_metrics} "
+                            f"(low confidence + high variance)"
+                        )
+                    _p(f"Composite strategy=adaptive_confidence upload_id={u.id} => {composite}")
+                else:
+                    composite = _weighted_average(scores, weights, self.missing_strategy)
+                    _p(f"Composite strategy=weighted_average upload_id={u.id} => {composite} "
+                       f"(no multi-run data; static weights used)")
 
             if composite == float("-inf"):
                 _p(f"Skip upload_id={u.id} (composite=-inf)")
@@ -287,6 +463,8 @@ class DecisionMakerService:
                     scores=scores,
                 )
             )
+            if excluded_metrics:
+                _p(f"upload_id={u.id} unreliable metrics excluded from composite: {excluded_metrics}")
 
         if not candidates:
             _p("No candidates after scoring -> returning []")
