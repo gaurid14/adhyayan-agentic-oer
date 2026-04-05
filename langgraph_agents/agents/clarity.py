@@ -8,7 +8,8 @@ from langchain.tools import tool
 from accounts.models import ContentScore, UploadCheck
 from langgraph_agents.services.gemini_service import llm
 from mcp.client.session import ClientSession
-
+from accounts.models import UploadCheck, CourseOutcome, ContentScore, ParameterStats
+from accounts.models import ParameterConfig
 
 # ------------------------------
 # PATH SETTINGS
@@ -106,6 +107,98 @@ def avg_sentence_length(text: str) -> float:
     words = text.split()
     return len(words) / max(len(sentences), 1)
 
+from accounts.models import OutcomeChapterMapping
+
+@sync_to_async
+def get_rag_context(upload_id: int):
+    try:
+        upload = UploadCheck.objects.select_related(
+            "chapter__course__department__program"
+        ).get(id=upload_id)
+
+        chapter = upload.chapter
+        course = chapter.course
+
+        # Domain + Subject
+        domain = course.department.program.program_name
+        subject = course.course_name
+
+        # 🔥 CORRECT: get outcomes for THIS chapter only
+        mappings = OutcomeChapterMapping.objects.filter(chapter=chapter)
+        outcomes = [m.outcome.description for m in mappings]
+
+        syllabus = "\n".join(outcomes[:2])  # keep small
+
+        # Chapter description
+        chapter_desc = chapter.description or ""
+
+        # Best content (optional)
+        best_qs = ContentScore.objects.filter(
+            upload__chapter=chapter,
+            is_best=True
+        )[:1]
+
+        best_text = ""
+        for b in best_qs:
+            try:
+                data = load_extracted_json(b.upload.id)
+                txt = data.get("content", {}).get("combined_text", "")
+                if txt:
+                    best_text = txt[:400]
+            except:
+                continue
+
+        return {
+            "domain": domain,
+            "subject": subject,
+            "chapter": chapter.chapter_name,
+            "syllabus": syllabus,
+            "chapter_desc": chapter_desc,
+            "best_content": best_text,
+        }
+
+    except Exception:
+        return {}
+
+
+@sync_to_async
+def get_clarity_insight():
+    try:
+        stats = ParameterStats.objects.get(parameter="clarity")
+        if not stats:
+            return "Evaluate clarity normally. Focus on explanation quality."
+    except ParameterStats.DoesNotExist:
+        # 🔥 No learning yet → neutral behavior
+        return "Evaluate clarity normally. Focus on explanation quality."
+
+    try:
+        config = ParameterConfig.objects.get(parameter="clarity")
+        low_conf = config.low_conf_threshold
+        high_var = config.high_var_threshold
+    except ParameterConfig.DoesNotExist:
+        # fallback defaults
+        low_conf = 0.5
+        high_var = 1.0
+
+    insights = []
+
+    # 🔥 Adaptive logic using DB thresholds
+    if stats.avg_confidence < low_conf:
+        insights.append(
+            "Clarity evaluation has been inconsistent. Be stricter in judging explanations."
+        )
+
+    if stats.avg_variance > high_var:
+        insights.append(
+            "Content explanations are often unclear or poorly structured. Penalize vague content."
+        )
+
+    # 🔥 fallback if nothing triggered
+    if not insights:
+        return "Clarity is generally stable. Maintain balanced evaluation."
+
+    return "\n".join(insights)
+
 
 def python_clarity_score(text: str, target_level: str = "undergrad") -> dict:
     """
@@ -187,14 +280,44 @@ def safe_extract_json(text: str) -> dict:
     return {}
 
 
-async def analyze_clarity_with_gemini(content: str, target_level: str = "undergrad") -> dict:
-    prompt = f"""
-You are evaluating CLARITY of educational content for student level: {target_level}.
+async def analyze_clarity_with_gemini(
+        content: str,
+        target_level: str,
+        rag: dict,
+        insight: str
+) -> dict:
 
-Important rules:
-- Technical terms are allowed (engineering/science content).
-- Do NOT reduce score just because technical words exist.
-- Reduce score only if terms are not explained, steps are confusing, or definitions are missing.
+    prompt = f"""
+You are evaluating CLARITY of educational content.
+
+Student Level: {target_level}
+
+-------------------------
+DOMAIN CONTEXT
+Domain: {rag.get("domain")}
+Subject: {rag.get("subject")}
+Chapter: {rag.get("chapter")}
+-------------------------
+
+SYLLABUS:
+{rag.get("syllabus")}
+
+CHAPTER DESCRIPTION:
+{rag.get("chapter_desc")}
+
+REFERENCE (GOOD CONTENT):
+{rag.get("best_content")}
+
+-------------------------
+PAST LEARNING INSIGHTS:
+{insight}
+-------------------------
+
+Rules:
+- Technical terms are allowed.
+- Penalize if terms are NOT explained.
+- Penalize if content is NOT relevant to subject.
+- Reward structured explanations.
 
 Return JSON ONLY:
 {{
@@ -207,12 +330,11 @@ Return JSON ONLY:
 Content:
 {content}
 """
-    response = llm.invoke(prompt)
 
+    response = llm.invoke(prompt)
     gem = safe_extract_json(getattr(response, "content", "") or "")
 
     if not gem:
-        # print("[ERROR] Gemini JSON parsing failed:", raw[:300])
         return {
             "clarity": 5,
             "definition_quality": 2,
@@ -287,8 +409,19 @@ async def evaluate_clarity(state: dict) -> dict:
     if not combined_text:
         return {**state, "status": "clarity_failed", "reason": "combined_text empty"}
 
+    rag_context = await get_rag_context(upload_id)
+    insight = await get_clarity_insight()
+    insight = await get_clarity_insight()
+    if not insight:
+        insight = "Evaluate clarity normally. Focus on explanation quality."
+
     py_result = python_clarity_score(combined_text, target_level=target_level)
-    gem_result = await analyze_clarity_with_gemini(combined_text, target_level=target_level)
+    gem_result = await analyze_clarity_with_gemini(
+        combined_text,
+        target_level,
+        rag_context,
+        insight
+    )
     final_score = combine_clarity(py_result, gem_result)
 
     # Save using MCP session from graph state

@@ -1,8 +1,11 @@
 import json
 import os
 import re
+
+from asgiref.sync import sync_to_async
 from langchain.tools import tool
 
+from accounts.models import ContentScore, OutcomeChapterMapping, UploadCheck
 from langgraph_agents.services.gemini_service import llm
 
 
@@ -71,31 +74,95 @@ ENGAGEMENT_LEVELS = {
 }
 
 
+@sync_to_async
+def get_rag_context(upload_id: int):
+    try:
+        upload = UploadCheck.objects.select_related(
+            "chapter__course__department__program"
+        ).get(id=upload_id)
+
+        chapter = upload.chapter
+        course = chapter.course
+
+        # Domain + Subject
+        domain = course.department.program.program_name
+        subject = course.course_name
+
+        # 🔥 CORRECT: get outcomes for THIS chapter only
+        mappings = OutcomeChapterMapping.objects.filter(chapter=chapter)
+        outcomes = [m.outcome.description for m in mappings]
+
+        syllabus = "\n".join(outcomes[:2])  # keep small
+
+        # Chapter description
+        chapter_desc = chapter.description or ""
+
+        # Best content (optional)
+        best_qs = ContentScore.objects.filter(
+            upload__chapter=chapter,
+            is_best=True
+        )[:1]
+
+        best_text = ""
+        for b in best_qs:
+            try:
+                data = load_extracted_json(b.upload.id)
+                txt = data.get("content", {}).get("combined_text", "")
+                if txt:
+                    best_text = txt[:400]
+            except:
+                continue
+
+        return {
+            "domain": domain,
+            "subject": subject,
+            "chapter": chapter.chapter_name,
+            "syllabus": syllabus,
+            "chapter_desc": chapter_desc,
+            "best_content": best_text,
+        }
+
+    except Exception:
+        return {}
+
+
 # ------------------------------
 # GEMINI ENGAGEMENT ANALYSIS
 # ------------------------------
-async def analyze_engagement_with_gemini(content: str, target_level: str = "undergrad") -> dict:
+async def analyze_engagement_with_gemini(content: str, rag: dict, target_level: str = "undergrad") -> dict:
     """
     Uses Gemini to identify engagement elements.
     """
     prompt = f"""
-You are an educational content evaluator for student level: {target_level}.
+You are evaluating ENGAGEMENT of educational content.
 
-Count engagement signals inside the content:
-- Case studies (explicit OR implied)
-- Assessments/exercises/questions/activities
-- Scenario cues/examples/real-world what-if situations
+Student Level: {target_level}
 
-IMPORTANT RULES:
-- Technical content is allowed.
-- Do NOT reduce counts because of technical words.
-- Only count meaningful engagement items.
+-------------------------
+DOMAIN CONTEXT
+Domain: {rag.get("domain", "")}
+Subject: {rag.get("subject", "")}
+Chapter: {rag.get("chapter", "")}
+-------------------------
+
+SYLLABUS:
+{rag.get("syllabus", "")}
+
+-------------------------
+
+IMPORTANT RULE:
+- Count engagement elements ONLY if they are relevant to the subject/chapter
+- Irrelevant examples or exercises should NOT increase engagement score
+- Technical content is allowed
+
+-------------------------
 
 Return JSON ONLY:
 {{
   "case_studies": <int>,
   "assessments": <int>,
-  "scenario_cues": <int>
+  "scenario_cues": <int>,
+  "subject_relevance": <0-5>
 }}
 
 Content:
@@ -109,12 +176,13 @@ Content:
 
     if not data:
         print("[ERROR] Gemini JSON parsing failed:", raw[:300])
-        return {"case_studies": 0, "assessments": 0, "scenario_cues": 0}
+        return {"case_studies": 0, "assessments": 0, "scenario_cues": 0, "subject_relevance": 2}
 
     return {
         "case_studies": int(data.get("case_studies", 0)),
         "assessments": int(data.get("assessments", 0)),
         "scenario_cues": int(data.get("scenario_cues", 0)),
+        "subject_relevance": int(data.get("subject_relevance", 2)),
     }
 
 
@@ -126,6 +194,7 @@ def compute_engagement_score(
         assessments: int,
         scenario_cues: int,
         has_assessment_upload: bool,
+        subject_rel: int,
         target_level: str = "undergrad"
 ) -> float:
     """
@@ -134,12 +203,21 @@ def compute_engagement_score(
     """
     cfg = ENGAGEMENT_LEVELS.get(target_level, ENGAGEMENT_LEVELS["default"])
 
+
+
     raw_score = (
             (case_studies * cfg["case_w"]) +
             (scenario_cues * cfg["scenario_w"]) +
             (assessments * cfg["assessment_w"]) +
             (cfg["bonus_assessment"] if has_assessment_upload else 0)
     )
+
+    if subject_rel <= 1:
+        raw_score *= 0.4   # very wrong
+    elif subject_rel == 2:
+        raw_score *= 0.6
+    elif subject_rel == 3:
+        raw_score *= 0.8
 
     # compress large raw score to max 10 safely
     return round(min(10.0, raw_score), 2)
@@ -177,12 +255,15 @@ async def evaluate_engagement(state: dict) -> dict:
     # you can later add assessment extraction here, but for now:
     has_assessment_upload = bool(extracted_data.get("drive_folders", {}).get("assessments"))
 
+    rag = await get_rag_context(upload_id)
+
     # gemini
-    gemini_result = await analyze_engagement_with_gemini(combined_text, target_level=target_level)
+    gemini_result = await analyze_engagement_with_gemini(combined_text, rag, target_level=target_level)
 
     case_studies = gemini_result.get("case_studies", 0)
     assessments = gemini_result.get("assessments", 0)
     scenario_cues = gemini_result.get("scenario_cues", 0)
+    subject_rel = gemini_result.get("subject_relevance", 0)
 
     engagement_score = compute_engagement_score(
         case_studies=case_studies,
@@ -190,6 +271,7 @@ async def evaluate_engagement(state: dict) -> dict:
         scenario_cues=scenario_cues,
         has_assessment_upload=has_assessment_upload,
         target_level=target_level,
+        subject_rel = subject_rel
     )
 
     # Save using MCP session from graph state

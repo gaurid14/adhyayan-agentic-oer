@@ -2,8 +2,11 @@ import json
 import os
 import re
 from difflib import SequenceMatcher
+
+from asgiref.sync import sync_to_async
 from langchain.tools import tool
 
+from accounts.models import UploadCheck, OutcomeChapterMapping, ContentScore
 from langgraph_agents.services.gemini_service import llm
 
 
@@ -65,6 +68,58 @@ COHERENCE_LEVELS = {
     "default": {"py_weight": 0.30, "ai_weight": 0.70},
 }
 
+@sync_to_async
+def get_rag_context(upload_id: int):
+    try:
+        upload = UploadCheck.objects.select_related(
+            "chapter__course__department__program"
+        ).get(id=upload_id)
+
+        chapter = upload.chapter
+        course = chapter.course
+
+        # Domain + Subject
+        domain = course.department.program.program_name
+        subject = course.course_name
+
+        # 🔥 CORRECT: get outcomes for THIS chapter only
+        mappings = OutcomeChapterMapping.objects.filter(chapter=chapter)
+        outcomes = [m.outcome.description for m in mappings]
+
+        syllabus = "\n".join(outcomes[:2])  # keep small
+
+        # Chapter description
+        chapter_desc = chapter.description or ""
+
+        # Best content (optional)
+        best_qs = ContentScore.objects.filter(
+            upload__chapter=chapter,
+            is_best=True
+        )[:1]
+
+        best_text = ""
+        for b in best_qs:
+            try:
+                data = load_extracted_json(b.upload.id)
+                txt = data.get("content", {}).get("combined_text", "")
+                if txt:
+                    best_text = txt[:400]
+            except:
+                continue
+
+        return {
+            "domain": domain,
+            "subject": subject,
+            "chapter": chapter.chapter_name,
+            "syllabus": syllabus,
+            "chapter_desc": chapter_desc,
+            "best_content": best_text,
+        }
+
+    except Exception:
+        return {}
+
+
 
 # ------------------------------
 # PYTHON COHERENCE
@@ -107,22 +162,43 @@ def python_coherence_score(text: str) -> dict:
 # ------------------------------
 # GEMINI COHERENCE
 # ------------------------------
-async def analyze_coherence_with_gemini(content: str, target_level: str = "undergrad") -> dict:
+async def analyze_coherence_with_gemini(content: str, rag: dict, target_level: str = "undergrad") -> dict:
     prompt = f"""
-You are evaluating COHERENCE of educational content for student level: {target_level}.
+You are evaluating COHERENCE of educational content.
 
-Meaning of coherence:
-- Logical flow from one idea to the next
-- Sections connect properly
-- No sudden topic jumps
-- Not repetitive copy-paste
+Student Level: {target_level}
+
+-------------------------
+DOMAIN CONTEXT
+Domain: {rag.get("domain", "")}
+Subject: {rag.get("subject", "")}
+Chapter: {rag.get("chapter","")}
+-------------------------
+
+SYLLABUS:
+{rag.get("syllabus", "")}
+
+-------------------------
+
+IMPORTANT RULE:
+- If content is NOT relevant to subject or chapter → REDUCE coherence score
+- Even if flow is good, irrelevant content must be penalized
+
+-------------------------
+
+Evaluate:
+- Logical flow
+- Section connectivity
+- Topic continuity
+- Relevance to subject
 
 Return JSON ONLY:
 {{
   "coherence": <1-10>,
   "logical_flow": <0-5>,
   "section_connectivity": <0-5>,
-  "topic_continuity": <0-5>
+  "topic_continuity": <0-5>,
+  "subject_relevance": <0-5>
 }}
 
 Content:
@@ -141,6 +217,7 @@ Content:
             "logical_flow": 2,
             "section_connectivity": 2,
             "topic_continuity": 2,
+            "subject_relevance": 2,
         }
 
     return {
@@ -148,6 +225,7 @@ Content:
         "logical_flow": float(data.get("logical_flow", 2)),
         "section_connectivity": float(data.get("section_connectivity", 2)),
         "topic_continuity": float(data.get("topic_continuity", 2)),
+        "subject_relevance": float(data.get("subject_relevance", 2)),
     }
 
 
@@ -164,9 +242,16 @@ def combine_coherence(py: dict, ai: dict, target_level: str = "undergrad") -> fl
     logical = float(ai.get("logical_flow", 2)) * 2
     connect = float(ai.get("section_connectivity", 2)) * 2
     cont = float(ai.get("topic_continuity", 2)) * 2
+    subject_rel = float(ai.get("subject_relevance", 2)) * 2
 
     # Gemini internal coherence score (teacher judgement)
-    ai_internal = (0.4 * ai_main) + (0.2 * logical) + (0.2 * connect) + (0.2 * cont)
+    ai_internal = (
+            0.3 * ai_main +
+            0.2 * logical +
+            0.2 * connect +
+            0.2 * cont +
+            0.1 * subject_rel
+    )
 
     final = (cfg["py_weight"] * py_score) + (cfg["ai_weight"] * ai_internal)
 
@@ -200,10 +285,20 @@ async def evaluate_coherence(state: dict) -> dict:
     if not combined_text:
         return {**state, "status": "coherence_failed", "reason": "combined_text empty"}
 
+
     # Run scoring
     py_result = python_coherence_score(combined_text)
-    gem_result = await analyze_coherence_with_gemini(combined_text, target_level=target_level)
+    rag = await get_rag_context(upload_id)
+    gem_result = await analyze_coherence_with_gemini(combined_text, rag, target_level=target_level)
     final_score = combine_coherence(py_result, gem_result, target_level=target_level)
+
+    if not rag:
+        rag = {
+            "domain": "",
+            "subject": "",
+            "chapter": "",
+            "syllabus": ""
+        }
 
     # Save using MCP session from graph state
     session = state.get("mcp_session")

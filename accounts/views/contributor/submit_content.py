@@ -31,7 +31,8 @@ from googleapiclient.http import (
 
 from accounts.models import (
     Chapter, UploadCheck, Assessment,
-    Question, Option, Course, User, ExternalResource, ChapterContributionProgress, ChapterPolicy, AssessmentSource
+    Question, Option, Course, User, ExternalResource, ChapterContributionProgress, ChapterPolicy, AssessmentSource,
+    EvaluationRun, ContentScore
 )
 from accounts.views.email.email_service import ContributionSuccessEmail
 from langgraph_agents.review_graph.review_runner import run_review_pipeline
@@ -252,10 +253,74 @@ class SubmissionOrchestrator:
                         graph_input = {**state, **result}
                         graph_input["mcp_session"] = session   # shared for all agents
 
-                        await compiled_graph.ainvoke(
-                            graph_input,
-                            config={
-                                "run_name": "Adhyayan Evaluation Graph"
+                        K = 3  # number of runs
+
+                        all_runs = []
+
+                        for i in range(K):
+                            print(f"🔁 Evaluation Run {i+1}/{K}")
+
+                            graph_result = await compiled_graph.ainvoke(
+                                graph_input,
+                                config={
+                                    "run_name": f"Evaluation Run {i+1}"
+                                }
+                            )
+
+                            # store scores from state
+                            run_scores = {
+                                "clarity": graph_result.get("clarity_score"),
+                                "coherence": graph_result.get("coherence_score"),
+                                "engagement": graph_result.get("engagement_score"),
+                                "completeness": graph_result.get("completeness_score"),
+                                "accuracy": graph_result.get("accuracy_score"),
+                            }
+
+                            all_runs.append(run_scores)
+
+                            # 🔥 store per-run in DB
+                            await sync_to_async(EvaluationRun.objects.create)(
+                                upload_id=upload_id,
+                                run_number=i+1,
+                                **run_scores
+                            )
+
+
+                        clarity_vals = [r["clarity"] for r in all_runs if r["clarity"] is not None]
+                        coherence_vals = [r["coherence"] for r in all_runs if r["coherence"] is not None]
+                        engagement_vals = [r["engagement"] for r in all_runs if r["engagement"] is not None]
+                        completeness_vals = [r["completeness"] for r in all_runs if r["completeness"] is not None]
+                        accuracy_vals = [r["accuracy"] for r in all_runs if r["accuracy"] is not None]
+
+                        clarity_mean, clarity_var, clarity_conf = compute_stats(clarity_vals)
+                        coherence_mean, coherence_var, coherence_conf = compute_stats(coherence_vals)
+                        engagement_mean, engagement_var, engagement_conf = compute_stats(engagement_vals)
+                        completeness_mean, completeness_var, completeness_conf = compute_stats(completeness_vals)
+                        accuracy_mean, accuracy_var, accuracy_conf = compute_stats(accuracy_vals)
+
+
+                        await sync_to_async(ContentScore.objects.update_or_create)(
+                            upload_id=upload_id,
+                            defaults={
+                                "clarity": clarity_mean,
+                                "clarity_variance": clarity_var,
+                                "clarity_confidence": clarity_conf,
+
+                                "coherence": coherence_mean,
+                                "coherence_variance": coherence_var,
+                                "coherence_confidence": coherence_conf,
+
+                                "engagement": engagement_mean,
+                                "engagement_variance": engagement_var,
+                                "engagement_confidence": engagement_conf,
+
+                                "completeness": completeness_mean,
+                                "completeness_variance": completeness_var,
+                                "completeness_confidence": completeness_conf,
+
+                                "accuracy": accuracy_mean,
+                                "accuracy_variance": accuracy_var,
+                                "accuracy_confidence": accuracy_conf,
                             }
                         )
 
@@ -294,6 +359,21 @@ class SubmissionOrchestrator:
 
         return result
 
+
+import numpy as np
+
+def compute_stats(values):
+    values = [v for v in values if v is not None]
+    if not values:
+        return 0, 0, 0
+
+    mean = float(np.mean(values))
+    variance = float(np.var(values))
+
+    # simple confidence
+    confidence = 1 / (1 + variance)
+
+    return mean, variance, confidence
 
 
 def increment_progress(contributor_id, chapter_id, file_type):
@@ -1436,7 +1516,9 @@ async def check_topic_quality(request):
         "topic": topic,
         "notes": notes,
         "files": files,
-        "target_level": level
+        "target_level": level,
+        "course_id": data.get("course_id"),
+        "chapter_id": data.get("chapter_id")
     })
 
     clarity = result.get("clarity_review", {})

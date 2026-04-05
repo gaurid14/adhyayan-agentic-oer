@@ -1,6 +1,7 @@
 import json
 import re
 import textstat
+from asgiref.sync import sync_to_async
 from langchain.tools import tool
 from langgraph_agents.services.gemini_service import llm
 
@@ -21,6 +22,32 @@ LEVELS = {
     "default": {"fre_good": 45, "fre_ok": 25, "sent_good": 18, "sent_ok": 24},
 }
 
+
+@sync_to_async
+def get_rag_context_from_selection(course_id: int, chapter_id: int):
+    try:
+        from accounts.models import Course, Chapter, OutcomeChapterMapping
+
+        course = Course.objects.select_related("department__program").get(id=course_id)
+        chapter = Chapter.objects.get(id=chapter_id)
+
+        domain = course.department.program.program_name
+        subject = course.course_name
+
+        mappings = OutcomeChapterMapping.objects.filter(chapter=chapter)
+        outcomes = [m.outcome.description for m in mappings]
+
+        syllabus = "\n".join(outcomes[:2])
+
+        return {
+            "domain": domain,
+            "subject": subject,
+            "chapter": chapter.chapter_name,
+            "syllabus": syllabus,
+        }
+
+    except Exception:
+        return {}
 
 # ============================================================
 # NORMALIZATION FOR FAIR READABILITY (technical safe)
@@ -131,7 +158,7 @@ def safe_extract_json(text: str) -> dict:
 # GEMINI CLARITY ANALYSIS
 # ============================================================
 
-async def analyze_with_gemini(content: str, target_level: str) -> dict:
+async def analyze_with_gemini(content: str, rag: dict, target_level: str) -> dict:
     """
     Live Writing Assistant (Editor Mode)
 
@@ -140,43 +167,47 @@ async def analyze_with_gemini(content: str, target_level: str) -> dict:
     """
 
     prompt = f"""
-You are reviewing educational learning notes written by a contributor.
+You are reviewing educational notes written by a contributor.
 
 Student Level: {target_level}
 
-FIRST decide:
-Is the writing already grammatically correct and clear?
+-------------------------
+DOMAIN CONTEXT
+Domain: {rag.get("domain", "")}
+Subject: {rag.get("subject", "")}
+Chapter: {rag.get("chapter", "")}
+-------------------------
+
+SYLLABUS:
+{rag.get("syllabus", "")}
+
+-------------------------
+
+FIRST CHECK:
+Is content relevant to subject/chapter?
 
 IMPORTANT RULES:
 
-✅ If sentences are already correct:
-- DO NOT report grammar errors.
-- DO NOT rewrite sentences unnecessarily.
+❗ If NOT relevant:
+- Add suggestion: "Content is off-topic"
+- Suggest correct topic direction
 
-✅ Only report issues when:
-- grammar is actually incorrect
-- meaning is confusing
-- sentence is hard to understand
+✅ If relevant:
+- Check clarity
+- Check grammar
+- Check explanation quality
 
-DO NOT suggest stylistic rewrites.
+DO NOT give unnecessary grammar suggestions.
 
-Maximum 5 suggestions.
+Max 5 suggestions.
 
-If content quality is good,
-return:
-
-{{
- "suggestions":[]
-}}
-
-Otherwise return:
-
+Return JSON:
 {{
  "suggestions":[
    {{
-     "issue":"Grammar error",
-     "fix":"Explain improvement briefly",
-     "example":"Corrected sentence"
+     "issue":"...",
+     "fix":"...",
+     "example":"..."
    }}
  ]
 }}
@@ -289,8 +320,16 @@ async def review_clarity(state: dict) -> dict:
             }
         }
 
+    course_id = state.get("course_id")
+    chapter_id = state.get("chapter_id")
+
+    rag = {}
+
+    if course_id and chapter_id:
+        rag = await get_rag_context_from_selection(course_id, chapter_id)
+
     py_result = python_clarity_score(notes, target_level)
-    gem_result = await analyze_with_gemini(notes, target_level)
+    gem_result = await analyze_with_gemini(notes, rag, target_level)
 
     final_score = combine_scores(py_result, gem_result)
 

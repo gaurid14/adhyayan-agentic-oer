@@ -283,7 +283,25 @@ class ContentScore(models.Model):
     completeness = models.FloatField(blank=True, null=True)
     accuracy = models.FloatField(blank=True, null=True)
 
-    # ✅ add back (needed by decision maker mark-best feature)
+    # After multiple evaluations (k runs)
+    clarity_variance = models.FloatField(null=True, blank=True)
+    clarity_confidence = models.FloatField(null=True, blank=True)
+
+    coherence_variance = models.FloatField(null=True, blank=True)
+    coherence_confidence = models.FloatField(null=True, blank=True)
+
+    engagement_variance = models.FloatField(null=True, blank=True)
+    engagement_confidence = models.FloatField(null=True, blank=True)
+
+    completeness_variance = models.FloatField(null=True, blank=True)
+    completeness_confidence = models.FloatField(null=True, blank=True)
+
+    accuracy_variance = models.FloatField(null=True, blank=True)
+    accuracy_confidence = models.FloatField(null=True, blank=True)
+
+    final_score = models.FloatField(null=True, blank=True)
+
+    # add back (needed by decision maker mark-best feature)
     is_best = models.BooleanField(default=False)
 
 class ReleasedContent(models.Model):
@@ -530,8 +548,6 @@ class DmMessage(models.Model):
             self.is_read = True
             self.read_at = timezone.now()
             self.save(update_fields=["is_read", "read_at"])
-
-# External Resources
 
 
 # ---------- Reporting / Blocking --------------------------------------------------------------------------------------
@@ -799,9 +815,50 @@ def auto_run_admin_agent(sender, instance, created, **kwargs):
         service = AdminAgentService()
         service.run_for_course(course)
 
+# For adaptive evaluation system
+class EvaluationRun(models.Model):
+    upload = models.ForeignKey(
+        UploadCheck,
+        on_delete=models.CASCADE,
+        related_name="evaluation_runs"
+    )
+
+    run_number = models.IntegerField()
+
+    clarity = models.FloatField(null=True, blank=True)
+    coherence = models.FloatField(null=True, blank=True)
+    engagement = models.FloatField(null=True, blank=True)
+    completeness = models.FloatField(null=True, blank=True)
+    accuracy = models.FloatField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("upload", "run_number")
 
 
 
+# One upload, confidence low, anomaly, ignore
+# Stores history, stability
+class ParameterStats(models.Model):
+    parameter = models.CharField(max_length=50)  # clarity, accuracy
+
+    avg_confidence = models.FloatField(default=0)
+    avg_variance = models.FloatField(default=0)
+
+    usage_count = models.IntegerField(default=0)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.parameter} stats"
+
+
+class ParameterConfig(models.Model):
+    parameter = models.CharField(max_length=50)
+
+    low_conf_threshold = models.FloatField(default=0.5)
+    high_var_threshold = models.FloatField(default=1.0)
 
 # python manage.py makemigrations
 # python manage.py migrate

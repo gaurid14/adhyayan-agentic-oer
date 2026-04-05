@@ -1,5 +1,7 @@
 import json
 import re
+
+from asgiref.sync import sync_to_async
 from langchain.tools import tool
 from langgraph_agents.services.gemini_service import llm
 
@@ -41,12 +43,38 @@ ENGAGEMENT_LEVELS = {
     "default": {"case_w": 1.6, "scenario_w": 1.4},
 }
 
+@sync_to_async
+def get_rag_context_from_selection(course_id: int, chapter_id: int):
+    try:
+        from accounts.models import Course, Chapter, OutcomeChapterMapping
+
+        course = Course.objects.select_related("department__program").get(id=course_id)
+        chapter = Chapter.objects.get(id=chapter_id)
+
+        domain = course.department.program.program_name
+        subject = course.course_name
+
+        mappings = OutcomeChapterMapping.objects.filter(chapter=chapter)
+        outcomes = [m.outcome.description for m in mappings]
+
+        syllabus = "\n".join(outcomes[:2])
+
+        return {
+            "domain": domain,
+            "subject": subject,
+            "chapter": chapter.chapter_name,
+            "syllabus": syllabus,
+        }
+
+    except Exception:
+        return {}
+
 
 # =====================================================
 # GEMINI ENGAGEMENT ANALYSIS
 # =====================================================
 
-async def analyze_engagement(content: str, target_level: str):
+async def analyze_engagement(content: str, rag: dict, target_level: str):
     """
     Live Engagement Assistant
 
@@ -55,36 +83,26 @@ async def analyze_engagement(content: str, target_level: str):
     """
 
     prompt = f"""
-You are an AI assistant helping contributors improve student engagement.
+You are helping improve engagement of educational content.
 
 Student Level: {target_level}
 
-Your goal:
-Provide QUICK engagement improvements while writing.
+-------------------------
+Subject: {rag.get("subject", "")}
+Chapter: {rag.get("chapter", "")}
+-------------------------
 
 IMPORTANT RULES:
-- Maximum 5 suggestions
-- Each suggestion under 15 words
-- No paragraphs
-- No teaching theory
-- Be direct and actionable
 
-Detect if content lacks:
-• examples
-• real-world connection
-• student interaction
-• application thinking
+- Count examples ONLY if relevant to topic
+- Ignore irrelevant examples
+- Suggest improvements based on subject
 
-Return JSON ONLY:
+Max 5 short suggestions (<15 words)
 
+Return JSON:
 {{
-  "suggestions":[
-    {{
-      "issue":"Missing example",
-      "fix":"Add short example",
-      "example":"Example: Software updates improve mobile apps."
-    }}
-  ]
+ "suggestions":[...]
 }}
 
 Content:
@@ -175,8 +193,17 @@ async def review_engagement(state: dict) -> dict:
             }
         }
 
+    course_id = state.get("course_id")
+    chapter_id = state.get("chapter_id")
+
+    rag = {}
+
+    if course_id and chapter_id:
+        rag = await get_rag_context_from_selection(course_id, chapter_id)
+
     gemini_result = await analyze_engagement(
         notes,
+        rag,
         target_level
     )
 
