@@ -1,4 +1,4 @@
-{% load static %}
+{% load static dict_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,10 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         body{
             margin:0;
             font-family:Inter,sans-serif;
-            background:#f4f7fb;
+            background:#f8fafc; /* Lighter SaaS background */
             user-select:none;
         }
 
@@ -158,6 +162,179 @@
         ::selection {
             background: transparent;
         }
+
+        /* ---- Assessment Section ---- */
+        .assessment-section {
+            margin-top: 28px;
+        }
+
+        .assessment-section h3 {
+            font-size: 19px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .quiz-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .quiz-card-meta {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .score-pass { background: #d4edda; color: #155724; }
+        .score-fail { background: #fde8e8; color: #842029; }
+        .score-none { background: #e9ecef; color: #555; }
+
+        .take-quiz-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background: #0f5f56;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .take-quiz-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .retake-btn {
+            background: white;
+            color: #0f5f56;
+            border: 1.5px solid #0f5f56;
+        }
+
+        /* ---- Mark Complete Bar ---- */
+        .mark-done-bar {
+            margin-top: 36px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .mark-done-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #0f5f56, #1EAE98);
+            color: white;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s, background 0.2s;
+            box-shadow: 0 4px 14px rgba(15, 95, 86, 0.25);
+        }
+
+        .mark-done-btn:hover:not(.btn-disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 95, 86, 0.35);
+        }
+
+        .mark-done-btn:active:not(.btn-disabled) {
+            transform: scale(0.98);
+        }
+
+        .mark-done-btn.btn-disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        /* ---- Header Progress Widget ---- */
+        .header-content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .header-progress-widget {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 16px 20px;
+            border-radius: 12px;
+            min-width: 280px;
+        }
+
+        .header-progress-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header-progress-bar-bg {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .header-progress-bar-fill {
+            height: 100%;
+            background: #4ade80; /* bright green for contrast */
+            border-radius: 999px;
+            transition: width 0.5s ease-in-out;
+        }
     </style>
 </head>
 
@@ -167,10 +344,29 @@
     <div class="top-nav">
         <a class="back-btn" href="/dashboard/student/">← Back to Dashboard</a>
         <div class="badge">Student Learning Mode</div>
+        {% if is_chapter_completed %}
+        <div class="badge" style="background:#d4edda;color:#155724;margin-left:10px;">✅ Chapter Completed</div>
+        {% else %}
+        <div class="badge" style="background:#fff3cd;color:#856404;margin-left:10px;">⏳ In Progress</div>
+        {% endif %}
     </div>
 
-    <h1>{{ course.course_name }} • {{ chapter.chapter_name }}</h1>
-    <p>{{ course.course_code }} • Semester {{ course.semester }}</p>
+    <div class="header-content-wrapper">
+        <div>
+            <h1>{{ course.course_name }} • {{ chapter.chapter_name }}</h1>
+            <p>{{ course.course_code }} • Semester {{ course.semester }}</p>
+        </div>
+
+        <div class="header-progress-widget">
+            <div class="header-progress-top">
+                <span>Course Progress</span>
+                <span>{{ course_progress_percent }}%</span>
+            </div>
+            <div class="header-progress-bar-bg">
+                <div class="header-progress-bar-fill" style="width: {{ course_progress_percent }}%;"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="container">
@@ -237,11 +433,87 @@
             </video>
             {% endif %}
 
+            {% if official_assessments %}
+            <div class="divider"></div>
+            <div class="assessment-section">
+                <h3>🧠 Chapter Assessments</h3>
+                <div class="assessment-grid">
+                    {% for quiz in official_assessments %}
+                    {% with best=student_attempts|get_item:quiz.id %}
+                    <div class="quiz-card">
+                        <div class="quiz-card-title">
+                            📝 {{ quiz.topic|default:"General Assessment" }}
+                        </div>
+                        <div class="quiz-card-meta">
+                            {{ quiz.questions.count }} question{{ quiz.questions.count|pluralize }}
+                        </div>
+
+                        {% if best %}
+                            {% if best.passed %}
+                            <span class="score-pill score-pass">✅ Best: {{ best.score }}/{{ best.total_questions }} ({{ best.score_percent }}%)</span>
+                            {% else %}
+                            <span class="score-pill score-fail">❌ Best: {{ best.score }}/{{ best.total_questions }} ({{ best.score_percent }}%)</span>
+                            {% endif %}
+                            <a href="{% url 'take_assessment' quiz.id %}" class="take-quiz-btn retake-btn">
+                                🔁 Retake Quiz
+                            </a>
+                        {% else %}
+                            <span class="score-pill score-none">Not attempted yet</span>
+                            <a href="{% url 'take_assessment' quiz.id %}" class="take-quiz-btn">
+                                ▶ Take Quiz
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mark-done-bar">
+                <button id="markDoneBtn" class="mark-done-btn {% if is_chapter_completed %}btn-disabled{% endif %}"
+                        {% if is_chapter_completed %}disabled{% endif %}
+                        onclick="markComplete()">
+                    {% if is_chapter_completed %}
+                        ✅ Marked as Complete
+                    {% else %}
+                        ✅ Mark Chapter as Complete
+                    {% endif %}
+                </button>
+            </div>
+
             {% endif %}
         </div>
 
     </div>
 </div>
+
+<script>
+function markComplete() {
+    const btn = document.getElementById("markDoneBtn");
+    btn.textContent = "Loading...";
+    btn.disabled = true;
+
+    fetch("{% url 'mark_chapter_complete' chapter.id %}", {
+        method: "POST",
+        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.textContent = "✅ Marked as Complete";
+            btn.classList.add("btn-disabled");
+        } else {
+            btn.textContent = "Error, try again";
+            btn.disabled = false;
+        }
+    })
+    .catch(() => {
+        btn.textContent = "Error, try again";
+        btn.disabled = false;
+    });
+}
+</script>
 
 </body>
 </html>

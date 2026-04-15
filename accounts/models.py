@@ -352,6 +352,13 @@ class DecisionRun(models.Model):
 
     is_latest = models.BooleanField(default=True)
 
+    tx_hash = models.CharField(
+        max_length=66,
+        null=True,
+        blank=True,
+        help_text="Blockchain transaction hash for tamper-proof audit trail",
+    )
+
     class Meta:
         ordering = ("-created_at",)
 
@@ -407,6 +414,51 @@ class AssessmentSource(models.Model):
     file_name = models.CharField(max_length=255)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AssessmentAttempt(models.Model):
+    """
+    Records a student's attempt at a chapter assessment.
+    Multiple attempts are allowed; each is stored separately.
+    """
+    student = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'STUDENT'},
+        related_name='assessment_attempts'
+    )
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name='attempts'
+    )
+
+    score = models.IntegerField(default=0)             # number of correct answers
+    total_questions = models.IntegerField(default=0)   # total questions in this attempt
+    passed = models.BooleanField(default=False)        # True if score >= 70%
+
+    # JSON snapshot: {question_id: chosen_option_index, ...} for review later
+    answers_snapshot = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return (
+            f"{self.student.username} | "
+            f"Assessment {self.assessment_id} | "
+            f"{self.score}/{self.total_questions} | "
+            f"{'PASS' if self.passed else 'FAIL'}"
+        )
+
+    @property
+    def score_percent(self) -> int:
+        if self.total_questions == 0:
+            return 0
+        return round((self.score / self.total_questions) * 100)
+
 
 # ---------- Forum Models --------------------------------------------------------------------------------------
 
@@ -859,6 +911,70 @@ class ParameterConfig(models.Model):
 
     low_conf_threshold = models.FloatField(default=0.5)
     high_var_threshold = models.FloatField(default=1.0)
+
+
+# ---------- Student Progress Tracking ----------------------------------------
+
+class StudentChapterProgress(models.Model):
+    """
+    Tracks whether a student has explicitly marked a chapter as complete.
+
+    A row is created the first time a student marks a chapter done.
+    One row per (student, chapter) pair — unique_together enforced.
+    """
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "STUDENT"},
+        related_name="student_chapter_progress",
+    )
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name="student_progress",
+    )
+
+    completed    = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("student", "chapter")
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        status = "✅" if self.completed else "⬜"
+        return f"{status} {self.student.username} → {self.chapter}"
+
+
+class CourseCompletion(models.Model):
+    """
+    Created (once) when a student completes ALL currently-released chapters
+    of a course.
+
+    This is the trigger used by:
+      - The student dashboard KPI ("Completed Subjects" count).
+      - The Verifiable Certificates system to mint student certificates.
+    """
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "STUDENT"},
+        related_name="completed_courses",
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="completions",
+    )
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("student", "course")
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        return f"{self.student.username} completed {self.course.course_name}"
+
 
 # python manage.py makemigrations
 # python manage.py migrate

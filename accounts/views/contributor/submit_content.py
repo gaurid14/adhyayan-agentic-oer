@@ -450,12 +450,16 @@ def confirm_submission(request):
     if result.get("status") == "success":
         contributor = User.objects.get(id=contributor_id)
 
-        ContributionSuccessEmail(
-            contributor.email,
-            contributor.first_name,
-            chapter.course.course_name,
-            chapter.chapter_name
-        ).send()
+        try:
+            ContributionSuccessEmail(
+                contributor.email,
+                contributor.first_name,
+                chapter.course.course_name,
+                chapter.chapter_name
+            ).send()
+        except Exception as e:
+            print(f"⚠️ Could not send email (Check .env password): {e}")
+
 
         return render(request, "contributor/final_submission.html")
 

@@ -1,7 +1,10 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from accounts.models import Course, Chapter, ReleasedContent, EnrolledCourse
+from accounts.models import (
+    Course, Chapter, ReleasedContent, EnrolledCourse,
+    StudentChapterProgress, CourseCompletion,
+)
 from langgraph_agents.services.drive_service import GoogleDriveAuthService
 
 @login_required
@@ -21,7 +24,13 @@ def student_dashboard(request):
     # 3. Fetch courses the student is enrolled in (for the KPI card count)
     enrolled_courses_qs = Course.objects.filter(id__in=enrolled_course_ids)
 
-    # 4. Prepare JSON for the sidebar drawer (keeping for legacy support if needed)
+    # 4. Real completed courses
+    completed_course_ids = CourseCompletion.objects.filter(
+        student=request.user
+    ).values_list('course_id', flat=True)
+    completed_courses = Course.objects.filter(id__in=completed_course_ids)
+
+    # 5. Prepare JSON for the sidebar drawer
     released_content = ReleasedContent.objects.filter(
         release_status=True,
         upload__chapter__course__id__in=enrolled_course_ids
@@ -44,12 +53,12 @@ def student_dashboard(request):
         request,
         "student/student_dashboard.html",
         {
-            "all_courses": all_courses,           # Used to display all 6 cards
-            "enrolled_course_ids": enrolled_course_ids, # Used to check button type
-            "courses": enrolled_courses_qs,       # Used for KPI count
+            "all_courses": all_courses,
+            "enrolled_course_ids": enrolled_course_ids,
+            "courses": enrolled_courses_qs,
             "chapters_json": json.dumps(chapters_dict),
             "enrolled_courses": enrolled_courses_qs,
-            "completed_courses": []
+            "completed_courses": completed_courses,    # ← real now
         }
     )
 
@@ -68,8 +77,9 @@ def student_course_chapters(request, course_id):
             "error_message": "Access Denied: You must be enrolled in this course to view its chapters."
         })
 
-    # Get chapters and check which ones the Admin Agent has released
     chapters_qs = Chapter.objects.filter(course=course).order_by("chapter_number")
+
+    # Chapters with released content
     released_chapter_ids = set(
         ReleasedContent.objects.filter(
             upload__chapter__course=course,
@@ -77,29 +87,65 @@ def student_course_chapters(request, course_id):
         ).values_list('upload__chapter_id', flat=True)
     )
 
+    # Chapters this student has marked complete
+    completed_chapter_ids = set(
+        StudentChapterProgress.objects.filter(
+            student=request.user,
+            chapter__course=course,
+            completed=True,
+        ).values_list('chapter_id', flat=True)
+    )
+
+    # Overall course progress
+    total_released  = len(released_chapter_ids)
+    total_completed = len(completed_chapter_ids & released_chapter_ids)
+    course_progress_percent = (
+        round((total_completed / total_released) * 100)
+        if total_released else 0
+    )
+
     chapters = []
     for ch in chapters_qs:
-        is_released = ch.id in released_chapter_ids
+        is_released  = ch.id in released_chapter_ids
+        is_completed = ch.id in completed_chapter_ids
+
+        if is_completed:
+            status           = "completed"
+            progress_percent = 100
+        elif is_released:
+            status           = "in_progress"   # released but not yet marked done
+            progress_percent = 50
+        else:
+            status           = "not_started"
+            progress_percent = 0
+
         chapters.append({
-            "id": ch.id,
-            "order": ch.chapter_number,
-            "name": ch.chapter_name,
-            "description": ch.description,
-            "status": "not_started" if is_released else "locked",
-            "is_locked": not is_released,
-            "progress_percent": 0,
+            "id":               ch.id,
+            "order":            ch.chapter_number,
+            "name":             ch.chapter_name,
+            "description":      ch.description,
+            "status":           status,
+            "is_locked":        not is_released,
+            "progress_percent": progress_percent,
         })
+
+    if course_progress_percent == 100:
+        course_progress_message = "🎉 Course complete! All chapters done."
+    elif course_progress_percent > 0:
+        course_progress_message = f"Great progress! {total_completed}/{total_released} chapters completed 🔥"
+    else:
+        course_progress_message = "Unlock chapters by marking them complete as you study! 🚀"
 
     context = {
         "course": {
-            "id": course.id,
-            "name": course.course_name,
-            "code": course.course_code,
+            "id":       course.id,
+            "name":     course.course_name,
+            "code":     course.course_code,
             "semester": course.semester,
         },
-        "chapters": chapters,
-        "course_progress_percent": 0,
-        "course_progress_message": "Unlock chapters sequentially by completing prerequisites! 🔥",
+        "chapters":                chapters,
+        "course_progress_percent": course_progress_percent,
+        "course_progress_message": course_progress_message,
     }
     return render(request, "student/course_chapters.html", context)
 

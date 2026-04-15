@@ -596,6 +596,28 @@ class DecisionMakerService:
             is_latest=True,
         )
         _p("DecisionRun saved")
+
+        # ── Blockchain Audit Trail ─────────────────────────────────────
+        # Push an immutable copy of this decision on-chain.
+        # Graceful: if Ganache is offline, the DB record is unaffected.
+        try:
+            from blockchain.services.decision_audit import store_decision_on_chain
+
+            tx_hash = store_decision_on_chain(
+                chapter_id=chapter.id,
+                upload_id=winner.upload_id if winner else 0,
+                composite_score=winner.composite_score if winner else 0,
+                status=status,
+            )
+            if tx_hash:
+                obj.tx_hash = tx_hash
+                obj.save(update_fields=["tx_hash"])
+                _p(f"Blockchain audit recorded: tx_hash={tx_hash}")
+            else:
+                _p("Blockchain unavailable — decision saved to DB only")
+        except Exception as exc:
+            _p(f"Blockchain audit skipped (non-fatal): {exc}")
+
         return obj
 
     def _mark_best_upload(self, *, chapter_id: int, upload_id: int) -> None:

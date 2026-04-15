@@ -30,6 +30,10 @@ from accounts.views.student.student_dashboard import student_dashboard, student_
 from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action, forum_reportcase_action
 
 from accounts.views.student.drive_proxy import drive_stream
+from accounts.views.student.assessments import (
+    take_assessment, submit_assessment, assessment_result,
+)
+from accounts.views.student.progress import mark_chapter_complete
 
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
@@ -89,6 +93,15 @@ urlpatterns = [
         name="student_topic_view"
     ),
 path("student/drive/<int:course_id>/<str:file_id>/", drive_stream, name="drive_stream"),
+
+    # Student Assessments
+    path("student/assessment/<int:assessment_id>/", take_assessment, name="take_assessment"),
+    path("student/assessment/<int:assessment_id>/submit/", submit_assessment, name="submit_assessment"),
+    path("student/assessment/result/<int:attempt_id>/", assessment_result, name="assessment_result"),
+
+    # Student Progress
+    path("student/chapter/<int:chapter_id>/mark-complete/", mark_chapter_complete, name="mark_chapter_complete"),
+
     # Forum
     path("forum/<int:pk>/", forum_detail, name="forum_detail"),
     path("forum/ask/", post_question, name="forum_ask"),

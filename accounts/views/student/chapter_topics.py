@@ -2,7 +2,11 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
-from accounts.models import Course, Chapter, ReleasedContent, EnrolledCourse
+from accounts.models import (
+    Course, Chapter, ReleasedContent, EnrolledCourse,
+    Assessment, AssessmentAttempt, UploadCheck,
+    StudentChapterProgress,
+)
 from langgraph_agents.services.drive_service import GoogleDriveAuthService
 
 import json
@@ -184,6 +188,71 @@ def chapter_topics(request, course_id):
                     e
                 )
 
+    # -----------------------------------------------------------------------
+    # Assessment Engine: serve quiz from the winning contributor only
+    # -----------------------------------------------------------------------
+    official_assessments = []
+    student_attempts_by_assessment = {}
+
+    if current_chapter:
+        best_upload = (
+            UploadCheck.objects
+            .filter(chapter=current_chapter, content_score__is_best=True)
+            .order_by("-timestamp")
+            .first()
+        )
+
+        if best_upload:
+            qs = Assessment.objects.filter(
+                chapter=current_chapter,
+                contributor_id=best_upload.contributor,
+            )
+            if selected_topic:
+                qs = qs.filter(topic=selected_topic)
+
+            official_assessments = list(qs)
+
+            # Build a quick lookup: assessment_id → best attempt for this student
+            if official_assessments:
+                attempts = AssessmentAttempt.objects.filter(
+                    student=request.user,
+                    assessment__in=official_assessments,
+                ).order_by("-score")
+
+                for att in attempts:
+                    aid = att.assessment_id
+                    if aid not in student_attempts_by_assessment:
+                        student_attempts_by_assessment[aid] = att
+
+    is_chapter_completed = False
+    course_progress_percent = 0
+
+    if current_chapter:
+        is_chapter_completed = StudentChapterProgress.objects.filter(
+            student=request.user,
+            chapter=current_chapter,
+            completed=True
+        ).exists()
+
+        # Calculate overall course progress
+        released_chapter_ids = set(
+            ReleasedContent.objects.filter(
+                upload__chapter__course=course,
+                release_status=True
+            ).values_list('upload__chapter_id', flat=True)
+        )
+        completed_chapter_ids = set(
+            StudentChapterProgress.objects.filter(
+                student=request.user,
+                chapter__course=course,
+                completed=True,
+            ).values_list('chapter_id', flat=True)
+        )
+        total_released = len(released_chapter_ids)
+        total_completed = len(completed_chapter_ids & released_chapter_ids)
+        if total_released > 0:
+            course_progress_percent = round((total_completed / total_released) * 100)
+
     context = {
         "course": course,
         "chapters": chapters,
@@ -194,6 +263,12 @@ def chapter_topics(request, course_id):
         "video_id": video_id,
         "files_for_ui": files_for_ui,
         "is_released": bool(released_info and released_info.release_status),
+        # Assessment engine
+        "official_assessments": official_assessments,
+        "student_attempts": student_attempts_by_assessment,
+        # Progress engine
+        "is_chapter_completed": is_chapter_completed,
+        "course_progress_percent": course_progress_percent,
     }
 
     return render(request, "student/chapter_topics.html", context)
