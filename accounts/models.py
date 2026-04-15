@@ -11,11 +11,6 @@ class Program(models.Model):
     program_name = models.CharField(max_length=200, unique=True)
 
 
-    # --- Forum moderation / suspension ---
-    forum_is_suspended = models.BooleanField(default=False)
-    forum_suspended_at = models.DateTimeField(null=True, blank=True)
-    forum_suspension_reason = models.TextField(blank=True)
-
     def __str__(self):
         return self.program_name
 
@@ -229,6 +224,11 @@ class User(AbstractUser):
     contributor_approved_at = models.DateTimeField(null=True, blank=True)
     contributor_rejected_at = models.DateTimeField(null=True, blank=True)
     contributor_rejection_reason = models.TextField(blank=True)
+
+    # --- Forum moderation / suspension ---
+    forum_is_suspended = models.BooleanField(default=False)
+    forum_suspended_at = models.DateTimeField(null=True, blank=True)
+    forum_suspension_reason = models.TextField(blank=True)
 
     def __str__(self):
         return self.username

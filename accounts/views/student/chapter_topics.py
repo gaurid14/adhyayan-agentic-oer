@@ -253,6 +253,21 @@ def chapter_topics(request, course_id):
         if total_released > 0:
             course_progress_percent = round((total_completed / total_released) * 100)
 
+    # -----------------------------------------------------------------------
+    # Neighbor Navigation (Prev/Next)
+    # -----------------------------------------------------------------------
+    prev_chapter = None
+    next_chapter = None
+    chapter_list = list(chapters)
+    try:
+        idx = chapter_list.index(current_chapter)
+        if idx > 0:
+            prev_chapter = chapter_list[idx - 1]
+        if idx < len(chapter_list) - 1:
+            next_chapter = chapter_list[idx + 1]
+    except ValueError:
+        pass
+
     context = {
         "course": course,
         "chapters": chapters,
@@ -269,6 +284,10 @@ def chapter_topics(request, course_id):
         # Progress engine
         "is_chapter_completed": is_chapter_completed,
         "course_progress_percent": course_progress_percent,
+        "released_chapter_ids": released_chapter_ids,
+        "completed_chapter_ids": completed_chapter_ids,
+        "prev_chapter": prev_chapter,
+        "next_chapter": next_chapter,
     }
 
     return render(request, "student/chapter_topics.html", context)

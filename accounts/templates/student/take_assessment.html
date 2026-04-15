@@ -296,7 +296,7 @@
         <div class="quiz-meta">
             <span class="meta-pill">{{ questions|length }} Question{{ questions|length|pluralize }}</span>
             <span class="meta-pill">Pass at 70%</span>
-            <span class="meta-pill">Unlimited Attempts</span>
+            <span class="meta-pill">Attempts until 100%</span>
             {% if best_attempt %}
             <span class="meta-pill prev-score">
                 🏆 Your Best: {{ best_attempt.score }}/{{ best_attempt.total_questions }}
@@ -343,7 +343,7 @@
 
         <!-- Submit -->
         <div class="submit-section">
-            <div class="submit-note">Review your answers above before submitting. You can retake the quiz as many times as you like.</div>
+            <div class="submit-note">Review your answers above before submitting. You can retake the quiz until you reach 100% proficiency.</div>
             <button type="submit" class="submit-btn" id="submitBtn">
                 ✅ Submit Answers
             </button>

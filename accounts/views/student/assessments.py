@@ -32,31 +32,36 @@ PASS_THRESHOLD = 0.70
 def take_assessment(request, assessment_id):
     """
     Render the quiz form for a student.
-    Security: student must be enrolled in the course that contains this assessment.
+    Security: student must be enrolled and not exceeded attempt limits.
     """
     assessment = get_object_or_404(Assessment, id=assessment_id)
 
     # Enrollment guard
-    if not EnrolledCourse.objects.filter(
-        student=request.user,
-        course=assessment.course
-    ).exists():
+    if not EnrolledCourse.objects.filter(student=request.user, course=assessment.course).exists():
         return HttpResponseForbidden("You must be enrolled in this course to take this quiz.")
 
+    # Attempt limits and status logic
+    attempts = AssessmentAttempt.objects.filter(student=request.user, assessment=assessment)
+    attempt_count = attempts.count()
+    best_attempt = attempts.order_by('-score').first()
+
+    # If passed (>= 70%) OR exhausted attempts (>= 3), block entry
+    if best_attempt and best_attempt.score_percent >= 70:
+        messages.info(request, "You have already passed this assessment.")
+        return redirect('assessment_result', attempt_id=best_attempt.id)
+    
+    if attempt_count >= 3:
+        messages.warning(request, "You have exhausted your 3 attempts for this assessment.")
+        if best_attempt:
+            return redirect('assessment_result', attempt_id=best_attempt.id)
+        return redirect('student_dashboard')
+
     questions = assessment.questions.prefetch_related('options').all()
-
-    # Fetch the student's previous best attempt (if any) for display
-    best_attempt = (
-        AssessmentAttempt.objects
-        .filter(student=request.user, assessment=assessment)
-        .order_by('-score')
-        .first()
-    )
-
     return render(request, 'student/take_assessment.html', {
         'assessment': assessment,
         'questions': questions,
         'best_attempt': best_attempt,
+        'attempt_count': attempt_count,
     })
 
 
@@ -69,15 +74,20 @@ def take_assessment(request, assessment_id):
 def submit_assessment(request, assessment_id):
     """
     Grade the submitted quiz and store the attempt.
-    Expects POST data in the format: q_<question_id> = <chosen_option_index>
     """
     assessment = get_object_or_404(Assessment, id=assessment_id)
 
+    # RE-VALIDATE attempts on submission (to prevent manual POST bypass)
+    attempts = AssessmentAttempt.objects.filter(student=request.user, assessment=assessment)
+    if attempts.count() >= 3:
+        return HttpResponseForbidden("Maximum attempts exhausted.")
+    
+    best_prior = attempts.order_by('-score').first()
+    if best_prior and best_prior.score_percent >= 70:
+        return HttpResponseForbidden("You have already passed this assessment.")
+
     # Enrollment guard
-    if not EnrolledCourse.objects.filter(
-        student=request.user,
-        course=assessment.course
-    ).exists():
+    if not EnrolledCourse.objects.filter(student=request.user, course=assessment.course).exists():
         return HttpResponseForbidden("You must be enrolled in this course.")
 
     questions = list(assessment.questions.prefetch_related('options').all())
