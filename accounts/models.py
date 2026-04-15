@@ -972,8 +972,57 @@ class CourseCompletion(models.Model):
         unique_together = ("student", "course")
         ordering = ["-completed_at"]
 
+
     def __str__(self):
         return f"{self.student.username} completed {self.course.course_name}"
+
+
+class BlockchainCertificate(models.Model):
+    """
+    Stores the result of a blockchain certificate minting event.
+    Acts as an off-chain index so we don't query the blockchain on every dashboard load.
+    The source of truth is always the blockchain (verified via token_id).
+    """
+    CERT_TYPE_STUDENT     = "STUDENT"
+    CERT_TYPE_CONTRIBUTOR = "CONTRIBUTOR"
+    CERT_TYPE_CHOICES = [
+        (CERT_TYPE_STUDENT,     "Student Completion"),
+        (CERT_TYPE_CONTRIBUTOR, "Contributor Release"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="blockchain_certificates",
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="blockchain_certificates",
+    )
+    chapter = models.ForeignKey(
+        "Chapter",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="blockchain_certificates",
+    )
+    certificate_type = models.CharField(
+        max_length=20,
+        choices=CERT_TYPE_CHOICES,
+    )
+    token_id  = models.PositiveIntegerField(unique=True)   # blockchain token ID
+    tx_hash   = models.CharField(max_length=100)           # transaction hash
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-issued_at"]
+
+    def __str__(self):
+        return (
+            f"[{self.certificate_type}] {self.user.username} | "
+            f"Token #{self.token_id}"
+        )
 
 
 # python manage.py makemigrations

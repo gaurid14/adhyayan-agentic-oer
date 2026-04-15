@@ -470,6 +470,11 @@
             </div>
             {% endif %}
 
+            <!-- Assessment not-passed warning (shown by JS) -->
+            <div id="assessment-gate-warning" style="display:none; margin-top:20px; padding:16px 20px; background:#fff3cd; border:1.5px solid #ffe082; border-radius:12px; color:#856404; font-size:14px; font-weight:600;">
+                ⚠️ <span id="gate-warning-msg"></span>
+            </div>
+
             <div class="mark-done-bar">
                 <button id="markDoneBtn" class="mark-done-btn {% if is_chapter_completed %}btn-disabled{% endif %}"
                         {% if is_chapter_completed %}disabled{% endif %}
@@ -491,7 +496,10 @@
 <script>
 function markComplete() {
     const btn = document.getElementById("markDoneBtn");
-    btn.textContent = "Loading...";
+    const warningBox = document.getElementById("assessment-gate-warning");
+    const warningMsg = document.getElementById("gate-warning-msg");
+
+    btn.textContent = "Checking...";
     btn.disabled = true;
 
     fetch("{% url 'mark_chapter_complete' chapter.id %}", {
@@ -503,6 +511,22 @@ function markComplete() {
         if (data.success) {
             btn.textContent = "✅ Marked as Complete";
             btn.classList.add("btn-disabled");
+            if (warningBox) warningBox.style.display = "none";
+            // Update the header progress badge
+            const badges = document.querySelectorAll(".badge");
+            badges.forEach(b => {
+                if (b.style.background && b.style.background.includes("fff3cd")) {
+                    b.style.background = "#d4edda";
+                    b.style.color = "#155724";
+                    b.textContent = "✅ Chapter Completed";
+                }
+            });
+        } else if (data.error === "assessment_not_passed") {
+            warningMsg.textContent = data.message;
+            warningBox.style.display = "block";
+            warningBox.scrollIntoView({ behavior: "smooth", block: "center" });
+            btn.textContent = "✅ Mark Chapter as Complete";
+            btn.disabled = false;
         } else {
             btn.textContent = "Error, try again";
             btn.disabled = false;

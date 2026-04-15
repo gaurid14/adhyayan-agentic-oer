@@ -1578,6 +1578,39 @@
                         {% endfor %}
                     </div>
 
+                    <!-- MY CERTIFICATES -->
+                    <section class="flat-section" style="margin-top: 40px; margin-bottom: 20px;">
+                        <h2 class="section-heading">
+                            <i class="fab fa-ethereum" style="color: #1EAE98; margin-right: 8px;"></i>
+                            My Verifiable Certificates
+                            <span class="section-subtext">Awarded for released content</span>
+                        </h2>
+                        
+                        {% if certificates %}
+                        <div class="course-grid">
+                            {% for cert in certificates %}
+                            <div class="course-card" style="border-top: 3px solid #1EAE98;">
+                                <h4>{{ cert.chapter.chapter_name|default:"Content Release" }} ({{ cert.course.course_name|default:"Course" }})</h4>
+                                <p style="font-size: 12px; color: #64748b; margin-bottom: 5px;">
+                                    Issued: {{ cert.issued_at|date:"M d, Y" }}
+                                </p>
+                                <p style="font-size: 11px; font-family: monospace; color: #94a3b8; margin-bottom: 15px; word-break: break-all;">
+                                    Token #{{ cert.token_id }}
+                                </p>
+                                <a href="{% url 'verify_certificate' cert.token_id %}" target="_blank" class="primary-btn" style="background: white; color: #0F766E; border: 1px solid #0F766E; text-decoration: none; display: inline-block; width: 100%; text-align: center;">
+                                    View Certificate <i class="fas fa-external-link-alt" style="margin-left: 6px; font-size: 11px;"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="padding: 24px; background: #FFF; border: 1px dashed #CBD5E1; border-radius: 12px; text-align: center; color: #64748B;">
+                            <i class="fas fa-award" style="font-size: 24px; color: #94A3B8; margin-bottom: 10px; display: block;"></i>
+                            <p style="margin:0;">No certificates yet. You'll receive a verifiable blockchain certificate when your submitted content is selected as the best and released to students!</p>
+                        </div>
+                        {% endif %}
+                    </section>
+
                     <section class="flat-section">
                         <h2 class="section-heading">
                             Recent Activity

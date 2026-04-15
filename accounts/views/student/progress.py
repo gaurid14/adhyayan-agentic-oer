@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.models import (
+    Assessment, AssessmentAttempt,
     Chapter, CourseCompletion, EnrolledCourse,
     ReleasedContent, StudentChapterProgress,
 )
@@ -54,7 +55,30 @@ def mark_chapter_complete(request, chapter_id):
     if not is_released:
         return JsonResponse({"error": "Chapter content not yet released."}, status=400)
 
-    # 3. Upsert the progress row
+    # 3. Assessment gatekeeper — must have passed all chapter assessments
+    chapter_assessments = Assessment.objects.filter(chapter=chapter)
+    if chapter_assessments.exists():
+        # For each assessment, check if the student has at least one passing attempt
+        unpassed = []
+        for assessment in chapter_assessments:
+            has_passed = AssessmentAttempt.objects.filter(
+                student=request.user,
+                assessment=assessment,
+                passed=True,
+            ).exists()
+            if not has_passed:
+                unpassed.append(assessment.topic or "General Assessment")
+
+        if unpassed:
+            return JsonResponse({
+                "error": "assessment_not_passed",
+                "message": (
+                    f"You must pass the following assessments before marking this chapter complete: "
+                    f"{', '.join(unpassed)}. (Pass mark: 70%)"
+                ),
+            }, status=400)
+
+    # 4. Upsert the progress row
     progress, created = StudentChapterProgress.objects.get_or_create(
         student=request.user,
         chapter=chapter,
@@ -73,7 +97,7 @@ def mark_chapter_complete(request, chapter_id):
             request.user.username, chapter_id,
         )
 
-        # 4. Check if the entire course is now finished
+        # 5. Check if the entire course is now finished
         _check_and_record_course_completion(request.user, chapter.course)
 
     return JsonResponse({"success": True, "already_done": already_done})
@@ -115,6 +139,37 @@ def _check_and_record_course_completion(student, course):
         )
         if created:
             logger.info(
-                "[Progress] 🎓 student=%s completed course_id=%s",
+                "[Progress] [Graduation] student=%s completed course_id=%s",
                 student.username, course.id,
             )
+
+            # ── Student Certificate Minting ──────────────────────────────────
+            try:
+                from blockchain.services.certificate_service import (
+                    mint_certificate, ISSUE_TYPE_STUDENT
+                )
+                from accounts.models import BlockchainCertificate
+
+                result = mint_certificate(
+                    recipient_name=student.get_full_name() or student.username,
+                    course_name=course.course_name,
+                    issue_type=ISSUE_TYPE_STUDENT,
+                )
+                if result.get("success"):
+                    BlockchainCertificate.objects.get_or_create(
+                        token_id=result["token_id"],
+                        defaults={
+                            "user": student,
+                            "course": course,
+                            "certificate_type": BlockchainCertificate.CERT_TYPE_STUDENT,
+                            "tx_hash": result["tx_hash"],
+                        }
+                    )
+                    logger.info(
+                        "[Certificate] Student cert minted for %s | Course: %s | token_id=%s",
+                        student.username, course.course_name, result["token_id"]
+                    )
+                else:
+                    logger.error("[Certificate] Minting failed: %s", result.get("error"))
+            except Exception as e:
+                logger.error("[Certificate] Student cert exception: %s", e)

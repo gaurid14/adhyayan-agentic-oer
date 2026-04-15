@@ -34,9 +34,11 @@ from accounts.views.student.assessments import (
     take_assessment, submit_assessment, assessment_result,
 )
 from accounts.views.student.progress import mark_chapter_complete
+from accounts.views.verify import verify_certificate_view
 
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
+    path('verify/<int:token_id>/', verify_certificate_view, name='verify_certificate'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),

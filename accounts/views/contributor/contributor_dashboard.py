@@ -251,9 +251,8 @@ class TopicExtractor:
 
 from datetime import timedelta
 from django.utils import timezone
-from accounts.models import ChapterContributionProgress, UploadCheck, ChapterPolicy
+from accounts.models import ChapterContributionProgress, UploadCheck, ChapterPolicy, ContributorNote, BlockchainCertificate
 from itertools import chain
-from accounts.models import ContributorNote
 
 @login_required
 def contributor_dashboard_view(request):
@@ -372,12 +371,19 @@ def contributor_dashboard_view(request):
 
     notes = ContributorNote.objects.filter(contributor=user)[:5]
 
+    # Fetch contributor certificates
+    certificates = BlockchainCertificate.objects.filter(
+        user=user,
+        certificate_type=BlockchainCertificate.CERT_TYPE_CONTRIBUTOR
+    )
+
     context = {
         "recommended_courses": courses,
         "chapters_json": json.dumps(chapters_map),
         "tasks": tasks,  # send tasks to template
         "recent_activity": recent_activity,
         "notes": notes,
+        "certificates": certificates,
     }
 
     return render(request, "contributor/contributor_dashboard.html", context)

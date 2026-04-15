@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.models import (
     Course, Chapter, ReleasedContent, EnrolledCourse,
-    StudentChapterProgress, CourseCompletion,
+    StudentChapterProgress, CourseCompletion, BlockchainCertificate,
 )
 from langgraph_agents.services.drive_service import GoogleDriveAuthService
 
@@ -30,7 +30,13 @@ def student_dashboard(request):
     ).values_list('course_id', flat=True)
     completed_courses = Course.objects.filter(id__in=completed_course_ids)
 
-    # 5. Prepare JSON for the sidebar drawer
+    # 5. Fetch Blockchain Certificates
+    certificates = BlockchainCertificate.objects.filter(
+        user=request.user,
+        certificate_type=BlockchainCertificate.CERT_TYPE_STUDENT
+    )
+
+    # 6. Prepare JSON for the sidebar drawer
     released_content = ReleasedContent.objects.filter(
         release_status=True,
         upload__chapter__course__id__in=enrolled_course_ids
@@ -59,6 +65,7 @@ def student_dashboard(request):
             "chapters_json": json.dumps(chapters_dict),
             "enrolled_courses": enrolled_courses_qs,
             "completed_courses": completed_courses,    # ← real now
+            "certificates": certificates,
         }
     )
 
