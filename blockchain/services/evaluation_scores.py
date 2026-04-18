@@ -15,7 +15,7 @@ with open(ABI_PATH) as f:
 GANACHE_URL = "http://127.0.0.1:7545"
 
 CONTRACT_ADDRESS = Web3.to_checksum_address(
-    "0x019Ca3FEEe5dE99617c31D989D7390C253208438"
+    "0x85DF169674d8Fdf3FDe2D3A5dFE3FDe51e2Dd9E0"
 )
 
 _w3 = None
