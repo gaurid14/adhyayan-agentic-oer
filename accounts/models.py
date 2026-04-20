@@ -977,6 +977,29 @@ class CourseCompletion(models.Model):
         return f"{self.student.username} completed {self.course.course_name}"
 
 
+
+class ChapterCompletion(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chapter_completions"
+    )
+    chapter = models.ForeignKey(
+        'accounts.Chapter',  # ⚠️ we will fix this line below
+        on_delete=models.CASCADE,
+        related_name="completions"
+    )
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'chapter')
+
+    def __str__(self):
+        return f"{self.student} - {self.chapter}"
+
+
+
 class BlockchainCertificate(models.Model):
     """
     Stores the result of a blockchain certificate minting event.
@@ -1023,6 +1046,34 @@ class BlockchainCertificate(models.Model):
             f"[{self.certificate_type}] {self.user.username} | "
             f"Token #{self.token_id}"
         )
+
+
+class StudentProfile(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='student_profile'
+    )
+
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    college = models.CharField(max_length=255, blank=True)
+    year_of_study = models.CharField(max_length=50, blank=True)
+    branch = models.CharField(max_length=100, blank=True)
+
+    profile_picture = models.ImageField(
+        upload_to='profile_pics/',
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+    
+@receiver(post_save, sender=User)
+def create_student_profile(sender, instance, created, **kwargs):
+    if created and instance.role == "STUDENT":
+        StudentProfile.objects.create(user=instance)
 
 
 # python manage.py makemigrations

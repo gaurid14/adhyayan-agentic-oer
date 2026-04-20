@@ -6,6 +6,8 @@ from .models import (
     ForumQuestion,
     ForumAnswer,
     ForumTopic,
+    Program,
+    Department,
     User,
 )
 
@@ -98,3 +100,60 @@ class ProfilePictureForm(forms.ModelForm):
         model = User
         fields = ['profile_picture']
         labels = {'profile_picture': 'Upload a new profile picture'}
+
+class StudentProfileForm(forms.ModelForm):
+    GENDER_CHOICES = [
+        ("", "Select gender"),
+        ("Male", "Male"),
+        ("Female", "Female"),
+        ("Other", "Other"),
+        ("Prefer not to say", "Prefer not to say"),
+    ]
+
+    gender = forms.ChoiceField(choices=GENDER_CHOICES, required=False)
+
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "last_name",
+            "phone_number",
+            "college_name",
+            "date_of_birth",
+            "gender",
+            "program",
+            "department",
+            "year",
+            "bio",
+            "profile_picture",
+        ]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-input", "placeholder": "First name"}),
+            "last_name": forms.TextInput(attrs={"class": "form-input", "placeholder": "Last name"}),
+            "phone_number": forms.TextInput(attrs={"class": "form-input", "placeholder": "Phone number"}),
+            "college_name": forms.TextInput(attrs={"class": "form-input", "placeholder": "College name"}),
+            "date_of_birth": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "program": forms.Select(attrs={"class": "form-input"}),
+            "department": forms.Select(attrs={"class": "form-input"}),
+            "year": forms.Select(attrs={"class": "form-input"}),
+            "bio": forms.Textarea(attrs={"class": "form-input", "rows": 4, "placeholder": "Write a short bio"}),
+            "profile_picture": forms.ClearableFileInput(attrs={"class": "form-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["program"].queryset = Program.objects.all().order_by("program_name")
+        self.fields["department"].queryset = Department.objects.select_related("program").order_by("dept_name")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        program = cleaned_data.get("program")
+        department = cleaned_data.get("department")
+
+        if department and not program:
+            cleaned_data["program"] = department.program
+            program = cleaned_data["program"]
+
+        if department and program and department.program_id != program.id:
+            self.add_error("department", "Please choose a department that belongs to the selected program.")
+        return cleaned_data

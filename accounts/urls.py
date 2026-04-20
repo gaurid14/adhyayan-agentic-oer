@@ -36,6 +36,10 @@ from accounts.views.student.assessments import (
 from accounts.views.student.progress import mark_chapter_complete
 from accounts.views.verify import verify_certificate_view
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
     path('verify/<int:token_id>/', verify_certificate_view, name='verify_certificate'),
@@ -224,3 +228,4 @@ path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_un
     path("dashboard/contributor/notes/delete/<int:note_id>/", delete_note, name="delete_note"),
     path("dashboard/contributor/notes/<id>/", get_note, name="get_note"),
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
