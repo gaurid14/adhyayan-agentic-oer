@@ -4,6 +4,7 @@ import re
 from typing import Any, Dict, List, Tuple
 
 from langchain.tools import tool
+from langsmith import traceable
 
 from langgraph_agents.services.gemini_service import llm
 
@@ -293,6 +294,7 @@ def combine_completeness(py: dict, ai: dict, target_level: str = "undergrad") ->
 # COMPLETENESS AGENT TOOL (STATE IN / STATE OUT)
 # ------------------------------
 @tool
+@traceable(name="Completeness Agent")
 async def evaluate_completeness(state: dict) -> dict:
     """Completeness Agent:
 

@@ -3,6 +3,8 @@ import re
 
 from asgiref.sync import sync_to_async
 from langchain.tools import tool
+from langsmith import traceable
+
 from langgraph_agents.services.gemini_service import llm
 
 
@@ -172,8 +174,8 @@ def compute_engagement_score(
 # =====================================================
 # ENGAGEMENT REVIEW AGENT (EDITOR MODE)
 # =====================================================
-
 @tool
+@traceable(name="Engagement Review Agent")
 async def review_engagement(state: dict) -> dict:
     """
     LIVE Engagement Review Agent

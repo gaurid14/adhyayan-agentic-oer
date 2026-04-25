@@ -226,7 +226,7 @@ class SubmissionOrchestrator:
                 print("Extraction timeout. Evaluation graph NOT started.")
                 return False
 
-            @traceable(name="Adhyayan Evaluation Pipeline")
+            @traceable(name="Evaluation Pipeline")
             async def runner():
                 ok = await wait_for_extraction()
                 if not ok:
@@ -263,7 +263,12 @@ class SubmissionOrchestrator:
                             graph_result = await compiled_graph.ainvoke(
                                 graph_input,
                                 config={
-                                    "run_name": f"Evaluation Run {i+1}"
+                                    "run_name": f"Evaluation Run {i+1}",
+                                    "tags": ["multi-run", "evaluation"],
+                                    "metadata": {
+                                        "upload_id": upload_id,
+                                        "run_index": i,
+                                    }
                                 }
                             )
 

@@ -4,6 +4,7 @@ import re
 
 from asgiref.sync import sync_to_async
 from langchain.tools import tool
+from langsmith import traceable
 
 from accounts.models import ContentScore, OutcomeChapterMapping, UploadCheck
 from langgraph_agents.services.gemini_service import llm
@@ -227,6 +228,7 @@ def compute_engagement_score(
 # ENGAGEMENT AGENT TOOL (STATE IN / STATE OUT)
 # ------------------------------
 @tool
+@traceable(name="Engagement Agent")
 async def evaluate_engagement(state: dict) -> dict:
     """
     Engagement Agent:

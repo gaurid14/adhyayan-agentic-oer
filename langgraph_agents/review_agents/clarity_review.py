@@ -3,6 +3,8 @@ import re
 import textstat
 from asgiref.sync import sync_to_async
 from langchain.tools import tool
+from langsmith import traceable
+
 from langgraph_agents.services.gemini_service import llm
 
 
@@ -298,8 +300,8 @@ def combine_scores(py: dict, gem: dict) -> float:
 # ============================================================
 # LIVE EDITOR CLARITY TOOL
 # ============================================================
-
 @tool
+@traceable(name="Clarity Review Agent")
 async def review_clarity(state: dict) -> dict:
     """
     LIVE Clarity Review Agent

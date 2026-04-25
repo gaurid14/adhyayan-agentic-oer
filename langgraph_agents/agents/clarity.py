@@ -4,6 +4,7 @@ import re
 import textstat
 from asgiref.sync import sync_to_async
 from langchain.tools import tool
+from langsmith import traceable
 
 from accounts.models import ContentScore, UploadCheck
 from langgraph_agents.services.gemini_service import llm
@@ -386,6 +387,7 @@ def combine_clarity(python_result: dict, gemini_result: dict) -> float:
 # CLARITY AGENT TOOL
 # ------------------------------
 @tool
+@traceable(name="Clarity Agent")
 async def evaluate_clarity(state: dict) -> dict:
     """
     Clarity Agent:

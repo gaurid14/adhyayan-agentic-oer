@@ -4,6 +4,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from langchain.tools import tool
+from langsmith import traceable
 
 from langgraph_agents.services.gemini_service import llm
 
@@ -352,6 +353,7 @@ def combine_accuracy(py: dict, ai: dict, target_level: str = "undergrad") -> flo
 # ACCURACY AGENT TOOL (STATE IN / STATE OUT)
 # ------------------------------
 @tool
+@traceable(name="Accuracy Agent")
 async def evaluate_accuracy(state: dict) -> dict:
     """Accuracy Agent:
 

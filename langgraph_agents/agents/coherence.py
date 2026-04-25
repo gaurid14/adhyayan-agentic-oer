@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 
 from asgiref.sync import sync_to_async
 from langchain.tools import tool
+from langsmith import traceable
 
 from accounts.models import UploadCheck, OutcomeChapterMapping, ContentScore
 from langgraph_agents.services.gemini_service import llm
@@ -262,6 +263,7 @@ def combine_coherence(py: dict, ai: dict, target_level: str = "undergrad") -> fl
 # COHERENCE AGENT TOOL
 # ------------------------------
 @tool
+@traceable(name="Coherence Agent")
 async def evaluate_coherence(state: dict) -> dict:
     """
     Coherence Agent:
