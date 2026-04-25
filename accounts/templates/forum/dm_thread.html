@@ -1,471 +1,492 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Chat • {{ other.username }}</title>
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}" />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat • {{ other.username }}</title>
 
-    <style>
-  :root {
-    --primary: #1eae98;
-    --primary-dark: #178d79;
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}" />
 
-    --bg: #ffffff;
-    --surface: #ffffff;
-    --surface-2: #f8fafc;
+  <style>
+    :root {
+      --primary: #1eae98;
+      --primary-dark: #178d79;
 
-    --text: #0f172a;
-    --muted: #64748b;
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
 
-    --border: #e5e7eb;
-    --shadow: 0 10px 25px rgba(2, 6, 23, 0.06);
-    --shadow-soft: 0 3px 10px rgba(2, 6, 23, 0.05);
-    --radius: 16px;
-  }
+      --text: #0f172a;
+      --muted: #64748b;
 
-  /* Keep page fixed; only chat box scrolls */
-  html,
-  body {
-    height: 100%;
-    overflow: hidden;
-  }
+      --border: #e5e7eb;
+      --shadow: 0 10px 25px rgba(2, 6, 23, 0.06);
+      --shadow-soft: 0 3px 10px rgba(2, 6, 23, 0.05);
+      --radius: 16px;
+    }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
-      Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  }
+    /* Keep page fixed; only chat box scrolls */
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
 
-  .page-wrapper {
-    margin-left: 260px;
-    padding: 22px 26px; /* equal padding top & bottom */
-    height: 100vh;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
+        Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
 
-  /* Header */
-  .chat-header {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    box-shadow: var(--shadow-soft);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
+    .page-wrapper {
+      margin-left: 260px;
+      padding: 22px 26px;
+      /* equal padding top & bottom */
+      height: 100vh;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-  .chat-title {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-  }
+    /* Header */
+    .chat-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
 
-  .chat-title h4 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-  }
+    .chat-title {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
 
-  .chat-title .sub {
-    margin-top: 3px;
-    font-size: 13px;
-    color: var(--muted);
-  }
+    .chat-title h4 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
 
-  .chip-user {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    font-weight: 600;
-    color: var(--text);
-  }
+    .chat-title .sub {
+      margin-top: 3px;
+      font-size: 13px;
+      color: var(--muted);
+    }
 
-  .btn-soft {
-    border: 1px solid var(--border) !important;
-    background: #fff !important;
-    color: var(--text) !important;
-  }
-  .btn-soft:hover {
-    background: var(--surface-2) !important;
-  }
+    .chip-user {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-weight: 600;
+      color: var(--text);
+    }
 
-  /* Panel */
-  .chat-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    .btn-soft {
+      border: 1px solid var(--border) !important;
+      background: #fff !important;
+      color: var(--text) !important;
+    }
 
-    flex: 1;
-    min-height: 0; /* important so chat-box can scroll */
-    display: flex;
-    flex-direction: column;
-  }
+    .btn-soft:hover {
+      background: var(--surface-2) !important;
+    }
 
-  /* Scroll area */
-  .chat-box {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 16px 16px 10px;
-    background: linear-gradient(
-      180deg,
-      rgba(248, 250, 252, 0.85),
-      rgba(255, 255, 255, 1)
-    );
+    /* Panel */
+    .chat-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
 
-    display: flex;
-    flex-direction: column;
-  }
+      flex: 1;
+      min-height: 0;
+      /* important so chat-box can scroll */
+      display: flex;
+      flex-direction: column;
+    }
 
-  .chat-content {
-    margin-top: auto; /* keeps messages pinned to bottom */
-    display: flex;
-    flex-direction: column;
-  }
+    /* Scroll area */
+    .chat-box {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px 16px 10px;
+      background: linear-gradient(180deg,
+          rgba(248, 250, 252, 0.85),
+          rgba(255, 255, 255, 1));
 
-  /* Message rows */
-  .msg-row {
-    display: flex;
-    margin-bottom: 12px;
-  }
-  .msg-row.me {
-    justify-content: flex-end;
-  }
-  .msg-row.other {
-    justify-content: flex-start;
-  }
+      display: flex;
+      flex-direction: column;
+    }
 
-  /* Message bubble */
-  .msg {
-    max-width: min(680px, 78%);
-    padding: 10px 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    line-height: 1.5;
-    box-shadow: 0 2px 10px rgba(2, 6, 23, 0.06);
+    .chat-content {
+      margin-top: auto;
+      /* keeps messages pinned to bottom */
+      display: flex;
+      flex-direction: column;
+    }
 
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    white-space: normal;
-  }
+    /* Message rows */
+    .msg-row {
+      display: flex;
+      margin-bottom: 12px;
+    }
 
-  .msg.me {
-    background: var(--primary);
-    color: #fff;
-    border-top-right-radius: 8px;
-  }
+    .msg-row.me {
+      justify-content: flex-end;
+    }
 
-  .msg.other {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-top-left-radius: 8px;
-  }
+    .msg-row.other {
+      justify-content: flex-start;
+    }
 
-  /* If you wrap message text in .msg-text, it preserves newlines */
-  .msg-text {
-    white-space: pre-wrap;
-  }
+    /* Message bubble */
+    .msg {
+      max-width: min(680px, 78%);
+      padding: 10px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: 0 2px 10px rgba(2, 6, 23, 0.06);
 
-  .msg-meta {
-    margin-top: 6px;
-    font-size: 11px;
-    opacity: 0.9;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal;
+    }
 
-    white-space: normal;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
+    .msg.me {
+      background: var(--primary);
+      color: #fff;
+      border-top-right-radius: 8px;
+    }
 
-  .msg-meta .dot {
-    opacity: 0.7;
-  }
+    .msg.other {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-top-left-radius: 8px;
+    }
 
-  .msg.other .msg-meta {
-    color: var(--muted);
-    opacity: 1;
-  }
+    /* If you wrap message text in .msg-text, it preserves newlines */
+    .msg-text {
+      white-space: pre-wrap;
+    }
 
-  /* Empty state */
-  .empty {
-    height: 52vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    color: var(--muted);
-    gap: 6px;
-  }
-  .empty .emoji {
-    font-size: 22px;
-  }
-  .empty .hint {
-    font-size: 13px;
-  }
+    .msg-meta {
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: 0.9;
 
-  /* Composer */
-  .composer {
-    flex: 0 0 auto;
-    margin: 0;
-    padding: 12px;
-    background: #fff;
-    border-top: 1px solid var(--border);
-  }
+      white-space: normal;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
 
-  .composer-inner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 10px;
-    background: var(--surface);
-  }
+    .msg-meta .dot {
+      opacity: 0.7;
+    }
 
-  .composer-input {
-    flex: 1;
-    border: 0;
-    outline: none;
-    box-shadow: none;
-    resize: none;
+    .msg.other .msg-meta {
+      color: var(--muted);
+      opacity: 1;
+    }
 
-    height: 44px;
-    line-height: 22px;
-    padding: 10px 10px;
-    background: transparent;
-  }
+    /* Empty state */
+    .empty {
+      height: 52vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: var(--muted);
+      gap: 6px;
+    }
 
-  .composer-send {
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 18px !important;
-    border-radius: 12px !important;
-    white-space: nowrap;
-  }
+    .empty .emoji {
+      font-size: 22px;
+    }
 
-  .btn-primary {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
-    border-radius: 12px !important;
-    height: 44px;
-    padding: 0 18px !important;
-    font-weight: 700;
-  }
-  .btn-primary:hover {
-    background: var(--primary-dark) !important;
-    border-color: var(--primary-dark) !important;
-  }
+    .empty .hint {
+      font-size: 13px;
+    }
 
-  /* Scrollbar */
-  .chat-box::-webkit-scrollbar {
-    width: 10px;
-  }
-  .chat-box::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 999px;
-    border: 2px solid rgba(0, 0, 0, 0);
-    background-clip: padding-box;
-  }
-     /* ✅ Responsive layout */
-     /* ✅ Fix right-gap */
-.page-wrapper{
-  width: calc(100% - 260px);
-  max-width: none;
-}
+    /* Composer */
+    .composer {
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 12px;
+      background: #fff;
+      border-top: 1px solid var(--border);
+    }
 
-/* ✅ Tablet & below */
-@media (max-width: 991px){
-  .page-wrapper{
-    width: 100% !important;
-    margin-left: 0 !important;
-    max-width: none !important;
-    padding: 16px !important;
-  }
-  body{ overflow-x: hidden; }
-}
+    .composer-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      background: var(--surface);
+    }
 
-@media (max-width: 576px){
-  .page-wrapper{ padding: 12px !important; }
-}
-/* Desktop stays same */
-.main { margin-left: 260px; }
+    .composer-input {
+      flex: 1;
+      border: 0;
+      outline: none;
+      box-shadow: none;
+      resize: none;
 
-/* Mobile drawer behavior */
-@media (max-width: 991px){
-  .main{
-    margin-left: 0 !important;
-    width: 100% !important;
-    padding: 16px !important;
-    padding-top: 62px !important; /* space for hamburger */
-  }
+      height: 44px;
+      line-height: 22px;
+      padding: 10px 10px;
+      background: transparent;
+    }
 
-  /* show hamburger on mobile */
-  .sidebar-toggle{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 1203;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    border-radius: 12px;
-    padding: 8px 10px;
-    box-shadow: 0 8px 18px rgba(2,6,23,0.08);
-  }
+    .composer-send {
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px !important;
+      border-radius: 12px !important;
+      white-space: nowrap;
+    }
 
-  /* overlay */
-  .sidebar-overlay{
-    position: fixed;
-    inset: 0;
-    background: rgba(2, 6, 23, 0.45);
-    z-index: 1200;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 180ms ease;
-  }
+    .btn-primary {
+      background: var(--primary) !important;
+      border-color: var(--primary) !important;
+      border-radius: 12px !important;
+      height: 44px;
+      padding: 0 18px !important;
+      font-weight: 700;
+    }
 
-  /* sidebar becomes drawer */
-  .sidebar{
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 260px;
-    transform: translateX(-105%);
-    transition: transform 200ms ease;
-    z-index: 1202;
-  }
+    .btn-primary:hover {
+      background: var(--primary-dark) !important;
+      border-color: var(--primary-dark) !important;
+    }
 
-  body.sidebar-open .sidebar{
-    transform: translateX(0);
-  }
+    /* Scrollbar */
+    .chat-box::-webkit-scrollbar {
+      width: 10px;
+    }
 
-  body.sidebar-open .sidebar-overlay{
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
+    .chat-box::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 999px;
+      border: 2px solid rgba(0, 0, 0, 0);
+      background-clip: padding-box;
+    }
 
-/* Desktop: hide hamburger */
-.sidebar-toggle{ display:none; }
-/* Desktop: hide hamburger */
-.sidebar-toggle { display:none; }
+    /* ✅ Responsive layout */
+    /* ✅ Fix right-gap */
+    .page-wrapper {
+      width: calc(100% - 260px);
+      max-width: none;
+    }
 
-/* Mobile drawer behavior */
-@media (max-width: 991px){
-  .main{
-    margin-left: 0 !important;
-    width: 100% !important;
-    padding: 16px !important;
-    padding-top: 62px !important; /* space for hamburger */
-  }
+    /* ✅ Tablet & below */
+    @media (max-width: 991px) {
+      .page-wrapper {
+        width: 100% !important;
+        margin-left: 0 !important;
+        max-width: none !important;
+        padding: 16px !important;
+      }
 
-  .sidebar-toggle{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 1203;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    border-radius: 12px;
-    padding: 8px 10px;
-    box-shadow: 0 8px 18px rgba(2,6,23,0.08);
-  }
+      body {
+        overflow-x: hidden;
+      }
+    }
 
-  .sidebar-overlay{
-    position: fixed;
-    inset: 0;
-    background: rgba(2, 6, 23, 0.45);
-    z-index: 1200;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 180ms ease;
-  }
+    @media (max-width: 576px) {
+      .page-wrapper {
+        padding: 12px !important;
+      }
+    }
 
-  .sidebar{
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 260px;
-    transform: translateX(-105%);
-    transition: transform 200ms ease;
-    z-index: 1202;
-  }
+    /* Desktop stays same */
+    .main {
+      margin-left: 260px;
+    }
 
-  body.sidebar-open .sidebar{
-    transform: translateX(0);
-  }
+    /* Mobile drawer behavior */
+    @media (max-width: 991px) {
+      .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 16px !important;
+        padding-top: 62px !important;
+        /* space for hamburger */
+      }
 
-  body.sidebar-open .sidebar-overlay{
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
+      /* show hamburger on mobile */
+      .sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 1203;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: 12px;
+        padding: 8px 10px;
+        box-shadow: 0 8px 18px rgba(2, 6, 23, 0.08);
+      }
 
-</style>
+      /* overlay */
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.45);
+        z-index: 1200;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      /* sidebar becomes drawer */
+      .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 260px;
+        transform: translateX(-105%);
+        transition: transform 200ms ease;
+        z-index: 1202;
+      }
+
+      body.sidebar-open .sidebar {
+        transform: translateX(0);
+      }
+
+      body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    /* Desktop: hide hamburger */
+    .sidebar-toggle {
+      display: none;
+    }
+
+    /* Desktop: hide hamburger */
+    .sidebar-toggle {
+      display: none;
+    }
+
+    /* Mobile drawer behavior */
+    @media (max-width: 991px) {
+      .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 16px !important;
+        padding-top: 62px !important;
+        /* space for hamburger */
+      }
+
+      .sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 1203;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: 12px;
+        padding: 8px 10px;
+        box-shadow: 0 8px 18px rgba(2, 6, 23, 0.08);
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.45);
+        z-index: 1200;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 260px;
+        transform: translateX(-105%);
+        transition: transform 200ms ease;
+        z-index: 1202;
+      }
+
+      body.sidebar-open .sidebar {
+        transform: translateX(0);
+      }
+
+      body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+  </style>
 
 
-  </head>
+</head>
 
-  <body>
-    <!-- Mobile toggle button -->
-<button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu">
-  ☰ Menu
-</button>
+<body>
+  <!-- Mobile toggle button -->
+  <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu">
+    ☰ Menu
+  </button>
 
-<!-- Dark overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <!-- Dark overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 
-    {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
-      {% include "contributor/sidebar.html" %}
-    {% else %}
-      {% include "student/sidebar.html" %}
-    {% endif %}
+  {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
+  {% include "contributor/sidebar.html" %}
+  {% else %}
+  {% include "student/sidebar.html" %}
+  {% endif %}
 
-    <div class="page-wrapper">
-  <!-- Header -->
-  <header class="chat-header">
-    <div class="chat-title">
-      <h4>Chat</h4>
-      <div class="sub">
-        with <span class="chip-user">{{ other.username }}</span>
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="chat-header">
+      <div class="chat-title">
+        <h4>Chat</h4>
+        <div class="sub">
+          with <span class="chip-user">{{ other.username }}</span>
+        </div>
       </div>
-    </div>
 
-    <nav class="d-flex gap-2" aria-label="Chat navigation">
-      <a class="btn btn-soft btn-sm" href="{% url 'dm_inbox' %}">← Inbox</a>
-      <a class="btn btn-soft btn-sm" href="{% url 'forum_home' %}">Forum</a>
-    </nav>
-    {% if user.is_authenticated and other.username != "moderator" %}
+      <nav class="d-flex gap-2" aria-label="Chat navigation">
+        <a class="btn btn-soft btn-sm" href="{% url 'dm_inbox' %}">← Inbox</a>
+        <a class="btn btn-soft btn-sm" href="{% url 'forum_home' %}">Forum</a>
+      </nav>
+      {% if user.is_authenticated and other.username != "moderator" %}
       <div class="d-flex gap-2 flex-wrap">
         <form method="post" action="{% url 'forum_block_user' other.id %}">
           {% csrf_token %}
@@ -489,130 +510,127 @@
               <option value="cheating">Cheating / Academic dishonesty</option>
               <option value="other">Other</option>
             </select>
-            <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note"></textarea>
+            <textarea name="note" class="form-control form-control-sm mb-2" rows="2"
+              placeholder="Optional note"></textarea>
             <button class="btn btn-sm btn-danger" type="submit">Send report</button>
           </form>
         </details>
       </div>
-    {% endif %}
-  </header>
+      {% endif %}
+    </header>
 
-  <!-- Panel -->
-  <section class="chat-panel">
-    <div id="chatBox" class="chat-box">
-      <div id="chatContent" class="chat-content">
-        <!-- used by JS polling -->
-        <div id="lastMsgId" data-last-id="{{ last_id }}"></div>
+    <!-- Panel -->
+    <section class="chat-panel">
+      <div id="chatBox" class="chat-box">
+        <div id="chatContent" class="chat-content">
+          <!-- used by JS polling -->
+          <div id="lastMsgId" data-last-id="{{ last_id }}"></div>
 
-        {% for m in messages %}
+          {% for m in messages %}
           <div class="msg-row {% if m.sender == user %}me{% else %}other{% endif %}">
             <div class="msg {% if m.sender == user %}me{% else %}other{% endif %}">
               {{ m.content|linebreaksbr }}
               <div class="msg-meta">
                 {% if m.sender.username == "moderator" %}
-                  Moderator
+                Moderator
                 {% else %}
-                  {{ m.sender.username }}
+                {{ m.sender.username }}
                 {% endif %}
                 • {{ m.created_at|date:"M d, H:i" }}
               </div>
             </div>
           </div>
-              {% if user.is_authenticated and m.sender != user and other.username != "moderator" %}
-                <div class="mt-1">
-                  <details>
-                    <summary class="btn btn-soft btn-sm">Report</summary>
-                    <form class="mt-2" method="post" action="{% url 'forum_report' %}">
-                      {% csrf_token %}
-                      <input type="hidden" name="kind" value="dm_message">
-                      <input type="hidden" name="target_id" value="{{ m.id }}">
-                      <select name="reason" class="form-select form-select-sm mb-2" required>
-                        <option value="" selected disabled>Select reason…</option>
-                        <option value="abuse_harassment">Abusive / Harassing</option>
-                        <option value="hate_discrimination">Hate / Discrimination</option>
-                        <option value="violence_threat">Violence / Threat</option>
-                        <option value="sexual_obscene">Sexual / Obscene</option>
-                        <option value="spam">Spam</option>
-                        <option value="privacy">Privacy / Personal info</option>
-                        <option value="cheating">Cheating / Academic dishonesty</option>
-                        <option value="other">Other</option>
-                      </select>
-                      <textarea name="note" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional note"></textarea>
-                      <button class="btn btn-sm btn-danger" type="submit">Send</button>
-                    </form>
-                  </details>
-                </div>
-              {% endif %}
-        {% empty %}
+          {% if user.is_authenticated and m.sender != user and other.username != "moderator" %}
+          <div class="mt-1">
+            <details>
+              <summary class="btn btn-soft btn-sm">Report</summary>
+              <form class="mt-2" method="post" action="{% url 'forum_report' %}">
+                {% csrf_token %}
+                <input type="hidden" name="kind" value="dm_message">
+                <input type="hidden" name="target_id" value="{{ m.id }}">
+                <select name="reason" class="form-select form-select-sm mb-2" required>
+                  <option value="" selected disabled>Select reason…</option>
+                  <option value="abuse_harassment">Abusive / Harassing</option>
+                  <option value="hate_discrimination">Hate / Discrimination</option>
+                  <option value="violence_threat">Violence / Threat</option>
+                  <option value="sexual_obscene">Sexual / Obscene</option>
+                  <option value="spam">Spam</option>
+                  <option value="privacy">Privacy / Personal info</option>
+                  <option value="cheating">Cheating / Academic dishonesty</option>
+                  <option value="other">Other</option>
+                </select>
+                <textarea name="note" class="form-control form-control-sm mb-2" rows="2"
+                  placeholder="Optional note"></textarea>
+                <button class="btn btn-sm btn-danger" type="submit">Send</button>
+              </form>
+            </details>
+          </div>
+          {% endif %}
+          {% empty %}
           <div class="text-center text-muted py-5">Say hello 👋</div>
-        {% endfor %}
+          {% endfor %}
+        </div>
       </div>
-    </div>
 
-    <!-- Composer -->
-    {% if other.username == "moderator" %}
-  <div class="alert alert-info mt-3">
-    This is a system-generated conversation. Replies are disabled.
+      <!-- Composer -->
+      {% if other.username == "moderator" %}
+      <div class="alert alert-info mt-3">
+        This is a system-generated conversation. Replies are disabled.
+      </div>
+      {% else %}
+      <form id="chatForm" method="post" class="composer">
+        {% csrf_token %}
+        <div class="composer-inner">
+          <textarea id="chatInput" name="content" class="composer-input" rows="1"
+            placeholder="Write a message…"></textarea>
+          <button type="submit" class="btn btn-primary composer-send">Send</button>
+        </div>
+      </form>
+      {% endif %}
+    </section>
   </div>
-{% else %}
-    <form id="chatForm" method="post" class="composer">
-      {% csrf_token %}
-      <div class="composer-inner">
-        <textarea
-          id="chatInput"
-          name="content"
-          class="composer-input"
-          rows="1"
-          placeholder="Write a message…"
-        ></textarea>
-        <button type="submit" class="btn btn-primary composer-send">Send</button>
-      </div>
-    </form>
-    {% endif %}
-  </section>
-</div>
 
 
-    <script>
-  const box = document.getElementById("chatBox");
-  const form = document.getElementById("chatForm");
-  const input = document.getElementById("chatInput");
-  const chatContent = document.getElementById("chatContent");
-  const lastMsgEl = document.getElementById("lastMsgId");
+  <script>
+    const box = document.getElementById("chatBox");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("chatInput");
+    const chatContent = document.getElementById("chatContent");
+    const lastMsgEl = document.getElementById("lastMsgId");
 
-  let lastId = parseInt(lastMsgEl?.dataset?.lastId || "0", 10);
-  let sending = false;
+    let lastId = parseInt(lastMsgEl?.dataset?.lastId || "0", 10);
+    let sending = false;
 
-  function csrfToken() {
-    return form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || "";
-  }
+    function csrfToken() {
+      return form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || "";
+    }
 
-  function escapeHtml(str) {
-    return (str || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
+    function escapeHtml(str) {
+      return (str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  function isNearBottom() {
-    if (!box) return true;
-    return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
-  }
+    function isNearBottom() {
+      if (!box) return true;
+      return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
+    }
 
-  function scrollToBottom() {
-    if (!box) return;
-    box.scrollTop = box.scrollHeight;
-  }
+    function scrollToBottom() {
+      if (!box) return;
+      box.scrollTop = box.scrollHeight;
+    }
 
-  function appendMessage({ content, sender_id, created_at, id }, myId) {
-    const me = String(sender_id) === String(myId);
+    function appendMessage({ content, sender_id, created_at, id }, myId) {
+      const me = String(sender_id) === String(myId);
 
-    const row = document.createElement("div");
-    row.className = `msg-row ${me ? "me" : "other"}`;
+      const row = document.createElement("div");
+      row.className = `msg-row ${me ? "me" : "other"}`;
 
-    row.innerHTML = `
+      row.innerHTML = `
       <div class="msg ${me ? "me" : "other"}">
         ${escapeHtml(content)}
         <div class="msg-meta">
@@ -621,118 +639,125 @@
       </div>
     `;
 
-    chatContent.appendChild(row);
-    lastId = Math.max(lastId, parseInt(id || "0", 10));
-    if (lastMsgEl) lastMsgEl.dataset.lastId = String(lastId);
-  }
+      chatContent.appendChild(row);
+      lastId = Math.max(lastId, parseInt(id || "0", 10));
+      if (lastMsgEl) lastMsgEl.dataset.lastId = String(lastId);
+    }
 
-  // initial scroll
-  if (box) requestAnimationFrame(scrollToBottom);
+    // initial scroll
+    if (box) requestAnimationFrame(scrollToBottom);
 
-  // IMPORTANT: prevent default submit ALWAYS
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (text) sendMessage(text);
-  });
-
-  // Enter to send, Shift+Enter newline
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    // IMPORTANT: prevent default submit ALWAYS
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
       const text = input.value.trim();
       if (text) sendMessage(text);
+    });
+
+    // Enter to send, Shift+Enter newline
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (text) sendMessage(text);
+      }
+    });
+
+    async function sendMessage(text) {
+      if (sending) return;
+      sending = true;
+
+      const myId = "{{ user.id }}";
+      const wasAtBottom = isNearBottom();
+
+      input.readOnly = true;
+
+      const fd = new FormData(form);
+      fd.set("content", text);
+
+      try {
+        const res = await fetch(window.location.href, {
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json",
+            "X-CSRFToken": csrfToken(),
+          },
+          body: fd,
+        });
+
+        if (!res.ok) throw new Error("Send failed: " + res.status);
+
+        const data = await res.json();
+
+        if (data.ok && data.message) {
+          appendMessage(data.message, myId);
+          input.value = "";
+          if (wasAtBottom) scrollToBottom();
+        }
+      } catch (err) {
+        // NO form.submit() here — that’s what causes the whole page jump.
+        console.error(err);
+        alert("Message failed to send. Please try again.");
+      } finally {
+        input.readOnly = false;
+        input.focus();
+        sending = false;
+      }
     }
-  });
 
-  async function sendMessage(text) {
-    if (sending) return;
-    sending = true;
+    // simple polling
+    async function fetchUpdates() {
+      try {
+        if (document.hidden) return;
 
-    const myId = "{{ user.id }}";
-    const wasAtBottom = isNearBottom();
+        const url = "{% url 'dm_thread_updates' other.id %}" + `?after_id=${lastId}`;
+        const res = await fetch(url, {
+          headers: { 
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json"
+          }
+        });
+        if (!res.ok) return;
 
-    input.readOnly = true;
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.messages) && data.messages.length) {
+          const myId = "{{ user.id }}";
+          const wasAtBottom = isNearBottom();
 
-    const fd = new FormData(form);
-    fd.set("content", text);
+          data.messages.forEach(m => appendMessage(m, myId));
+          if (wasAtBottom) scrollToBottom();
+        }
+      } catch (e) { }
+    }
 
-    try {
-      const res = await fetch(window.location.href, {
-        method: "POST",
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-          "X-CSRFToken": csrfToken(),
-        },
-        body: fd,
+    setInterval(fetchUpdates, 2000);
+    requestAnimationFrame(() => input?.focus());
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const btn = document.getElementById("sidebarToggle");
+      const overlay = document.getElementById("sidebarOverlay");
+
+      function closeSidebar() { document.body.classList.remove("sidebar-open"); }
+      function toggleSidebar() { document.body.classList.toggle("sidebar-open"); }
+
+      if (btn) btn.addEventListener("click", toggleSidebar);
+      if (overlay) overlay.addEventListener("click", closeSidebar);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeSidebar();
       });
 
-      if (!res.ok) throw new Error("Send failed: " + res.status);
-
-      const data = await res.json();
-
-      if (data.ok && data.message) {
-        appendMessage(data.message, myId);
-        input.value = "";
-        if (wasAtBottom) scrollToBottom();
-      }
-    } catch (err) {
-      // NO form.submit() here — that’s what causes the whole page jump.
-      console.error(err);
-      alert("Message failed to send. Please try again.");
-    } finally {
-      input.readOnly = false;
-      input.focus();
-      sending = false;
-    }
-  }
-
-  // simple polling
-  async function fetchUpdates() {
-    try {
-      if (document.hidden) return;
-
-      const url = "{% url 'dm_thread_updates' other.id %}" + `?after_id=${lastId}`;
-      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-      if (!res.ok) return;
-
-      const data = await res.json();
-      if (data.ok && Array.isArray(data.messages) && data.messages.length) {
-        const myId = "{{ user.id }}";
-        const wasAtBottom = isNearBottom();
-
-        data.messages.forEach(m => appendMessage(m, myId));
-        if (wasAtBottom) scrollToBottom();
-      }
-    } catch (e) {}
-  }
-
-  setInterval(fetchUpdates, 2000);
-  requestAnimationFrame(() => input?.focus());
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const btn = document.getElementById("sidebarToggle");
-  const overlay = document.getElementById("sidebarOverlay");
-
-  function closeSidebar(){ document.body.classList.remove("sidebar-open"); }
-  function toggleSidebar(){ document.body.classList.toggle("sidebar-open"); }
-
-  if (btn) btn.addEventListener("click", toggleSidebar);
-  if (overlay) overlay.addEventListener("click", closeSidebar);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeSidebar();
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!document.body.classList.contains("sidebar-open")) return;
-    const insideSidebar = e.target.closest(".sidebar");
-    if (insideSidebar && e.target.closest("a")) closeSidebar();
-  });
-});
-</script>
+      document.addEventListener("click", (e) => {
+        if (!document.body.classList.contains("sidebar-open")) return;
+        const insideSidebar = e.target.closest(".sidebar");
+        if (insideSidebar && e.target.closest("a")) closeSidebar();
+      });
+    });
+  </script>
 
 
-  </body>
+</body>
+
 </html>

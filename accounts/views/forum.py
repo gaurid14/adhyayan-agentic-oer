@@ -11,8 +11,9 @@ from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_GET, require_POST
-from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.utils.http import url_has_allowed_host_and_scheme
+
 from ..models import (
     Chapter, Course, ForumQuestion, ForumAnswer, ForumTopic,
     DmThread, DmMessage, User,
@@ -20,22 +21,15 @@ from ..models import (
 )
 from ..forms import ForumQuestionForm, ForumAnswerForm, ForumTopicForm
 from accounts.moderation_perspective import moderate_text, apply_decision_to_instance
-from django.shortcuts import redirect
-from django.utils.http import url_has_allowed_host_and_scheme
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
-from django.utils.http import url_has_allowed_host_and_scheme
-
-from accounts.models import User, UserBlock
-
-from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.http import require_POST
-from django.contrib import messages
-
-from accounts.models import User
+def _is_ajax(request):
+    """
+    Robust AJAX detection checking for X-Requested-With OR application/json.
+    """
+    return (
+        request.headers.get("x-requested-with") == "XMLHttpRequest" or
+        "application/json" in request.headers.get("accept", "")
+    )
 
 @staff_member_required
 def suspended_users(request):
@@ -57,11 +51,11 @@ def unsuspend_user(request, user_id):
     messages.success(request, f"Unsuspended {u.username}.")
     return redirect("forum_suspended_users")
 
-def _safe_next(request, fallback="forum_blocked_users"):
+def _safe_next(request, fallback="forum_home"):
     nxt = request.POST.get("next") or request.GET.get("next")
     if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
         return nxt
-    return fallback
+    return reverse(fallback) if not nxt else nxt
 
 @login_required
 def blocked_users(request):
@@ -79,11 +73,6 @@ def unblock_user(request, user_id):
     UserBlock.objects.filter(blocker=request.user, blocked_id=user_id).delete()
     return redirect(_safe_next(request))
 
-def _safe_next(request, default_name="forum_home"):
-    nxt = request.POST.get("next") or request.GET.get("next")
-    if nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()}):
-        return nxt
-    return None
 
 @login_required
 def block_user(request, user_id):
@@ -157,9 +146,12 @@ def _apply_block_filter(request, qs):
 
 
 def _require_not_suspended(request) -> bool:
-    """Return False if user is forum-suspended (and emit a message)."""
+    """Return False if user is forum-suspended. Handle AJAX response."""
     if getattr(request.user, "forum_is_suspended", False):
-        messages.error(request, "Your account is temporarily restricted due to reports/moderation. Please contact staff.")
+        msg = "Your account is temporarily restricted due to reports/moderation. Please contact staff."
+        if _is_ajax(request):
+            return JsonResponse({"ok": False, "error": msg}, status=403)
+        messages.error(request, msg)
         return False
     return True
 
@@ -553,11 +545,17 @@ def post_reply(request, question_id, parent_id):
     apply_decision_to_instance(reply, decision, kind="reply")
     reply.save()
 
-    # ✅ message based on final hidden state (NO staff exception)
+    # ✅ message based on final hidden state
     if reply.is_hidden:
-        messages.success(request, "Reply submitted — pending review.", extra_tags="detail_only")
+        msg = "Reply submitted — pending review."
+        if _is_ajax(request):
+            return JsonResponse({"ok": True, "hidden": True, "message": msg})
+        messages.success(request, msg, extra_tags="detail_only")
     else:
-        messages.success(request, "Your reply was posted.", extra_tags="detail_only")
+        msg = "Your reply was posted."
+        if _is_ajax(request):
+            return JsonResponse({"ok": True, "hidden": False, "message": msg})
+        messages.success(request, msg, extra_tags="detail_only")
 
     return redirect(reverse("forum_detail", kwargs={"pk": question.pk}) + f"#a{parent.id}")
 
@@ -574,7 +572,7 @@ def toggle_question_upvote(request, pk: int):
         question.upvotes.add(request.user)
         state = "added"
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+    if _is_ajax(request):
         return JsonResponse({"ok": True, "state": state, "count": question.upvotes.count()})
     return redirect("forum_detail", pk=pk)
 
@@ -592,7 +590,7 @@ def toggle_answer_upvote(request, pk: int):
         ans.upvotes.add(request.user)
         state = "added"
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+    if _is_ajax(request):
         return JsonResponse({"ok": True, "state": state, "count": ans.upvotes.count()})
     return redirect("forum_detail", pk=ans.question_id)
 
@@ -757,14 +755,22 @@ def dm_thread(request, user_id: int):
 
     # ✅ Block replying to moderator ONLY on POST
     if request.method == "POST":
+        is_ajax = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest" or
+            "application/json" in request.headers.get("accept", "")
+        )
+
         if _is_moderator_user(other):
-            messages.error(request, "This is a system-generated conversation. Replies are disabled.")
+            msg = "This is a system-generated conversation. Replies are disabled."
+            if _is_ajax(request):
+                return JsonResponse({"ok": False, "error": msg}, status=403)
+            messages.error(request, msg)
             return redirect("dm_thread", user_id=other.id)
 
         body = (request.POST.get("content") or "").strip()
         if body:
             m = DmMessage.objects.create(thread=thread, sender=request.user, content=body)
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            if is_ajax:
                 return JsonResponse({
                     "ok": True,
                     "message": {
@@ -774,6 +780,9 @@ def dm_thread(request, user_id: int):
                         "created_at": timezone.localtime(m.created_at).strftime("%b %d, %H:%M"),
                     }
                 })
+        
+        if _is_ajax(request):
+            return JsonResponse({"ok": False, "error": "Message content cannot be empty."}, status=400)
         return redirect("dm_thread", user_id=other.id)
 
     return render(request, "forum/dm_thread.html", {
@@ -785,13 +794,13 @@ def dm_thread(request, user_id: int):
         "is_system_thread": _is_moderator_user(other),
     })
 
-
 @login_required
+@require_GET
 def dm_thread_updates(request, user_id: int):
     other = get_object_or_404(User, pk=user_id)
     if other == request.user:
         raise Http404()
-
+    
     a, b = (request.user, other) if request.user.id < other.id else (other, request.user)
     thread = get_object_or_404(DmThread, user_a=a, user_b=b)
 

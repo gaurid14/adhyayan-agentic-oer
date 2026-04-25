@@ -30,9 +30,19 @@ from accounts.views.student.student_dashboard import student_dashboard, student_
 from accounts.views.forum_moderation import forum_moderation_queue, forum_moderation_action, forum_reportcase_action
 
 from accounts.views.student.drive_proxy import drive_stream
+from accounts.views.student.assessments import (
+    take_assessment, submit_assessment, assessment_result,
+)
+from accounts.views.student.progress import mark_chapter_complete
+from accounts.views.verify import verify_certificate_view
+
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('', views.home_view, name='home'),  # Home page at "/"
+    path('verify/<int:token_id>/', verify_certificate_view, name='verify_certificate'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
@@ -89,6 +99,15 @@ urlpatterns = [
         name="student_topic_view"
     ),
 path("student/drive/<int:course_id>/<str:file_id>/", drive_stream, name="drive_stream"),
+
+    # Student Assessments
+    path("student/assessment/<int:assessment_id>/", take_assessment, name="take_assessment"),
+    path("student/assessment/<int:assessment_id>/submit/", submit_assessment, name="submit_assessment"),
+    path("student/assessment/result/<int:attempt_id>/", assessment_result, name="assessment_result"),
+
+    # Student Progress
+    path("student/chapter/<int:chapter_id>/mark-complete/", mark_chapter_complete, name="mark_chapter_complete"),
+
     # Forum
     path("forum/<int:pk>/", forum_detail, name="forum_detail"),
     path("forum/ask/", post_question, name="forum_ask"),
@@ -209,3 +228,4 @@ path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_un
     path("dashboard/contributor/notes/delete/<int:note_id>/", delete_note, name="delete_note"),
     path("dashboard/contributor/notes/<id>/", get_note, name="get_note"),
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

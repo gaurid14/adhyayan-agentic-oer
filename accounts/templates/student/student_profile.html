@@ -1,2 +1,149 @@
-<h1>My Profile</h1>
-<p>Student profile page (coming soon).</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile | Adhyayan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
+    <style>
+        * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI', sans-serif; }
+        body { background:#fff; color:#0f172a; }
+        .main-content { margin-left:260px; padding:28px 36px; }
+        .topbar, .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 1px 1px rgba(0,0,0,.03); }
+        .topbar { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; margin-bottom:18px; }
+        .user-chip { background:#f8fafc; border:1px solid #e5e7eb; padding:7px 12px; border-radius:999px; font-size:14px; }
+        .hero { background:linear-gradient(135deg, #0f766e, #1eae98); color:#fff; border-radius:18px; padding:22px 24px; margin-bottom:18px; display:flex; justify-content:space-between; gap:18px; align-items:center; }
+        .hero h1 { font-size:26px; margin-bottom:6px; }
+        .hero p { opacity:.95; line-height:1.5; }
+        .layout { display:grid; grid-template-columns: 1.6fr 1fr; gap:20px; align-items:start; }
+        .panel { padding:20px; }
+        .section-title { font-size:18px; font-weight:700; margin-bottom:14px; }
+        .stats { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-top:14px; }
+        .stat { padding:14px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; }
+        .stat strong { display:block; font-size:22px; margin-bottom:4px; }
+        .stat span { color:#64748b; font-size:13px; }
+        .profile-pic { width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid rgba(255,255,255,.45); background:#fff; }
+        .form-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+        .field { display:flex; flex-direction:column; gap:6px; }
+        .field label { font-size:13px; font-weight:600; color:#334155; }
+        .field input, .field select, .field textarea { width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:10px; background:#fff; font-size:14px; }
+        .field textarea { resize:vertical; min-height:100px; }
+        .full { grid-column:1 / -1; }
+        .actions { margin-top:16px; display:flex; gap:12px; justify-content:flex-end; }
+        .btn { display:inline-block; border:none; cursor:pointer; padding:11px 16px; border-radius:10px; font-weight:600; text-decoration:none; }
+        .btn.primary { background:#0f766e; color:#fff; }
+        .btn.secondary { background:#f8fafc; color:#0f172a; border:1px solid #e5e7eb; }
+        .empty { padding:14px; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc; color:#64748b; }
+        .help { font-size:13px; color:#64748b; margin-top:4px; }
+        .errorlist { color:#b91c1c; list-style:none; font-size:13px; margin-bottom:8px; }
+        @media (max-width: 1024px) { .layout, .form-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+<div class="dashboard-layout">
+    {% include "student/sidebar.html" %}
+    <main class="main-content">
+        <div class="topbar">
+            <strong>My Profile</strong>
+            <span class="user-chip">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+
+        <div class="hero">
+            <div style="display:flex; gap:18px; align-items:center;">
+                {% if form.instance.profile_picture %}
+                    <img src="{{ form.instance.profile_picture.url }}" class="profile-pic">
+                {% else %}
+                    <div style="width:96px; height:96px; border-radius:50%; background:#fff; color:#0f766e; display:flex; align-items:center; justify-content:center; font-size:34px; font-weight:800;">{{ user.first_name|default:user.username|slice:":1"|upper }}</div>
+                {% endif %}
+                <div>
+                    <h1>{{ user.get_full_name|default:user.username }}</h1>
+                    <p>{{ form.instance.college_name|default:"Student profile" }}</p>
+                    <p style="margin-top:6px;">Update your details, picture, and academic information here.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout">
+            <section class="card panel">
+                <div class="section-title">Your Profile</div>
+                {% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}
+                <form method="post" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="field">{{ form.first_name.label_tag }}{{ form.first_name }}{{ form.first_name.errors }}</div>
+                        <div class="field">{{ form.last_name.label_tag }}{{ form.last_name }}{{ form.last_name.errors }}</div>
+                        <div class="field">{{ form.phone_number.label_tag }}{{ form.phone_number }}{{ form.phone_number.errors }}</div>
+                        <div class="field">{{ form.college_name.label_tag }}{{ form.college_name }}{{ form.college_name.errors }}</div>
+                        <div class="field">{{ form.date_of_birth.label_tag }}{{ form.date_of_birth }}{{ form.date_of_birth.errors }}</div>
+                        <div class="field">{{ form.gender.label_tag }}{{ form.gender }}{{ form.gender.errors }}</div>
+                        <div class="field">{{ form.program.label_tag }}{{ form.program }}{{ form.program.errors }}</div>
+                        <div class="field">{{ form.department.label_tag }}{{ form.department }}{{ form.department.errors }}</div>
+                        <div class="field">{{ form.year.label_tag }}{{ form.year }}{{ form.year.errors }}</div>
+                        <div class="field full">{{ form.profile_picture.label_tag }}{{ form.profile_picture }}{{ form.profile_picture.errors }}</div>
+                        <div class="field full">{{ form.bio.label_tag }}{{ form.bio }}{{ form.bio.errors }}</div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn secondary" id="editBtn">Edit Profile</button>
+                        <button type="submit" class="btn primary" id="saveBtn" style="display:none;">Save Changes</button>
+                        <button type="button" class="btn secondary" onclick="location.reload()">Cancel</button>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="card panel">
+                <div class="section-title">Profile Summary</div>
+                <div class="stats">
+                    <div class="stat">
+                        <strong>{{ stats.total_enrolled }}</strong>
+                        <span>Enrolled Courses</span>
+                    </div>
+
+                    <div class="stat">
+                        <strong>{{ stats.completed_courses }}</strong>
+                        <span>Completed Courses</span>
+                    </div>
+
+                    <div class="stat">
+                        <strong>{{ stats.chapters_completed }}</strong>
+                        <span>Chapters Completed</span>
+                    </div>
+                </div>
+                <div style="margin-top:16px;">
+                    <div class="section-title" style="margin-bottom:8px;">Account</div>
+                    <p class="help"><strong>Email:</strong> {{ user.email }}</p>
+                    <p class="help"><strong>Username:</strong> {{ user.username }}</p>
+                    <p class="help"><strong>Role:</strong> {{ user.get_role_display }}</p>
+                </div>
+                {% comment %} <div style="margin-top:16px;">
+                    <div class="section-title" style="margin-bottom:8px;">Progress</div>
+                    {% if summary.last_activity_date %}
+                        <p class="help">Last activity: {{ summary.last_activity_date|date:"d M Y" }}</p>
+                    {% else %}
+                        <div class="empty">No learning activity recorded yet.</div>
+                    {% endif %}
+                </div> {% endcomment %}
+            </aside>
+        </div>
+    </main>
+</div>
+
+<script>
+    const editBtn = document.getElementById("editBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const form = document.getElementById("profileForm");
+
+    const inputs = form.querySelectorAll("input, select, textarea");
+
+    // Disable all fields initially
+    inputs.forEach(input => input.setAttribute("disabled", true));
+
+    editBtn.addEventListener("click", () => {
+        inputs.forEach(input => input.removeAttribute("disabled"));
+        editBtn.style.display = "none";
+        saveBtn.style.display = "inline-block";
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Certificate Verification | Adhyayan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --brand: #1EAE98;
+            --brand-dark: #158a78;
+            --brand-light: #e6f8f7;
+            --bg-body: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(172,100%,79%,0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(210,100%,85%,0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .cert-container {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .verification-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 16px;
+            padding: 24px 32px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .verification-banner::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: url('data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M20 0l2.5 17.5L40 20l-17.5 2.5L20 40l-2.5-17.5L0 20l17.5-2.5z" fill="white" fill-opacity="0.05"/></svg>');
+            background-size: 60px 60px;
+        }
+
+        .verify-status {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .verify-icon {
+            width: 54px;
+            height: 54px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .verify-text h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .verify-text p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .blockchain-pill {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- THE ACTUAL CERTIFICATE UI --- */
+        .certificate-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            padding: 10px;
+            position: relative;
+        }
+
+        .certificate-inner {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.02"><path d="M0 0h100v100H0z"/></svg>') repeat;
+        }
+
+        .cert-bg-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 400px;
+            color: rgba(30, 174, 152, 0.03);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .cert-header {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 50px;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--brand);
+            letter-spacing: -0.5px;
+            margin-bottom: 15px;
+        }
+
+        .cert-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 46px;
+            color: #0f172a;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .cert-subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .cert-body {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .presented-to {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .recipient-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 52px;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-decoration: underline;
+            text-decoration-color: var(--brand-light);
+            text-underline-offset: 8px;
+        }
+
+        .for-completion {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .course-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            color: var(--brand-dark);
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .cert-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 30px;
+            margin-top: 60px;
+        }
+
+        .signature-block {
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 200px;
+            height: 1px;
+            background: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        
+        .signature-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            color: #0f172a;
+            font-weight: 500;
+            line-height: 1;
+            position: relative;
+            top: -20px;
+        }
+
+        .signature-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .seal {
+            width: 120px;
+            height: 120px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            text-align: center;
+            position: relative;
+        }
+
+        .seal i {
+            font-size: 32px;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        .seal svg {
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            width: 140px; height: 140px;
+            animation: spin 30s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Meta details below the cert */
+        .meta-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .meta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .meta-value {
+            font-family: monospace;
+            font-size: 14px;
+            color: #0f172a;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+        }
+
+        /* Error state */
+        .error-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .error-icon {
+            font-size: 64px;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f172a;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .back-home:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="cert-container">
+
+    {% if error %}
+    <div class="error-card">
+        <i class="fas fa-search-minus error-icon"></i>
+        <h2 class="error-title">Verification Failed</h2>
+        <p class="error-message">{{ error }}</p>
+        <a href="/" class="back-home"><i class="fas fa-arrow-left"></i> Back to Home</a>
+    </div>
+    {% else %}
+
+    <!-- Top Verification Banner -->
+    <div class="verification-banner">
+        <div class="verify-status">
+            <div class="verify-icon"><i class="fas fa-check"></i></div>
+            <div class="verify-text">
+                <h2>Cryptographically Verified</h2>
+                <p>This certificate exists permanently on the Ethereum blockchain.</p>
+            </div>
+        </div>
+        <div class="blockchain-pill">
+            <i class="fab fa-ethereum"></i> Ganache Network
+        </div>
+    </div>
+
+    <!-- The Certificate -->
+    <div class="certificate-card">
+        <div class="certificate-inner">
+            <i class="fas fa-graduation-cap cert-bg-logo"></i>
+            
+            <div class="cert-header">
+                <div class="logo-text"><i class="fas fa-book-reader"></i> Adhyayan</div>
+                <div class="cert-title">Certificate of {{ issue_type_label }}</div>
+                <div class="cert-subtitle">Officially Verified & Authenticated</div>
+            </div>
+
+            <div class="cert-body">
+                <div class="presented-to">This is proudly presented to</div>
+                <div class="recipient-name">{{ recipient_name }}</div>
+                
+                <div class="for-completion">
+                    {% if issue_type_label == "Student" %}
+                    For successfully fulfilling all requirements, passing the rigorous assessments, and completing the coursework for the following program:
+                    {% else %}
+                    For exceptional contribution to the open educational ecosystem, generating high-quality peer-reviewed learning material for the following module:
+                    {% endif %}
+                </div>
+
+                <div class="course-name">{{ course_name }}</div>
+            </div>
+
+            <div class="cert-footer">
+                <div class="signature-block">
+                    <div class="signature-text">AI Agent</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Adhyayan Evaluation Engine</div>
+                </div>
+
+                <div class="seal">
+                    <i class="fab fa-ethereum"></i>
+                    Token #{{ token_id }}
+                    
+                    <!-- Decorative circular text using SVG -->
+                    <svg viewBox="0 0 100 100">
+                        <path id="curve" d="M 50 50 m -40 0 a 40 40 0 1 1 80 0 a 40 40 0 1 1 -80 0" fill="transparent"/>
+                        <text font-size="9" font-weight="700" fill="#cbd5e1" letter-spacing="2">
+                            <textPath href="#curve">VERIFIED BLOCKCHAIN ASSET * VERIFIED BLOCKCHAIN ASSET * </textPath>
+                        </text>
+                    </svg>
+                </div>
+                
+                <div class="signature-block">
+                    <div class="signature-text" style="font-family: monospace; font-size: 14px;">{{ contract_address|slice:":10" }}...</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Smart Contract Address</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Meta Details -->
+    <div class="meta-card">
+        <div class="meta-group">
+            <span class="meta-label">On-Chain Token ID</span>
+            <span class="meta-value">#{{ token_id }}</span>
+        </div>
+        <div class="meta-group">
+            <span class="meta-label">Timestamp (Unix)</span>
+            <span class="meta-value">{{ issued_at }}</span>
+        </div>
+        <div class="meta-group">
+            <span class="meta-label">Transaction Hash</span>
+            <span class="meta-value" style="font-size: 11px;">{{ tx_hash }}</span>
+        </div>
+    </div>
+    
+    {% endif %}
+
+</div>
+
+<script>
+    // Make dates human readable on the client side
+    document.addEventListener("DOMContentLoaded", () => {
+        const timestampEl = document.querySelector(".meta-value:nth-child(2)"); // Second item is timestamp
+        if (timestampEl) {
+            const unixTime = parseInt(timestampEl.textContent);
+            if (!isNaN(unixTime)) {
+                const date = new Date(unixTime * 1000);
+                timestampEl.textContent = date.toLocaleString();
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

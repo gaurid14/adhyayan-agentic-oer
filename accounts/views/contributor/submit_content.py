@@ -409,6 +409,30 @@ def confirm_submission(request):
     chapter = Chapter.objects.get(id=chapter_id)
     chapter_number = chapter.chapter_number
 
+    # -------------------------------------------------------
+    # ASSESSMENT MANDATE: Block submission if no assessment exists
+    # -------------------------------------------------------
+    from accounts.models import Assessment
+    has_assessment = Assessment.objects.filter(
+        chapter_id=chapter_id,
+        contributor_id=contributor_id,
+    ).exists()
+
+    if not has_assessment:
+        upload_url = (
+            f"/dashboard/contributor/upload_file/"
+            f"?course_id={course_id}&chapter_id={chapter_id}&tab=assessment"
+        )
+        return JsonResponse({
+            "error": "assessment_required",
+            "message": (
+                "You must generate an Assessment for this chapter before submitting. "
+                "Go to the Assessment tab and generate at least one quiz."
+            ),
+            "redirect_url": upload_url,
+        }, status=400)
+    # -------------------------------------------------------
+
     # -------------------------------
     # Google Drive (OOP)
     # -------------------------------
@@ -455,12 +479,16 @@ def confirm_submission(request):
     if result.get("status") == "success":
         contributor = User.objects.get(id=contributor_id)
 
-        ContributionSuccessEmail(
-            contributor.email,
-            contributor.first_name,
-            chapter.course.course_name,
-            chapter.chapter_name
-        ).send()
+        try:
+            ContributionSuccessEmail(
+                contributor.email,
+                contributor.first_name,
+                chapter.course.course_name,
+                chapter.chapter_name
+            ).send()
+        except Exception as e:
+            print(f"⚠️ Could not send email (Check .env password): {e}")
+
 
         return render(request, "contributor/final_submission.html")
 

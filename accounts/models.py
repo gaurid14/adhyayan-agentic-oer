@@ -11,11 +11,6 @@ class Program(models.Model):
     program_name = models.CharField(max_length=200, unique=True)
 
 
-    # --- Forum moderation / suspension ---
-    forum_is_suspended = models.BooleanField(default=False)
-    forum_suspended_at = models.DateTimeField(null=True, blank=True)
-    forum_suspension_reason = models.TextField(blank=True)
-
     def __str__(self):
         return self.program_name
 
@@ -230,6 +225,11 @@ class User(AbstractUser):
     contributor_rejected_at = models.DateTimeField(null=True, blank=True)
     contributor_rejection_reason = models.TextField(blank=True)
 
+    # --- Forum moderation / suspension ---
+    forum_is_suspended = models.BooleanField(default=False)
+    forum_suspended_at = models.DateTimeField(null=True, blank=True)
+    forum_suspension_reason = models.TextField(blank=True)
+
     def __str__(self):
         return self.username
 
@@ -352,6 +352,13 @@ class DecisionRun(models.Model):
 
     is_latest = models.BooleanField(default=True)
 
+    tx_hash = models.CharField(
+        max_length=66,
+        null=True,
+        blank=True,
+        help_text="Blockchain transaction hash for tamper-proof audit trail",
+    )
+
     class Meta:
         ordering = ("-created_at",)
 
@@ -407,6 +414,51 @@ class AssessmentSource(models.Model):
     file_name = models.CharField(max_length=255)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AssessmentAttempt(models.Model):
+    """
+    Records a student's attempt at a chapter assessment.
+    Multiple attempts are allowed; each is stored separately.
+    """
+    student = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'STUDENT'},
+        related_name='assessment_attempts'
+    )
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name='attempts'
+    )
+
+    score = models.IntegerField(default=0)             # number of correct answers
+    total_questions = models.IntegerField(default=0)   # total questions in this attempt
+    passed = models.BooleanField(default=False)        # True if score >= 70%
+
+    # JSON snapshot: {question_id: chosen_option_index, ...} for review later
+    answers_snapshot = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return (
+            f"{self.student.username} | "
+            f"Assessment {self.assessment_id} | "
+            f"{self.score}/{self.total_questions} | "
+            f"{'PASS' if self.passed else 'FAIL'}"
+        )
+
+    @property
+    def score_percent(self) -> int:
+        if self.total_questions == 0:
+            return 0
+        return round((self.score / self.total_questions) * 100)
+
 
 # ---------- Forum Models --------------------------------------------------------------------------------------
 
@@ -859,6 +911,170 @@ class ParameterConfig(models.Model):
 
     low_conf_threshold = models.FloatField(default=0.5)
     high_var_threshold = models.FloatField(default=1.0)
+
+
+# ---------- Student Progress Tracking ----------------------------------------
+
+class StudentChapterProgress(models.Model):
+    """
+    Tracks whether a student has explicitly marked a chapter as complete.
+
+    A row is created the first time a student marks a chapter done.
+    One row per (student, chapter) pair — unique_together enforced.
+    """
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "STUDENT"},
+        related_name="student_chapter_progress",
+    )
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name="student_progress",
+    )
+
+    completed    = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("student", "chapter")
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        status = "✅" if self.completed else "⬜"
+        return f"{status} {self.student.username} → {self.chapter}"
+
+
+class CourseCompletion(models.Model):
+    """
+    Created (once) when a student completes ALL currently-released chapters
+    of a course.
+
+    This is the trigger used by:
+      - The student dashboard KPI ("Completed Subjects" count).
+      - The Verifiable Certificates system to mint student certificates.
+    """
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "STUDENT"},
+        related_name="completed_courses",
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="completions",
+    )
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("student", "course")
+        ordering = ["-completed_at"]
+
+
+    def __str__(self):
+        return f"{self.student.username} completed {self.course.course_name}"
+
+
+
+class ChapterCompletion(models.Model):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chapter_completions"
+    )
+    chapter = models.ForeignKey(
+        'accounts.Chapter',  # ⚠️ we will fix this line below
+        on_delete=models.CASCADE,
+        related_name="completions"
+    )
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'chapter')
+
+    def __str__(self):
+        return f"{self.student} - {self.chapter}"
+
+
+
+class BlockchainCertificate(models.Model):
+    """
+    Stores the result of a blockchain certificate minting event.
+    Acts as an off-chain index so we don't query the blockchain on every dashboard load.
+    The source of truth is always the blockchain (verified via token_id).
+    """
+    CERT_TYPE_STUDENT     = "STUDENT"
+    CERT_TYPE_CONTRIBUTOR = "CONTRIBUTOR"
+    CERT_TYPE_CHOICES = [
+        (CERT_TYPE_STUDENT,     "Student Completion"),
+        (CERT_TYPE_CONTRIBUTOR, "Contributor Release"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="blockchain_certificates",
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="blockchain_certificates",
+    )
+    chapter = models.ForeignKey(
+        "Chapter",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="blockchain_certificates",
+    )
+    certificate_type = models.CharField(
+        max_length=20,
+        choices=CERT_TYPE_CHOICES,
+    )
+    token_id  = models.PositiveIntegerField(unique=True)   # blockchain token ID
+    tx_hash   = models.CharField(max_length=100)           # transaction hash
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-issued_at"]
+
+    def __str__(self):
+        return (
+            f"[{self.certificate_type}] {self.user.username} | "
+            f"Token #{self.token_id}"
+        )
+
+
+class StudentProfile(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='student_profile'
+    )
+
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    college = models.CharField(max_length=255, blank=True)
+    year_of_study = models.CharField(max_length=50, blank=True)
+    branch = models.CharField(max_length=100, blank=True)
+
+    profile_picture = models.ImageField(
+        upload_to='profile_pics/',
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+    
+@receiver(post_save, sender=User)
+def create_student_profile(sender, instance, created, **kwargs):
+    if created and instance.role == "STUDENT":
+        StudentProfile.objects.create(user=instance)
+
 
 # python manage.py makemigrations
 # python manage.py migrate

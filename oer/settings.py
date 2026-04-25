@@ -245,4 +245,7 @@ PERSPECTIVE_THREAT_BLOCK_THRESHOLD = 0.65
 # Optional: identity attacks block earlier too (leave same as block threshold if you want)
 PERSPECTIVE_IDENTITY_BLOCK_THRESHOLD = 0.75
 
-PERSPECTIVE_DO_NOT_STORE = True
+# Blockchain Settings
+GANACHE_URL = os.getenv("GANACHE_URL", "http://127.0.0.1:7545")
+CERTIFICATE_CONTRACT_ADDRESS = os.getenv("CERTIFICATE_CONTRACT_ADDRESS")
+SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")

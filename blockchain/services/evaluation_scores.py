@@ -10,23 +10,30 @@ with open(ABI_PATH) as f:
     ABI = json.load(f)
 
 # ===============================
-# GANACHE CONNECTION
+# GANACHE CONFIG (lazy connect)
 # ===============================
 GANACHE_URL = "http://127.0.0.1:7545"
 
-w3 = Web3(Web3.HTTPProvider(GANACHE_URL))
-
-# contract address from remix
 CONTRACT_ADDRESS = Web3.to_checksum_address(
-    "0x20Ed59F79F4D4afeb61EAe08039C92E3FEC856fa"
+    "0x85DF169674d8Fdf3FDe2D3A5dFE3FDe51e2Dd9E0"
 )
 
-contract = w3.eth.contract(
-    address=CONTRACT_ADDRESS,
-    abi=ABI
-)
+_w3 = None
+_contract = None
+_account = None
 
-ACCOUNT = w3.eth.accounts[0]
+def _get_contract():
+    """Lazily connect to Ganache — only when actually storing scores."""
+    global _w3, _contract, _account
+    if _contract is None:
+        _w3 = Web3(Web3.HTTPProvider(GANACHE_URL))
+        if not _w3.is_connected():
+            raise ConnectionError(
+                "Cannot connect to Ganache at %s. Is it running?" % GANACHE_URL
+            )
+        _contract = _w3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
+        _account = _w3.eth.accounts[0]
+    return _w3, _contract, _account
 
 
 # ===============================
@@ -40,6 +47,7 @@ def store_scores_on_chain(
         accuracy,
         completeness
 ):
+    w3, contract, account = _get_contract()
 
     tx = contract.functions.storeScores(
         int(upload_id),
@@ -49,7 +57,7 @@ def store_scores_on_chain(
         int(accuracy * 100),
         int(completeness * 100)
     ).transact({
-        "from": ACCOUNT
+        "from": account
     })
 
     receipt = w3.eth.wait_for_transaction_receipt(tx)

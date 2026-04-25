@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Restricted</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#f8fafc; color:#0f172a; }
+        .card { max-width:520px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px; box-shadow:0 6px 20px rgba(15,23,42,.08); text-align:center; }
+        h1 { margin-bottom:12px; font-size:28px; }
+        p { color:#64748b; line-height:1.6; }
+        a { display:inline-block; margin-top:18px; background:#0f766e; color:#fff; text-decoration:none; padding:10px 14px; border-radius:10px; font-weight:600; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Access Restricted</h1>
+        <p>{{ error_message|default:"You do not have permission to open this page." }}</p>
+        <a href="{% url 'student_dashboard' %}">Back to Dashboard</a>
+    </div>
+</body>
+</html>

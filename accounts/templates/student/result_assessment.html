@@ -1,0 +1,420 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Result — {{ assessment.topic|default:"Assessment" }} | Adhyayan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* — SaaS Top Navigation — */
+        .portal-navbar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .portal-navbar-brand {
+            font-weight: 800;
+            font-size: 18px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .portal-nav-actions a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .portal-nav-actions a:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .result-wrapper {
+            max-width: 800px;
+            margin: 40px auto 80px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* — Score hero card — */
+        .hero-card {
+            border-radius: 24px;
+            padding: 40px 36px;
+            text-align: center;
+            margin-bottom: 28px;
+            color: white;
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card.pass {
+            background: linear-gradient(135deg, #0f5f56, #1EAE98);
+        }
+
+        .hero-card.fail {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -40px;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .result-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        .result-status {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 24px;
+        }
+
+        /* — Score ring — */
+        .score-ring-wrap {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px 36px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(4px);
+        }
+
+        .score-big {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-denom {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        .score-pct {
+            font-size: 15px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* — Action buttons — */
+        .action-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 26px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        .btn-white {
+            background: white;
+            color: #0f5f56;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* — Question review — */
+        .review-title {
+            font-size: 19px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 16px;
+        }
+
+        .review-card {
+            background: white;
+            border-radius: 16px;
+            padding: 22px 24px;
+            margin-bottom: 14px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            border-left: 5px solid #ccc;
+        }
+
+        .review-card.correct {
+            border-left-color: #28a745;
+        }
+
+        .review-card.wrong {
+            border-left-color: #dc3545;
+        }
+
+        .review-card.skipped {
+            border-left-color: #ffc107;
+        }
+
+        .review-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .review-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .review-q-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: #222;
+            line-height: 1.5;
+        }
+
+        .review-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .review-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            border: 1.5px solid #e5e7eb;
+            color: #333;
+        }
+
+        .review-option.is-correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            font-weight: 700;
+        }
+
+        .review-option.is-chosen-wrong {
+            background: #fde8e8;
+            border-color: #dc3545;
+            color: #842029;
+        }
+
+        .opt-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+            flex-shrink: 0;
+        }
+
+        .is-correct .opt-dot {
+            background: #28a745;
+        }
+
+        .is-chosen-wrong .opt-dot {
+            background: #dc3545;
+        }
+
+        .skipped-note {
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Navigation -->
+    <div class="portal-navbar">
+        <div class="portal-navbar-brand">
+            <span style="font-size: 20px;">🎓</span> Adhyayan Portal
+        </div>
+        <div class="portal-nav-actions">
+            <a href="{% url 'student_chapter_topics' assessment.course.id %}?chapter_id={{ assessment.chapter.id }}">
+                ← Back to Chapter
+            </a>
+        </div>
+    </div>
+
+    <div class="result-wrapper">
+
+        <!-- Hero score card -->
+        <div class="hero-card {% if attempt.passed %}pass{% else %}fail{% endif %}">
+            <div class="result-icon">{% if attempt.passed %}🎉{% else %}💪{% endif %}</div>
+            <div class="result-status">{% if attempt.passed %}You Passed!{% else %}Keep Practising{% endif %}</div>
+            <div class="result-subtitle">
+                {{ assessment.topic|default:"Chapter Assessment" }} &bull; {{ assessment.chapter.chapter_name }}
+            </div>
+
+            <div class="score-ring-wrap">
+                <div class="score-big">
+                    {{ attempt.score }}<span class="score-denom">/{{ attempt.total_questions }}</span>
+                </div>
+                <div class="score-pct">{{ attempt.score_percent }}% — {% if attempt.passed %}Passed ✅{% else %}Need 70%
+                    to pass{% endif %}</div>
+            </div>
+
+            <div class="action-row">
+                {% if attempt.score_percent < 100 %} <a href="{% url 'take_assessment' assessment.id %}"
+                    class="btn btn-outline">
+                    🔁 Retake Quiz
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'student_chapter_topics' assessment.course.id %}?chapter_id={{ assessment.chapter.id }}"
+                        class="btn btn-white">
+                        ← Back to Chapter
+                    </a>
+            </div>
+        </div>
+
+        <!-- Question-by-question review -->
+        <div class="review-title">📋 Detailed Review</div>
+
+        {% for item in review %}
+        <div
+            class="review-card {% if item.was_skipped %}skipped{% elif item.is_correct %}correct{% else %}wrong{% endif %}">
+            <div class="review-header">
+                <span class="review-icon">
+                    {% if item.was_skipped %}⚠️
+                    {% elif item.is_correct %}✅
+                    {% else %}❌
+                    {% endif %}
+                </span>
+                <span class="review-q-text">{{ forloop.counter }}. {{ item.text }}</span>
+            </div>
+
+            {% if item.was_skipped %}
+            <p class="skipped-note">You skipped this question. The correct answer is highlighted below.</p>
+            {% endif %}
+
+            <div class="review-options">
+                {% for opt in item.options %}
+                <div class="review-option
+                {% if forloop.counter0 == item.chosen_index %}
+                    {% if item.is_correct %}is-correct{% else %}is-chosen-wrong{% endif %}
+                {% endif %}">
+                    <span class="opt-dot"></span>
+                    {{ opt.text }}
+                    {% if forloop.counter0 == item.chosen_index %}
+                    {% if item.is_correct %}
+                    &nbsp;<strong>(Correct)</strong>
+                    {% else %}
+                    &nbsp;<em>(Your Choice)</em>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Bottom actions -->
+        <div style="text-align:center; margin-top:32px;">
+            {% if attempt.score_percent < 100 %} <a href="{% url 'take_assessment' assessment.id %}" class="btn"
+                style="background:linear-gradient(135deg,#0f5f56,#1EAE98);color:white;box-shadow:0 6px 20px rgba(15,95,86,0.3);">
+                🔁 Retake Quiz
+                </a>
+                &nbsp;&nbsp;
+                {% endif %}
+                <a href="{% url 'student_chapter_topics' assessment.course.id %}?chapter_id={{ assessment.chapter.id }}"
+                    class="btn" style="background:white;color:#0f5f56;border:1.5px solid #0f5f56;">
+                    ← Back to Chapter
+                </a>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

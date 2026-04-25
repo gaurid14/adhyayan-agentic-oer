@@ -448,14 +448,19 @@
 
         <section class="final-submission-section">
             <hr class="section-divider">
-            <p>Once you have uploaded content for all desired topics, confirm your final submission for this
-                chapter.</p>
-            <form action="{% url 'confirm_submission' %}" method="POST" style="text-align: center;">
+            <p>Once you have uploaded content for all desired topics, confirm your final submission for this chapter.</p>
+
+            <div id="assessment-warning" style="display:none; margin-bottom:18px; padding:16px 20px; background:#fff8e1; border:1.5px solid #ffe082; border-radius:12px; color:#7a5800; font-size:14px; font-weight:600; text-align:left;">
+                ⚠️ &nbsp;<span id="assessment-warning-msg"></span>
+                <a id="assessment-warning-link" href="#" style="margin-left:12px; color:#0f5f56; text-decoration:underline;">Generate Assessment →</a>
+            </div>
+
+            <form id="final-submit-form" action="{% url 'confirm_submission' %}" method="POST" style="text-align: center;">
                 {% csrf_token %}
                 <input type="hidden" name="course_id" value="{{ course.id }}">
                 <input type="hidden" name="chapter_id" value="{{ chapter.id }}">
 
-                <button type="submit" class="final-submit-button">
+                <button type="submit" class="final-submit-button" id="final-submit-btn">
                     <i class="fas fa-check-circle"></i> Confirm Final Submission
                 </button>
             </form>
@@ -466,7 +471,49 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const modalOverlay = document.getElementById('file-modal-overlay');
+        // ---- Assessment mandate: intercept final submission ----
+        const finalForm = document.getElementById('final-submit-form');
+        const warningBox = document.getElementById('assessment-warning');
+        const warningMsg = document.getElementById('assessment-warning-msg');
+        const warningLink = document.getElementById('assessment-warning-link');
+        const submitBtn = document.getElementById('final-submit-btn');
+
+        if (finalForm) {
+            finalForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+                const formData = new FormData(finalForm);
+                const response = await fetch(finalForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    // Success — reload to the after-submission page
+                    window.location.href = "{% url 'after_submission' %}";
+                    return;
+                }
+
+                const data = await response.json().catch(() => ({}));
+                if (data.error === 'assessment_required') {
+                    warningMsg.textContent = data.message || 'Assessment required before submission.';
+                    warningLink.href = data.redirect_url || '#';
+                    warningBox.style.display = 'block';
+                    warningBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Final Submission';
+                } else {
+                    alert('Submission failed. Please try again.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Final Submission';
+                }
+            });
+        }
+
+        // ---- File modal logic ----
         const modalCloseBtn = document.getElementById('modal-close-btn');
         const modalTitle = document.getElementById('modal-title');
         const fileListBody = document.getElementById('file-list-tbody');

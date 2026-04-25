@@ -38,7 +38,8 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
-from accounts.models import Course, Chapter, UploadCheck, ReleasedContent, DecisionRun
+from accounts.models import Course, Chapter, UploadCheck, ReleasedContent, DecisionRun, EnrolledCourse
+from accounts.views.email.email_service import ChapterUnlockedEmail
 
 
 class AdminAgentService:
@@ -147,9 +148,14 @@ class AdminAgentService:
             else:
                 break
 
+        newly_released_chapters = []
+
         with transaction.atomic():
             for idx, ch in enumerate(chapters):
                 allowed = idx < prefix_len
+
+                # Check previous release status to detect newly unlocked chapters
+                was_released = ReleasedContent.objects.filter(upload__chapter=ch, release_status=True).exists()
 
                 # Always set all existing releases for this chapter to False first (prevents stale True on old best uploads)
                 chapter_uploads = UploadCheck.objects.filter(chapter=ch)
@@ -163,6 +169,63 @@ class AdminAgentService:
                 rc.release_status = allowed
                 rc.drive_folder_id = self._encode_drive_folder_id(best_upload.id, rc.drive_folder_id)
                 rc.save(update_fields=["release_status", "drive_folder_id"])
+
+                # If chapter just got unlocked, stage it for notifications
+                if allowed and not was_released:
+                    newly_released_chapters.append(ch)
+
+        # Dispatch email notifications outside the transaction to prevent holding DB locks
+        if newly_released_chapters:
+            enrolled_students = [e.student for e in EnrolledCourse.objects.filter(course=course).select_related('student')]
+            for ch in newly_released_chapters:
+                # ── Student unlock emails ──────────────────────────────────
+                for student in enrolled_students:
+                    try:
+                        email = ChapterUnlockedEmail(
+                            to_email=student.email,
+                            student_name=student.get_full_name() or student.username,
+                            course=course,
+                            chapter=ch
+                        )
+                        email.send()
+                    except Exception as e:
+                        logger.error(f"Failed to send chapter unlock email to {student.email}: {e}")
+
+                # ── Contributor Certificate ────────────────────────────────
+                # Find who contributed the best upload for this chapter
+                best_upload = self._best_upload_for_chapter(ch)
+                if best_upload and best_upload.contributor:
+                    try:
+                        from blockchain.services.certificate_service import (
+                            mint_certificate, ISSUE_TYPE_CONTRIBUTOR
+                        )
+                        from accounts.models import BlockchainCertificate
+
+                        contributor = best_upload.contributor
+                        result = mint_certificate(
+                            recipient_name=contributor.get_full_name() or contributor.username,
+                            course_name=f"{course.course_name} – {ch.chapter_name}",
+                            issue_type=ISSUE_TYPE_CONTRIBUTOR,
+                        )
+                        if result.get("success"):
+                            BlockchainCertificate.objects.get_or_create(
+                                token_id=result["token_id"],
+                                defaults={
+                                    "user": contributor,
+                                    "course": course,
+                                    "chapter": ch,
+                                    "certificate_type": BlockchainCertificate.CERT_TYPE_CONTRIBUTOR,
+                                    "tx_hash": result["tx_hash"],
+                                }
+                            )
+                            logger.info(
+                                "[Certificate] Contributor cert minted for %s | Chapter: %s | token_id=%s",
+                                contributor.username, ch.chapter_name, result["token_id"]
+                            )
+                        else:
+                            logger.error("[Certificate] Minting failed: %s", result.get("error"))
+                    except Exception as e:
+                        logger.error("[Certificate] Contributor cert exception for chapter %s: %s", ch.id, e)
 
         return {
             "status": "processed",

@@ -17,6 +17,9 @@ class BaseEmailService:
         if not self.template_name or not self.subject:
             raise NotImplementedError("Email template or subject missing")
 
+        from django.conf import settings
+        self.context["site_url"] = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
+
         html_message = render_to_string(self.template_name, self.context)
         plain_message = strip_tags(html_message)
 
@@ -73,4 +76,15 @@ class EvaluationResultEmail(BaseEmailService):
             "name": contributor_name,
             "status": status,
             "remarks": remarks
+        })
+
+class ChapterUnlockedEmail(BaseEmailService):
+    template_name = "emails/chapter_unlocked.html"
+
+    def __init__(self, to_email, student_name, course, chapter):
+        self.subject = f"🔓 New Chapter Unlocked: {chapter.chapter_name}"
+        super().__init__(to_email, {
+            "name": student_name,
+            "course": course,
+            "chapter": chapter
         })

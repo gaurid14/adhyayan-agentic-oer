@@ -1,6 +1,7 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,22 +17,16 @@
 
 <body class="forum-body">
   <!-- Mobile sidebar toggle -->
-  <button
-    class="sidebar-toggle"
-    type="button"
-    id="sidebarToggle"
-    aria-label="Open menu"
-    aria-controls="sidebar"
-    aria-expanded="false"
-  >
+  <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="Open menu" aria-controls="sidebar"
+    aria-expanded="false">
     ☰ Menu
   </button>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   {% if user.is_authenticated and user.role == "CONTRIBUTOR" %}
-    {% include "contributor/sidebar.html" %}
+  {% include "contributor/sidebar.html" %}
   {% else %}
-    {% include "student/sidebar.html" %}
+  {% include "student/sidebar.html" %}
   {% endif %}
 
   <main class="main">
@@ -53,45 +48,45 @@
           </div>
 
           <div class="d-flex flex-wrap align-items-center gap-2">
-  {% if user.is_authenticated %}
-  <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_blocked_users' %}">
-  Blocked users
-</a>
-    <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_inbox' %}">
-      <i class="fa-regular fa-envelope"></i>
-      Messages
-    </a>
-  {% endif %}
+            {% if user.is_authenticated %}
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_blocked_users' %}">
+              Blocked users
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_inbox' %}">
+              <i class="fa-regular fa-envelope"></i>
+              Messages
+            </a>
+            {% endif %}
 
-  {% if user.is_authenticated and user.is_staff %}
-    <a class="btn btn-sm btn-outline-dark" href="{% url 'forum_moderation_queue' %}">
-      <i class="fa-solid fa-shield-halved"></i>
-      Moderation
-    </a>
-  {% endif %}
-  
-</div>
+            {% if user.is_authenticated and user.is_staff %}
+            <a class="btn btn-sm btn-outline-dark" href="{% url 'forum_moderation_queue' %}">
+              <i class="fa-solid fa-shield-halved"></i>
+              Moderation
+            </a>
+            {% endif %}
+
+          </div>
 
         </div>
       </div>
 
-{% if messages %}
-  <div class="mb-3">
-    {% for message in messages %}
-      {% if 'detail_only' not in message.tags %}
+      {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+        {% if 'detail_only' not in message.tags %}
         {% if 'error' in message.tags %}
-          <div class="alert alert-danger mb-2">{{ message }}</div>
+        <div class="alert alert-danger mb-2">{{ message }}</div>
         {% elif 'success' in message.tags %}
-          <div class="alert alert-success mb-2">{{ message }}</div>
+        <div class="alert alert-success mb-2">{{ message }}</div>
         {% elif 'warning' in message.tags %}
-          <div class="alert alert-warning mb-2">{{ message }}</div>
+        <div class="alert alert-warning mb-2">{{ message }}</div>
         {% else %}
-          <div class="alert alert-info mb-2">{{ message }}</div>
+        <div class="alert alert-info mb-2">{{ message }}</div>
         {% endif %}
+        {% endif %}
+        {% endfor %}
+      </div>
       {% endif %}
-    {% endfor %}
-  </div>
-{% endif %}
 
 
 
@@ -109,34 +104,34 @@
 
             <div class="col-md-3">
               <label class="form-label small text-muted mb-1">Course</label>
-              <select class="form-select" id="filterCourse" name="course">
+              <select class="form-select custom-select-modern" id="filterCourse" name="course" onchange="this.form.submit()">
                 <option value="">All courses</option>
                 {% for c in courses %}
-                  <option value="{{ c.id }}" {% if selected_course == c.id %}selected{% endif %}>
-                    {{ c.course_code }} — {{ c.course_name }}
-                  </option>
+                <option value="{{ c.id }}" {% if selected_course == c.id %}selected{% endif %}>
+                  {{ c.course_code }}
+                </option>
                 {% endfor %}
               </select>
             </div>
 
             <div class="col-md-3">
               <label class="form-label small text-muted mb-1">Chapter</label>
-              <select class="form-select" id="filterChapter" name="chapter" {% if not selected_course %}disabled{% endif %}>
+              <select class="form-select custom-select-modern" id="filterChapter" name="chapter" {% if not selected_course %}disabled{% endif %} onchange="this.form.submit()">
                 <option value="">All chapters</option>
                 {% for ch in chapters %}
-                  <option value="{{ ch.id }}" {% if selected_chapter == ch.id %}selected{% endif %}>
-                    {{ ch.chapter_number }}. {{ ch.chapter_name }}
-                  </option>
+                <option value="{{ ch.id }}" {% if selected_chapter == ch.id %}selected{% endif %}>
+                  Ch {{ ch.chapter_number }}
+                </option>
                 {% endfor %}
               </select>
             </div>
 
             <div class="col-md-2">
               <label class="form-label small text-muted mb-1">Sort</label>
-              <select name="sort" class="form-select">
+              <select name="sort" class="form-select custom-select-modern" onchange="this.form.submit()">
                 <option value="new" {% if sort == "new" %}selected{% endif %}>Newest</option>
-                <option value="upvotes" {% if sort == "upvotes" %}selected{% endif %}>Most upvoted</option>
-                <option value="answers" {% if sort == "answers" %}selected{% endif %}>Most answered</option>
+                <option value="upvotes" {% if sort == "upvotes" %}selected{% endif %}>Upvoted</option>
+                <option value="answers" {% if sort == "answers" %}selected{% endif %}>Answered</option>
               </select>
             </div>
 
@@ -154,7 +149,7 @@
       </form>
 
       <div class="row g-3">
-        
+
         <!-- Left: main list -->
         <div class="col-lg-8">
           {% include "forum/partials/guidelines_card.html" %}
@@ -167,7 +162,8 @@
                     <span class="ask-icon"><i class="fa-solid fa-pen-to-square"></i></span>
                     <span>
                       <span class="fw-semibold">Ask a question</span>
-                      <span class="text-muted d-none d-sm-inline">— share context, what you tried, and what you need.</span>
+                      <span class="text-muted d-none d-sm-inline">— share context, what you tried, and what you
+                        need.</span>
                     </span>
                   </span>
                   <span class="ask-summary-right">
@@ -176,45 +172,45 @@
                 </summary>
 
                 {% if user.is_authenticated %}
-                  <form method="post" action="{% url 'forum_ask' %}" class="mt-3">
-                    {% csrf_token %}
-{% if q_form.errors %}
-  <input type="hidden" id="askFormHasErrors" value="1">
-{% endif %}
-                    <div class="mb-2">
-                      <label class="form-label mb-1">Title</label>
-                      {{ q_form.title }}
-                      <div class="counter mt-1"><span id="titleCounter">0/255</span></div>
-                    </div>
-
-                    <div class="mb-2">
-                      <label class="form-label mb-1">Details</label>
-                      {{ q_form.content }}
-                      <div class="counter mt-1"><span id="questionCounter">0/10000</span></div>
-                    </div>
-
-                    <div class="row g-2 mt-1">
-                      <div class="col-md-6">
-                        <label class="form-label">Course <span class="text-danger">*</span></label>
-                        {{ q_form.course }}
-                      </div>
-                      <div class="col-md-6">
-                        <label class="form-label">Chapter (optional)</label>
-                        {{ q_form.chapter }}
-                      </div>
-                    </div>
-<div class="small text-muted mt-1" id="draftStatus" aria-live="polite"></div>
-                    <div class="d-flex justify-content-end gap-2 mt-3">
-                      <div class="d-flex gap-2 mt-2">
-  <button class="btn btn-primary" type="submit">Post</button>
-  <button class="btn btn-outline-secondary" type="button" id="clearDraftBtn">Clear draft</button>
-</div>
-                    </div>
-                  </form>
-                {% else %}
-                  <div class="alert alert-info mb-0 mt-3">
-                    Please <a href="{% url 'login' %}">login</a> to ask and answer questions.
+                <form method="post" action="{% url 'forum_ask' %}" class="mt-3">
+                  {% csrf_token %}
+                  {% if q_form.errors %}
+                  <input type="hidden" id="askFormHasErrors" value="1">
+                  {% endif %}
+                  <div class="mb-2">
+                    <label class="form-label mb-1">Title</label>
+                    {{ q_form.title }}
+                    <div class="counter mt-1"><span id="titleCounter">0/255</span></div>
                   </div>
+
+                  <div class="mb-2">
+                    <label class="form-label mb-1">Details</label>
+                    {{ q_form.content }}
+                    <div class="counter mt-1"><span id="questionCounter">0/10000</span></div>
+                  </div>
+
+                  <div class="row g-2 mt-1">
+                    <div class="col-md-6">
+                      <label class="form-label">Course <span class="text-danger">*</span></label>
+                      {{ q_form.course }}
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Chapter (optional)</label>
+                      {{ q_form.chapter }}
+                    </div>
+                  </div>
+                  <div class="small text-muted mt-1" id="draftStatus" aria-live="polite"></div>
+                  <div class="d-flex justify-content-end gap-2 mt-3">
+                    <div class="d-flex gap-2 mt-2">
+                      <button class="btn btn-primary" type="submit">Post</button>
+                      <button class="btn btn-outline-secondary" type="button" id="clearDraftBtn">Clear draft</button>
+                    </div>
+                  </div>
+                </form>
+                {% else %}
+                <div class="alert alert-info mb-0 mt-3">
+                  Please <a href="{% url 'login' %}">login</a> to ask and answer questions.
+                </div>
                 {% endif %}
               </details>
             </div>
@@ -222,152 +218,147 @@
 
           <!-- Questions -->
           {% for q in page_obj %}
-            <div class="card forum-card question-card mb-3">
-              <div class="card-body">
-                <div class="d-flex justify-content-between gap-3">
-                  <div class="d-flex gap-3 min-w-0">
-                    <div class="avatar-circle" aria-hidden="true">
-                      {{ q.author.username|default:"U"|slice:":1"|upper }}
-                    </div>
-
-                    <div class="min-w-0">
-                      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                        <h5 class="mb-0 text-truncate">
-                          <a class="text-decoration-none" href="{% url 'forum_detail' q.id %}" style="color: #1eae98;">
-                            {{ q.title }}
-                          </a>
-                        </h5>
-
-                        {% if q.top_answer_count|default:0 > 0 %}
-                          <span class="badge badge-answered">
-                            <i class="fa-solid fa-circle-check"></i> Answered
-                          </span>
-                        {% endif %}
-                      </div>
-                      {% if q.is_hidden and q.moderation_status == "pending_review" and user.is_authenticated %}
-  {% if user.is_staff or user.id == q.author_id %}
-    <span class="badge text-bg-warning">
-      <i class="fa-solid fa-eye-slash"></i> Pending review
-    </span>
-  {% endif %}
-{% endif %}
-
-
-
-                      <div class="meta mb-2 d-flex flex-wrap gap-2 align-items-center">
-                        <span>by <strong>{{ q.author.username }}</strong></span>
-                        <span class="dot">•</span>
-                        <span>{{ q.created_at|date:"M d, Y H:i" }}</span>
-                        <span class="dot">•</span>
-                        <span>{{ q.created_at|timesince }} ago</span>
-                      </div>
-
-                      <div class="mb-2 d-flex flex-wrap gap-2">
-                        {% if q.course %}
-                          <span class="chip"><i class="fa-solid fa-book"></i> {{ q.course.course_name }}</span>
-                        {% endif %}
-
-                        {% if q.chapter %}
-                          <span class="chip">
-                            <i class="fa-regular fa-file-lines"></i>
-                            Ch {{ q.chapter.chapter_number }}: {{ q.chapter.chapter_name }}
-                          </span>
-                        {% endif %}
-                      </div>
-
-                      <div class="text-muted question-snippet">
-                        {{ q.content|truncatechars:240 }}
-                      </div>
-
-                      <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
-                        <span class="stat-pill">
-                          <i class="fa-regular fa-message"></i>
-                          {{ q.top_answer_count|default:0 }}
-                        </span>
-
-                        <span class="stat-pill">
-                          <i class="fa-solid fa-arrow-up"></i>
-                          <span data-upvote-key="q{{ q.id }}">{{ q.upvote_count|default:q.total_upvotes }}</span>
-                        </span>
-
-                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_detail' q.id %}">
-                          View
-                        </a>
-{% if user.is_authenticated %}
-  {% if user.id == q.author_id or user.is_staff %}
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'forum_question_edit' q.id %}">Edit</a>
-    <a class="btn btn-sm btn-outline-danger" href="{% url 'forum_question_delete' q.id %}">Delete</a>
-  {% endif %}
-{% endif %}
-                        {% if user.is_authenticated and user.id != q.author_id %}
-                          <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' q.author.id %}">
-                            Message
-                          </a>
-                        {% endif %}
-                      </div>
-                    </div>
+          <div class="card forum-card question-card mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between gap-3">
+                <div class="d-flex gap-3 min-w-0">
+                  <div class="avatar-circle" aria-hidden="true">
+                    {{ q.author.username|default:"U"|slice:":1"|upper }}
                   </div>
 
-                  {% if user.is_authenticated %}
-                    <form method="post" action="{% url 'forum_question_upvote' q.id %}" class="vote-form">
-                      {% csrf_token %}
-                      <button
-                        class="vote-btn"
-                        data-upvote-url="{% url 'forum_question_upvote' q.id %}"
-                        data-upvote-key="q{{ q.id }}"
-                        type="submit"
-                        title="Upvote"
-                      >
-                        <span class="vote-icon">▲</span>
-                        <span class="vote-count" data-upvote-key="q{{ q.id }}" data-upvote-count>
-                          {{ q.upvote_count|default:q.total_upvotes }}
-                        </span>
-                      </button>
-                    </form>
-                  {% endif %}
+                  <div class="min-w-0">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                      <h5 class="mb-0 text-truncate">
+                        <a class="text-decoration-none" href="{% url 'forum_detail' q.id %}" style="color: #1eae98;">
+                          {{ q.title }}
+                        </a>
+                      </h5>
+
+                      {% if q.top_answer_count|default:0 > 0 %}
+                      <span class="badge badge-answered">
+                        <i class="fa-solid fa-circle-check"></i> Answered
+                      </span>
+                      {% endif %}
+                    </div>
+                    {% if q.is_hidden and q.moderation_status == "pending_review" and user.is_authenticated %}
+                    {% if user.is_staff or user.id == q.author_id %}
+                    <span class="badge text-bg-warning">
+                      <i class="fa-solid fa-eye-slash"></i> Pending review
+                    </span>
+                    {% endif %}
+                    {% endif %}
+
+
+
+                    <div class="meta mb-2 d-flex flex-wrap gap-2 align-items-center">
+                      <span>by <strong>{{ q.author.username }}</strong></span>
+                      <span class="dot">•</span>
+                      <span>{{ q.created_at|date:"M d, Y H:i" }}</span>
+                      <span class="dot">•</span>
+                      <span>{{ q.created_at|timesince }} ago</span>
+                    </div>
+
+                    <div class="mb-2 d-flex flex-wrap gap-2">
+                      {% if q.course %}
+                      <span class="chip"><i class="fa-solid fa-book"></i> {{ q.course.course_name }}</span>
+                      {% endif %}
+
+                      {% if q.chapter %}
+                      <span class="chip">
+                        <i class="fa-regular fa-file-lines"></i>
+                        Ch {{ q.chapter.chapter_number }}: {{ q.chapter.chapter_name }}
+                      </span>
+                      {% endif %}
+                    </div>
+
+                    <div class="text-muted question-snippet">
+                      {{ q.content|truncatechars:240 }}
+                    </div>
+
+                    <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+                      <span class="stat-pill">
+                        <i class="fa-regular fa-message"></i>
+                        {{ q.top_answer_count|default:0 }}
+                      </span>
+
+                      <span class="stat-pill">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span data-upvote-key="q{{ q.id }}">{{ q.upvote_count|default:q.total_upvotes }}</span>
+                      </span>
+
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'forum_detail' q.id %}">
+                        View
+                      </a>
+                      {% if user.is_authenticated %}
+                      {% if user.id == q.author_id or user.is_staff %}
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'forum_question_edit' q.id %}">Edit</a>
+                      <a class="btn btn-sm btn-outline-danger" href="{% url 'forum_question_delete' q.id %}">Delete</a>
+                      {% endif %}
+                      {% endif %}
+                      {% if user.is_authenticated and user.id != q.author_id %}
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' q.author.id %}">
+                        Message
+                      </a>
+                      {% endif %}
+                    </div>
+                  </div>
                 </div>
+
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'forum_question_upvote' q.id %}" class="vote-form">
+                  {% csrf_token %}
+                  <button class="vote-btn" data-upvote-url="{% url 'forum_question_upvote' q.id %}"
+                    data-upvote-key="q{{ q.id }}" type="submit" title="Upvote">
+                    <span class="vote-icon">▲</span>
+                    <span class="vote-count" data-upvote-key="q{{ q.id }}" data-upvote-count>
+                      {{ q.upvote_count|default:q.total_upvotes }}
+                    </span>
+                  </button>
+                </form>
+                {% endif %}
               </div>
             </div>
+          </div>
           {% empty %}
-            <div class="card forum-card">
-              <div class="card-body text-center py-5">
-                <div class="empty-icon mb-2"><i class="fa-regular fa-circle-question"></i></div>
-                <h5 class="mb-1">No discussions yet</h5>
-                <div class="text-muted">Be the first to ask a question and kick things off.</div>
-              </div>
+          <div class="card forum-card">
+            <div class="card-body text-center py-5">
+              <div class="empty-icon mb-2"><i class="fa-regular fa-circle-question"></i></div>
+              <h5 class="mb-1">No discussions yet</h5>
+              <div class="text-muted">Be the first to ask a question and kick things off.</div>
             </div>
+          </div>
           {% endfor %}
 
           <!-- Pagination -->
           {% if page_obj.paginator.num_pages > 1 %}
-  <nav class="mt-3" aria-label="Forum pagination">
-    <ul class="pagination pagination-sm">
+          <nav class="mt-3" aria-label="Forum pagination">
+            <ul class="pagination pagination-sm">
 
-      {% if page_obj.has_previous %}
-        <li class="page-item">
-          <a class="page-link"
-             href="?q={{ q|urlencode }}&course={{ selected_course|default:'' }}&chapter={{ selected_chapter|default:'' }}&sort={{ sort|default:'new' }}&page={{ page_obj.previous_page_number }}">
-            Prev
-          </a>
-        </li>
-      {% endif %}
+              {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link"
+                  href="?q={{ q|urlencode }}&course={{ selected_course|default:'' }}&chapter={{ selected_chapter|default:'' }}&sort={{ sort|default:'new' }}&page={{ page_obj.previous_page_number }}">
+                  Prev
+                </a>
+              </li>
+              {% endif %}
 
-      <li class="page-item disabled">
-        <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-      </li>
+              <li class="page-item disabled">
+                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+              </li>
 
-      {% if page_obj.has_next %}
-        <li class="page-item">
-          <a class="page-link"
-             href="?q={{ q|urlencode }}&course={{ selected_course|default:'' }}&chapter={{ selected_chapter|default:'' }}&sort={{ sort|default:'new' }}&page={{ page_obj.next_page_number }}">
-            Next
-          </a>
-        </li>
-      {% endif %}
+              {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link"
+                  href="?q={{ q|urlencode }}&course={{ selected_course|default:'' }}&chapter={{ selected_chapter|default:'' }}&sort={{ sort|default:'new' }}&page={{ page_obj.next_page_number }}">
+                  Next
+                </a>
+              </li>
+              {% endif %}
 
-    </ul>
-  </nav>
-{% endif %}
+            </ul>
+          </nav>
+          {% endif %}
         </div>
 
         <!-- Right: sidebar -->
@@ -381,43 +372,45 @@
                 </div>
 
                 {% for t in trending %}
-                  <div class="side-row">
-                    <div class="side-title">
-                      <a class="text-decoration-none" href="{% url 'forum_detail' t.id %}" class="fw-semibold" style="color: #1eae98;">
-                        {{ t.title|truncatechars:60 }}
-                      </a>
-                    </div>
-                    <div class="small text-muted">
-                      ▲ {{ t.q_up }} • recent answers {{ t.recent_ans }}
-                    </div>
+                <div class="side-row">
+                  <div class="side-title">
+                    <a class="text-decoration-none" href="{% url 'forum_detail' t.id %}" class="fw-semibold"
+                      style="color: #1eae98;">
+                      {{ t.title|truncatechars:60 }}
+                    </a>
                   </div>
+                  <div class="small text-muted">
+                    ▲ {{ t.q_up }} • recent answers {{ t.recent_ans }}
+                  </div>
+                </div>
                 {% empty %}
-                  <div class="text-muted">No trending discussions yet.</div>
+                <div class="text-muted">No trending discussions yet.</div>
                 {% endfor %}
               </div>
             </div>
 
             {% if user.is_authenticated %}
-              <div class="card forum-card mb-3">
-                <div class="card-body">
-                  <h6 class="mb-2">🧑‍💻 My discussions</h6>
+            <div class="card forum-card mb-3">
+              <div class="card-body">
+                <h6 class="mb-2">🧑‍💻 My discussions</h6>
 
-                  {% for m in my_discussions %}
-                    <div class="side-row">
-                      <div class="side-title">
-                        <a class="text-decoration-none" href="{% url 'forum_detail' m.id %}" class="fw-semibold" style="color: #1eae98;">
-                          {{ m.title|truncatechars:60 }}
-                        </a>
-                      </div>
-                      <div class="small text-muted">
-                        Answers: {{ m.top_answer_count|default:0 }} • ▲ {{ m.upvote_count|default:m.total_upvotes }}
-                      </div>
-                    </div>
-                  {% empty %}
-                    <div class="text-muted">You haven’t posted yet.</div>
-                  {% endfor %}
+                {% for m in my_discussions %}
+                <div class="side-row">
+                  <div class="side-title">
+                    <a class="text-decoration-none" href="{% url 'forum_detail' m.id %}" class="fw-semibold"
+                      style="color: #1eae98;">
+                      {{ m.title|truncatechars:60 }}
+                    </a>
+                  </div>
+                  <div class="small text-muted">
+                    Answers: {{ m.top_answer_count|default:0 }} • ▲ {{ m.upvote_count|default:m.total_upvotes }}
+                  </div>
                 </div>
+                {% empty %}
+                <div class="text-muted">You haven’t posted yet.</div>
+                {% endfor %}
               </div>
+            </div>
             {% endif %}
 
             <div class="card forum-card">
@@ -425,18 +418,18 @@
                 <h6 class="mb-2">🏆 Top users (by upvotes)</h6>
 
                 {% for u in top_users %}
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="avatar-mini" aria-hidden="true">{{ u.username|default:"U"|slice:":1"|upper }}</span>
-                      <span class="text-truncate" style="max-width: 190px;">{{ u.username }}</span>
-                      {% if user.is_authenticated and user.id != u.id %}
-                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' u.id %}">Message</a>
-                      {% endif %}
-                    </div>
-                    <span class="text-muted">▲ {{ u.total_upvotes }}</span>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="avatar-mini" aria-hidden="true">{{ u.username|default:"U"|slice:":1"|upper }}</span>
+                    <span class="text-truncate" style="max-width: 190px;">{{ u.username }}</span>
+                    {% if user.is_authenticated and user.id != u.id %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'dm_thread' u.id %}">Message</a>
+                    {% endif %}
                   </div>
+                  <span class="text-muted">▲ {{ u.total_upvotes }}</span>
+                </div>
                 {% empty %}
-                  <div class="text-muted">No upvotes yet.</div>
+                <div class="text-muted">No upvotes yet.</div>
                 {% endfor %}
               </div>
             </div>
@@ -450,4 +443,5 @@
   <script src="{% static 'accounts/sidebar-drawer.js' %}"></script>
   <script src="{% static 'accounts/forum.js' %}"></script>
 </body>
+
 </html>

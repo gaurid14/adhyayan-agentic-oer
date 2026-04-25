@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ course.course_name }} | Adhyayan</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'accounts/sidebar.css' %}">
+    
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f7fb; display: flex; min-height: 100vh;}
+        .main-content { flex-grow: 1; margin-left: 260px; padding: 30px 40px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 20px; border-radius: 10px; border: 1px solid #E5E7EB; margin-bottom: 25px; }
+        .course-title { font-size: 24px; font-weight: 800; margin-bottom: 5px; color: #0F172A; }
+        
+        /* NPTEL-style Accordion UI */
+        .nptel-container { background: #fff; border-radius: 12px; border: 1px solid #E5E7EB; padding: 25px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .chapter-box { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .chapter-header { padding: 16px 20px; background: #f8fafc; cursor: pointer; font-weight: 600; font-size: 16px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s ease; }
+        .chapter-header:hover { background: #eef2f6; }
+        .chapter-body { padding: 20px; display: none; border-top: 1px solid #e5e7eb; background: #fff; }
+        
+        .drive-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #0F766E; color: #fff; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; transition: background 0.2s ease; }
+        .drive-link:hover { background: #115E59; }
+        .muted { color: #64748B; font-size: 14px; }
+    </style>
+</head>
+<body>
+    {% include "student/sidebar.html" %}
+    
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <a href="{% url 'student_dashboard' %}" style="text-decoration:none; color:#0F766E; font-weight:600;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            <span style="font-weight:600; color:#374151;">Course Materials</span>
+        </div>
+
+        <div class="course-header">
+            <h1 class="course-title">{{ course.course_name }}</h1>
+            <p class="muted">{{ course.course_code }} • Semester {{ course.semester }}</p>
+        </div>
+
+        <div class="nptel-container">
+            <h2 style="margin-top:0; margin-bottom:20px; font-size:20px; color:#111827;">Released Content</h2>
+            
+            {% if released_content %}
+                {% for item in released_content %}
+                <div class="chapter-box">
+                    
+                    <div class="chapter-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block';">
+                        <span>Chapter {{ item.upload.chapter.chapter_number }}: {{ item.upload.chapter.chapter_name }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    
+                    <div class="chapter-body">
+    <p style="margin-top:0; color:#475569; line-height:1.5;">
+        <strong>Topics Covered:</strong><br> 
+        {{ item.upload.chapter.description }}
+    </p>
+    
+    <div style="margin-top:20px;">
+    {% if item.drive_folder_id %}
+        
+        <a href="https://drive.google.com/drive/folders/{{ item.drive_folder_id }}" target="_blank" class="drive-link">
+            <i class="fa-brands fa-google-drive"></i> Open Drive Folder
+        </a>
+        
+        {% if item.video_files %}
+            <h4 style="margin-top:20px; margin-bottom:10px; color:#0F172A;">🎥 Video Lectures</h4>
+            {% for file in item.video_files %}
+                <div style="margin-bottom: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #E5E7EB;">
+                    <iframe width="100%" height="400" src="https://drive.google.com/file/d/{{ file.id }}/preview" allow="autoplay" style="border:none;"></iframe>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if item.pdf_files %}
+            <h4 style="margin-top:20px; margin-bottom:10px; color:#0F172A;">📄 Study Materials</h4>
+            {% for file in item.pdf_files %}
+                <div style="margin-bottom: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #E5E7EB;">
+                    <iframe width="100%" height="500" src="https://drive.google.com/file/d/{{ file.id }}/preview" style="border:none;"></iframe>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if not item.video_files and not item.pdf_files %}
+            <p class="muted" style="margin-top:15px; background: #f8fafc; padding: 10px; border-radius: 6px;">No viewable files found in this folder yet.</p>
+        {% endif %}
+
+    {% else %}
+        <p class="muted"><i class="fas fa-exclamation-triangle"></i> Data Error: Folder ID missing in Database. Files are currently syncing...</p>
+    {% endif %}
+    </div>
+</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align:center; padding:40px 20px;">
+                    <i class="fas fa-lock" style="font-size:32px; color:#94A3B8; margin-bottom:15px;"></i>
+                    <h3 style="margin:0; color:#1e293b;">No Content Released Yet</h3>
+                    <p class="muted" style="margin-top:8px;">The Admin Agent has not released content for this course yet (requires 80% completion). Check back later!</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

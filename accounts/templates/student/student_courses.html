@@ -221,7 +221,7 @@
         <div class="streak-left">
             <div class="streak-icon">🔥</div>
             <div class="streak-text">
-                <h3>5 Day Learning Streak</h3>
+                <h3>{{ streak }} Day Learning Streak</h3>
                 <p>You learned something today — keep it going!</p>
             </div>
         </div>
@@ -230,10 +230,10 @@
 
     <!-- STATS -->
     <div class="stats-grid">
-        <div class="stat-card"><h3>6</h3><p>Total Enrolled Courses</p></div>
-        <div class="stat-card"><h3>3</h3><p>Completed Courses</p></div>
-        <div class="stat-card"><h3>2</h3><p>Courses In Progress</p></div>
-        <div class="stat-card"><h3>18</h3><p>Chapters Completed</p></div>
+        <div class="stat-card"><h3>{{ total_courses }}</h3><p>Total Enrolled Courses</p></div>
+        <div class="stat-card"><h3>{{ completed_courses }}</h3><p>Completed Courses</p></div>
+        <div class="stat-card"><h3>{{ in_progress_courses }}</h3><p>Courses In Progress</p></div>
+        <div class="stat-card"><h3>{{ chapters_completed }}</h3><p>Chapters Completed</p></div>
     </div>
 
     <div class="courses-layout">
@@ -246,35 +246,22 @@
             </div>
 
             <div class="course-grid">
-                <div class="course-card">
-                    <div class="course-title">Internet Programming</div>
-                    <div class="course-meta">ITD05015 · Semester 5</div>
-                    <span class="badge badge-progress">In Progress</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div>
-                    <a href="#" class="action-btn">Continue Learning</a>
-                </div>
+                {% for item in courses %}
+                    {% if item.progress < 100 %}
+                    <div class="course-card">
+                        <div class="course-title">{{ item.course.course_name }}</div>
+                        <div class="course-meta">{{ item.course.course_code }} · {{ item.course.semester }}</div>
 
-                <div class="course-card">
-                    <div class="course-title">Software Engineering</div>
-                    <div class="course-meta">ITD05018 · Semester 5</div>
-                    <span class="badge badge-progress">In Progress</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
-                    <a href="#" class="action-btn">Continue Learning</a>
-                </div>
-                <div class="course-card">
-                    <div class="course-title">OOPS</div>
-                    <div class="course-meta">ITD05018 · Semester 5</div>
-                    <span class="badge badge-progress">In Progress</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
-                    <a href="#" class="action-btn">Continue Learning</a>
-                </div>
-                <div class="course-card">
-                    <div class="course-title">Wireless Technologies</div>
-                    <div class="course-meta">ITD05018 · Semester 5</div>
-                    <span class="badge badge-progress">In Progress</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
-                    <a href="#" class="action-btn">Continue Learning</a>
-                </div>
+                        <span class="badge badge-progress">In Progress</span>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:{{ item.progress }}%"></div>
+                        </div>
+
+                        <a href="#" class="action-btn">Continue Learning</a>
+                    </div>
+                    {% endif %}
+                {% endfor %}
             </div>
 
             <div class="section-header">
@@ -282,31 +269,18 @@
             </div>
 
             <div class="course-grid">
-                <div class="course-card">
-                    <div class="course-title">Computer Networks ✔</div>
-                    <div class="course-meta">ITD05016 · Semester 5</div>
-                    <span class="badge badge-complete">Completed</span>
-                    <a href="#" class="action-btn">View Content</a>
-                </div>
+                {% for item in courses %}
+                    {% if item.progress == 100 %}
+                    <div class="course-card">
+                        <div class="course-title">{{ item.course.course_name }} ✔</div>
+                        <div class="course-meta">{{ item.course.course_code }} · {{ item.course.semester }}</div>
 
-                <div class="course-card">
-                    <div class="course-title">Advanced Data Management ✔</div>
-                    <div class="course-meta">ITD05012 · Semester 5</div>
-                    <span class="badge badge-complete">Completed</span>
-                    <a href="#" class="action-btn">View Content</a>
-                </div>
-                 <div class="course-card">
-                    <div class="course-title">Web Development ✔</div>
-                    <div class="course-meta">ITD05012 · Semester 5</div>
-                    <span class="badge badge-complete">Completed</span>
-                    <a href="#" class="action-btn">View Content</a>
-                </div>
-                 <div class="course-card">
-                    <div class="course-title">Bussniess Management✔</div>
-                    <div class="course-meta">ITD05012 · Semester 5</div>
-                    <span class="badge badge-complete">Completed</span>
-                    <a href="#" class="action-btn">View Content</a>
-                </div>
+                        <span class="badge badge-complete">Completed</span>
+
+                        <a href="#" class="action-btn">View Content</a>
+                    </div>
+                    {% endif %}
+                {% endfor %}
             </div>
 
         </div>
@@ -328,7 +302,7 @@ new Chart(document.getElementById('courseChart'), {
     data: {
         labels: ['Completed', 'In Progress', 'Not Started'],
         datasets: [{
-            data: [3, 2, 1],
+            data: [{{ completed_courses }}, {{ in_progress_courses }}, {{ not_started }}],
             backgroundColor: ['#0F766E', '#F59E0B', '#E5E7EB']
         }]
     },

@@ -10,3 +10,11 @@ __pycache__/
 todo.txt
 logs/
 *.log
+test_email.py
+run_eval_experiment.py
+run_blockchain_timing.py
+run_moderation_test.py
+eval_results.csv
+
+run_level_calibration.py
+simulate_mint.py
