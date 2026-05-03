@@ -77,18 +77,7 @@ def contributor_dashboard_view(request):
     form = ProfilePictureForm(instance=request.user)
     return render(request, 'contributor/contributor_dashboard.html', {'form': form})
 
-# Student Dashboard
-@login_required
-def student_dashboard(request):
-    form = ProfilePictureForm(instance=request.user)
-    courses = Course.objects.all()
-
-    print("Courses count:", courses.count())
-
-    return render(request, 'student/student_dashboard.html', {
-        'form': form,
-        'courses': courses
-    })
+# Note: student_dashboard is handled in accounts/views/student/student_dashboard.py
 
 # --- LOGOUT VIEW ---
 def logout_view(request):

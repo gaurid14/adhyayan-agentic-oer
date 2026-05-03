@@ -15,7 +15,7 @@ with open(ABI_PATH) as f:
 GANACHE_URL = "http://127.0.0.1:7545"
 
 CONTRACT_ADDRESS = Web3.to_checksum_address(
-    "0x85DF169674d8Fdf3FDe2D3A5dFE3FDe51e2Dd9E0"
+    "0xB57cFE7437397dea312380D49991ea91daE2F78C"
 )
 
 _w3 = None
@@ -47,21 +47,26 @@ def store_scores_on_chain(
         accuracy,
         completeness
 ):
-    w3, contract, account = _get_contract()
+    try:
+        w3, contract, account = _get_contract()
 
-    tx = contract.functions.storeScores(
-        int(upload_id),
-        int(clarity * 100),
-        int(coherence * 100),
-        int(engagement * 100),
-        int(accuracy * 100),
-        int(completeness * 100)
-    ).transact({
-        "from": account
-    })
+        tx = contract.functions.storeScores(
+            int(upload_id),
+            int(clarity * 100),
+            int(coherence * 100),
+            int(engagement * 100),
+            int(accuracy * 100),
+            int(completeness * 100)
+        ).transact({
+            "from": account
+        })
 
-    receipt = w3.eth.wait_for_transaction_receipt(tx)
+        receipt = w3.eth.wait_for_transaction_receipt(tx)
 
-    print("✅ Blockchain stored:", receipt.transactionHash.hex())
+        print("✅ Blockchain stored:", receipt.transactionHash.hex())
 
-    return receipt.transactionHash.hex()
+        return receipt.transactionHash.hex()
+    
+    except Exception as e:
+        print(f"⚠️ [BLOCKCHAIN] Skipping score storage (non-fatal): {e}")
+        return None

@@ -462,8 +462,8 @@
             <span class="meta-value">#{{ token_id }}</span>
         </div>
         <div class="meta-group">
-            <span class="meta-label">Timestamp (Unix)</span>
-            <span class="meta-value">{{ issued_at }}</span>
+            <span class="meta-label">Issue Date</span>
+            <span class="meta-value" id="issued-at-display" data-unix-ts="{{ issued_at }}">{{ issued_at_str }}</span>
         </div>
         <div class="meta-group">
             <span class="meta-label">Transaction Hash</span>
@@ -478,12 +478,18 @@
 <script>
     // Make dates human readable on the client side
     document.addEventListener("DOMContentLoaded", () => {
-        const timestampEl = document.querySelector(".meta-value:nth-child(2)"); // Second item is timestamp
+        const timestampEl = document.getElementById("issued-at-display");
         if (timestampEl) {
-            const unixTime = parseInt(timestampEl.textContent);
-            if (!isNaN(unixTime)) {
+            const unixTime = parseInt(timestampEl.dataset.unixTs);
+            if (!isNaN(unixTime) && unixTime > 0) {
                 const date = new Date(unixTime * 1000);
-                timestampEl.textContent = date.toLocaleString();
+                timestampEl.textContent = date.toLocaleString("en-IN", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
             }
         }
     });

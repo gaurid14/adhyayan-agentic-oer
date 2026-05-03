@@ -1,3 +1,4 @@
+from accounts.models import DecisionRun
 from django.contrib import admin
 from django.utils import timezone
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
@@ -144,6 +145,7 @@ admin.site.register(EnrolledCourse)
 admin.site.register(Assessment)
 admin.site.register(Question)
 admin.site.register(Option)
+admin.site.register(DecisionRun)
 
 @admin.register(ReleasePolicy)
 class ReleasePolicyAdmin(admin.ModelAdmin):

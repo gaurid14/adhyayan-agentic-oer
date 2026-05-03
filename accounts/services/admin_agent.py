@@ -103,6 +103,63 @@ class AdminAgentService:
         return existing_value
 
     # -----------------------------
+    # Certificate minting helper
+    # -----------------------------
+    def _mint_contributor_cert(self, ch: Chapter, course: Course) -> None:
+        """
+        Mint a blockchain contributor certificate for the best upload of a chapter.
+        Idempotent: skips if a certificate already exists for this contributor + chapter.
+        """
+        best_upload = self._best_upload_for_chapter(ch)
+        if not best_upload or not best_upload.contributor:
+            return
+        try:
+            from blockchain.services.certificate_service import (
+                mint_certificate, ISSUE_TYPE_CONTRIBUTOR
+            )
+            from accounts.models import BlockchainCertificate
+
+            contributor = best_upload.contributor
+
+            # ── Duplicate Guard ──────────────────────────────────────
+            already_has_cert = BlockchainCertificate.objects.filter(
+                user=contributor,
+                chapter=ch,
+                certificate_type=BlockchainCertificate.CERT_TYPE_CONTRIBUTOR,
+            ).exists()
+            if already_has_cert:
+                logger.debug(
+                    "[Certificate] Skipping duplicate cert for %s | Chapter: %s",
+                    contributor.username, ch.chapter_name
+                )
+                return
+
+            result = mint_certificate(
+                recipient_name=contributor.get_full_name() or contributor.username,
+                course_name=f"{course.course_name} – {ch.chapter_name}",
+                issue_type=ISSUE_TYPE_CONTRIBUTOR,
+            )
+            if result.get("success"):
+                BlockchainCertificate.objects.get_or_create(
+                    token_id=result["token_id"],
+                    defaults={
+                        "user": contributor,
+                        "course": course,
+                        "chapter": ch,
+                        "certificate_type": BlockchainCertificate.CERT_TYPE_CONTRIBUTOR,
+                        "tx_hash": result["tx_hash"],
+                    }
+                )
+                logger.info(
+                    "[Certificate] Contributor cert minted for %s | Chapter: %s | token_id=%s",
+                    contributor.username, ch.chapter_name, result["token_id"]
+                )
+            else:
+                logger.error("[Certificate] Minting failed: %s", result.get("error"))
+        except Exception as e:
+            logger.error("[Certificate] Contributor cert exception for chapter %s: %s", ch.id, e)
+
+    # -----------------------------
     # Main logic
     # -----------------------------
     def process_course(self, course: Course) -> Dict:
@@ -149,6 +206,7 @@ class AdminAgentService:
                 break
 
         newly_released_chapters = []
+        all_released_chapters = []   # every chapter that ends up released (for cert backfill)
 
         with transaction.atomic():
             for idx, ch in enumerate(chapters):
@@ -157,7 +215,7 @@ class AdminAgentService:
                 # Check previous release status to detect newly unlocked chapters
                 was_released = ReleasedContent.objects.filter(upload__chapter=ch, release_status=True).exists()
 
-                # Always set all existing releases for this chapter to False first (prevents stale True on old best uploads)
+                # Always set all existing releases for this chapter to False first
                 chapter_uploads = UploadCheck.objects.filter(chapter=ch)
                 ReleasedContent.objects.filter(upload__in=chapter_uploads).update(release_status=False)
 
@@ -170,15 +228,18 @@ class AdminAgentService:
                 rc.drive_folder_id = self._encode_drive_folder_id(best_upload.id, rc.drive_folder_id)
                 rc.save(update_fields=["release_status", "drive_folder_id"])
 
-                # If chapter just got unlocked, stage it for notifications
-                if allowed and not was_released:
-                    newly_released_chapters.append(ch)
+                if allowed:
+                    all_released_chapters.append(ch)
+                    if not was_released:
+                        newly_released_chapters.append(ch)
 
-        # Dispatch email notifications outside the transaction to prevent holding DB locks
+        # ── Email notifications for NEWLY released chapters only ──────────
         if newly_released_chapters:
-            enrolled_students = [e.student for e in EnrolledCourse.objects.filter(course=course).select_related('student')]
+            enrolled_students = [
+                e.student for e in
+                EnrolledCourse.objects.filter(course=course).select_related('student')
+            ]
             for ch in newly_released_chapters:
-                # ── Student unlock emails ──────────────────────────────────
                 for student in enrolled_students:
                     try:
                         email = ChapterUnlockedEmail(
@@ -191,41 +252,12 @@ class AdminAgentService:
                     except Exception as e:
                         logger.error(f"Failed to send chapter unlock email to {student.email}: {e}")
 
-                # ── Contributor Certificate ────────────────────────────────
-                # Find who contributed the best upload for this chapter
-                best_upload = self._best_upload_for_chapter(ch)
-                if best_upload and best_upload.contributor:
-                    try:
-                        from blockchain.services.certificate_service import (
-                            mint_certificate, ISSUE_TYPE_CONTRIBUTOR
-                        )
-                        from accounts.models import BlockchainCertificate
-
-                        contributor = best_upload.contributor
-                        result = mint_certificate(
-                            recipient_name=contributor.get_full_name() or contributor.username,
-                            course_name=f"{course.course_name} – {ch.chapter_name}",
-                            issue_type=ISSUE_TYPE_CONTRIBUTOR,
-                        )
-                        if result.get("success"):
-                            BlockchainCertificate.objects.get_or_create(
-                                token_id=result["token_id"],
-                                defaults={
-                                    "user": contributor,
-                                    "course": course,
-                                    "chapter": ch,
-                                    "certificate_type": BlockchainCertificate.CERT_TYPE_CONTRIBUTOR,
-                                    "tx_hash": result["tx_hash"],
-                                }
-                            )
-                            logger.info(
-                                "[Certificate] Contributor cert minted for %s | Chapter: %s | token_id=%s",
-                                contributor.username, ch.chapter_name, result["token_id"]
-                            )
-                        else:
-                            logger.error("[Certificate] Minting failed: %s", result.get("error"))
-                    except Exception as e:
-                        logger.error("[Certificate] Contributor cert exception for chapter %s: %s", ch.id, e)
+        # ── Certificate minting for ALL released chapters (backfill + new) ─
+        # This runs every time so chapters released BEFORE the certificate system
+        # existed (e.g. April 17) automatically get their certificates minted now.
+        # The duplicate guard inside _mint_contributor_cert prevents re-minting.
+        for ch in all_released_chapters:
+            self._mint_contributor_cert(ch, course)
 
         return {
             "status": "processed",
@@ -234,6 +266,7 @@ class AdminAgentService:
             "required": required,
             "threshold": threshold,
         }
+
     def run_for_course(self, course_or_id):
         """Compatibility helper: accept either Course instance or course id."""
         if isinstance(course_or_id, Course):
@@ -241,7 +274,6 @@ class AdminAgentService:
         else:
             course = Course.objects.get(pk=int(course_or_id))
         return self.process_course(course)
-
 
 
     def auto_release_recent(self, window_seconds: int = 3600) -> Dict[int, Dict]:

@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 from accounts.models import Assessment, AssessmentAttempt, EnrolledCourse
 
@@ -45,16 +46,10 @@ def take_assessment(request, assessment_id):
     attempt_count = attempts.count()
     best_attempt = attempts.order_by('-score').first()
 
-    # If passed (>= 70%) OR exhausted attempts (>= 3), block entry
+    # If passed (>= 70%), block entry
     if best_attempt and best_attempt.score_percent >= 70:
         messages.info(request, "You have already passed this assessment.")
         return redirect('assessment_result', attempt_id=best_attempt.id)
-    
-    if attempt_count >= 3:
-        messages.warning(request, "You have exhausted your 3 attempts for this assessment.")
-        if best_attempt:
-            return redirect('assessment_result', attempt_id=best_attempt.id)
-        return redirect('student_dashboard')
 
     questions = assessment.questions.prefetch_related('options').all()
     return render(request, 'student/take_assessment.html', {
@@ -79,8 +74,6 @@ def submit_assessment(request, assessment_id):
 
     # RE-VALIDATE attempts on submission (to prevent manual POST bypass)
     attempts = AssessmentAttempt.objects.filter(student=request.user, assessment=assessment)
-    if attempts.count() >= 3:
-        return HttpResponseForbidden("Maximum attempts exhausted.")
     
     best_prior = attempts.order_by('-score').first()
     if best_prior and best_prior.score_percent >= 70:

@@ -210,6 +210,15 @@ LOGGING = {
 
 
 
+# ── Email configuration ──────────────────────────────────────────────────────
+# IMPORTANT: The Gmail App Password in .env (EMAIL_HOST_PASSWORD) is REVOKED.
+# To re-enable SMTP: generate a new App Password at
+# https://myaccount.google.com/apppasswords  (requires 2-FA on societyhub18@gmail.com)
+# Then update EMAIL_HOST_PASSWORD in .env and switch the backend below.
+
+# Development fallback: prints emails to the console instead of crashing
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -217,6 +226,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "societyhub18@gmail.com"
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = "societyhub18@gmail.com"
 
 LOGIN_URL = "login"               # uses your named URL: path('login/', ..., name='login')
 LOGIN_REDIRECT_URL = "home"       # fallback

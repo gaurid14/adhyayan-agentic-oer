@@ -20,6 +20,7 @@ from accounts.models import (
     Assessment, AssessmentAttempt,
     Chapter, CourseCompletion, EnrolledCourse,
     ReleasedContent, StudentChapterProgress,
+    UploadCheck,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,8 +56,21 @@ def mark_chapter_complete(request, chapter_id):
     if not is_released:
         return JsonResponse({"error": "Chapter content not yet released."}, status=400)
 
-    # 3. Assessment gatekeeper — must have passed all chapter assessments
-    chapter_assessments = Assessment.objects.filter(chapter=chapter)
+    # 3. Assessment gatekeeper — must have passed all OFFICIAL chapter assessments
+    best_upload = (
+        UploadCheck.objects
+        .filter(chapter=chapter, content_score__is_best=True)
+        .order_by("-timestamp")
+        .first()
+    )
+    if best_upload:
+        chapter_assessments = Assessment.objects.filter(
+            chapter=chapter,
+            contributor_id=best_upload.contributor
+        )
+    else:
+        chapter_assessments = Assessment.objects.none()
+
     if chapter_assessments.exists():
         # For each assessment, check if the student has at least one passing attempt
         unpassed = []

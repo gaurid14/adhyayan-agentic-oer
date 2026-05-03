@@ -120,14 +120,13 @@ path("student/drive/<int:course_id>/<str:file_id>/", drive_stream, name="drive_s
     path("forum/moderation/reports/action/", forum_reportcase_action, name="forum_reportcase_action"),
     path("forum/<int:pk>/edit/", forum_question_edit, name="forum_question_edit"),
     path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
-path("forum/<int:pk>/delete/", forum_question_delete, name="forum_question_delete"),
     path("forum/report/", report_create, name="forum_report"),
     path("forum/block/<int:user_id>/", block_user, name="forum_block_user"),
     path("forum/unblock/<int:user_id>/", unblock_user, name="forum_unblock_user"),
     path("forum/blocked/", blocked_users, name="forum_blocked_users"),
     path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_unsuspend_user"),
     path("forum/moderation/suspended/",suspended_users, name="forum_suspended_users"),
-path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_unsuspend_user"),
+    
     # path('generate-assessment/<int:chapter_id>/', generate_assessment_view, name='generate_assessment'), # <-- ADD THIS LINE
 
     # --- Redirect/Display Pages ---
@@ -180,41 +179,6 @@ path("forum/moderation/unsuspend/<int:user_id>/", unsuspend_user, name="forum_un
         name='password_reset_complete'
     ),
 
-    # Password reset
-    path(
-        'password-reset/',
-        auth_views.PasswordResetView.as_view(
-            template_name='auth/password_reset.html',
-            email_template_name='emails/password_reset_email.txt',  # plain text fallback
-            html_email_template_name='emails/password_reset_email.html',  # HTML email
-            subject_template_name='emails/password_reset_subject.txt'
-        ),
-        name='password_reset'
-    ),
-
-    path(
-        'password-reset/done/',
-        auth_views.PasswordResetDoneView.as_view(
-            template_name='auth/password_reset_done.html'
-        ),
-        name='password_reset_done'
-    ),
-
-    path(
-        'reset/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='auth/password_reset_confirm.html'
-        ),
-        name='password_reset_confirm'
-    ),
-
-    path(
-        'reset/done/',
-        auth_views.PasswordResetCompleteView.as_view(
-            template_name='auth/password_reset_complete.html'
-        ),
-        name='password_reset_complete'
-    ),
     path('pending-approval/', views.pending_approval_view, name='pending_approval'),
 
     # External resources
