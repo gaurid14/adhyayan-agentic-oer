@@ -18,3 +18,7 @@ eval_results.csv
 
 run_level_calibration.py
 simulate_mint.py
+
+scratch/
+.gemini_key_index
+evalResults_IEEE_Paper.csv

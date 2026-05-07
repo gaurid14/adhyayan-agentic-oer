@@ -32,7 +32,7 @@ GANACHE_URL = "http://127.0.0.1:7545"
 
 # ⚠️  UPDATE THIS after deploying DecisionAudit.sol on Ganache via Remix/Truffle
 DECISION_CONTRACT_ADDRESS = Web3.to_checksum_address(
-    "0x05D27eF76e52f2399E13792cF83136b3F8e65d64"   # updated after deploy
+    "0x5c8FBef84E03B90E03B665e05464A0f116d9D7b9"   # updated after deploy
 )
 
 # Status codes matching DecisionAudit.sol

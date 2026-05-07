@@ -4,14 +4,52 @@ from django.dispatch import receiver
 from accounts.models import ContentScore, DecisionRun
 from accounts.services.decision_maker import DecisionMakerService
 
+# Reentrancy guard: prevents signal → DecisionMaker → save → signal loops
+_RUNNING_DM = set()   # chapter_ids currently being processed
+
 
 @receiver(post_save, sender=ContentScore)
 def auto_run_decision_maker(sender, instance, created, **kwargs):
-    """Fire DecisionMaker when a ContentScore is created (new evaluation result)."""
-    if created:
-        DecisionMakerService().decide_for_chapter(
-            chapter_id=instance.upload.chapter.id,
-            force=True
+    """Fire DecisionMaker ONLY when:
+       1. A NEW ContentScore is created (not an admin edit)
+       2. The chapter has a policy with a deadline
+       3. That deadline has already passed (is_open == False)
+    This prevents premature is_best marking while contributors are still uploading.
+    """
+    if not created:
+        return
+
+    try:
+        from accounts.models import ChapterPolicy
+        chapter_id = instance.upload.chapter_id
+
+        # Guard against re-entrant calls (DA saves ContentScore → triggers this again)
+        if chapter_id in _RUNNING_DM:
+            return
+
+        policy = ChapterPolicy.objects.filter(chapter_id=chapter_id).first()
+
+        # No policy → no deadline → never auto-trigger
+        if not policy:
+            return
+
+        # Chapter still accepting submissions → don't trigger DA
+        if policy.is_open:
+            return
+
+        _RUNNING_DM.add(chapter_id)
+        try:
+            DecisionMakerService().decide_for_chapter(
+                chapter_id=chapter_id,
+                force=True,
+            )
+        finally:
+            _RUNNING_DM.discard(chapter_id)
+
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception(
+            "[Signal] auto_run_decision_maker failed for ContentScore id=%s", instance.id
         )
 
 
