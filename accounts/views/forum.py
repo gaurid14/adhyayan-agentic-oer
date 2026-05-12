@@ -777,7 +777,7 @@ def dm_thread(request, user_id: int):
                         "id": m.id,
                         "content": m.content,
                         "sender_id": request.user.id,
-                        "created_at": timezone.localtime(m.created_at).strftime("%b %d, %H:%M"),
+                        "created_at": (timezone.localtime(m.created_at) if timezone.is_aware(m.created_at) else m.created_at).strftime("%b %d, %H:%M"),
                     }
                 })
         
@@ -820,7 +820,7 @@ def dm_thread_updates(request, user_id: int):
         "id": m.id,
         "content": m.content,
         "sender_id": m.sender_id,
-        "created_at": timezone.localtime(m.created_at).strftime("%b %d, %H:%M"),
+        "created_at": (timezone.localtime(m.created_at) if timezone.is_aware(m.created_at) else m.created_at).strftime("%b %d, %H:%M"),
     } for m in new_msgs]
 
     return JsonResponse({"ok": True, "messages": data})
@@ -859,7 +859,7 @@ def dm_inbox_updates(request):
             "other_id": other.id,
             "unread_count": int(t.unread_count or 0),
             "last_text": last_text,
-            "last_at_display": timezone.localtime(last_at).strftime("%b %d, %H:%M"),
+            "last_at_display": (timezone.localtime(last_at) if timezone.is_aware(last_at) else last_at).strftime("%b %d, %H:%M"),
         })
 
     return JsonResponse({"ok": True, "threads": payload})

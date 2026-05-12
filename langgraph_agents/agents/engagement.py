@@ -151,10 +151,14 @@ SYLLABUS:
 
 -------------------------
 
-IMPORTANT RULE:
+IMPORTANT RULES:
 - Count engagement elements ONLY if they are relevant to the subject/chapter
 - Irrelevant examples or exercises should NOT increase engagement score
 - Technical content is allowed
+- clarity_score: Rate how easy the content is to learn from (1-5).
+  Consider: structured presentation, logical flow, language clarity,
+  readability, and whether the content is well-organized for the student level.
+  Even purely theoretical content can score high if it is clearly written.
 
 -------------------------
 
@@ -163,7 +167,8 @@ Return JSON ONLY:
   "case_studies": <int>,
   "assessments": <int>,
   "scenario_cues": <int>,
-  "subject_relevance": <0-5>
+  "subject_relevance": <0-5>,
+  "clarity_score": <1-5>
 }}
 
 Content:
@@ -177,13 +182,14 @@ Content:
 
     if not data:
         print("[ERROR] Gemini JSON parsing failed:", raw[:300])
-        return {"case_studies": 0, "assessments": 0, "scenario_cues": 0, "subject_relevance": 2}
+        return {"case_studies": 0, "assessments": 0, "scenario_cues": 0, "subject_relevance": 2, "clarity_score": 2}
 
     return {
         "case_studies": int(data.get("case_studies", 0)),
         "assessments": int(data.get("assessments", 0)),
         "scenario_cues": int(data.get("scenario_cues", 0)),
         "subject_relevance": int(data.get("subject_relevance", 2)),
+        "clarity_score": int(data.get("clarity_score", 2)),
     }
 
 
@@ -196,17 +202,24 @@ def compute_engagement_score(
         scenario_cues: int,
         has_assessment_upload: bool,
         subject_rel: int,
+        clarity_score: int = 2,
         target_level: str = "undergrad"
 ) -> float:
     """
     Converts counts → engagement score (0–10)
     Scaled based on education level.
+
+    clarity_score (1-5) provides a base engagement score (max 4.0 pts)
+    so that well-written content without examples still scores > 0.
     """
     cfg = ENGAGEMENT_LEVELS.get(target_level, ENGAGEMENT_LEVELS["default"])
 
-
+    # Base engagement from clarity (ease of learning, structure, readability)
+    # clarity_score 1-5  →  base 0.8 to 4.0
+    base_engagement = (max(1, min(5, clarity_score)) / 5.0) * 4.0
 
     raw_score = (
+            base_engagement +
             (case_studies * cfg["case_w"]) +
             (scenario_cues * cfg["scenario_w"]) +
             (assessments * cfg["assessment_w"]) +
@@ -266,14 +279,16 @@ async def evaluate_engagement(state: dict) -> dict:
     assessments = gemini_result.get("assessments", 0)
     scenario_cues = gemini_result.get("scenario_cues", 0)
     subject_rel = gemini_result.get("subject_relevance", 0)
+    clarity_score = gemini_result.get("clarity_score", 2)
 
     engagement_score = compute_engagement_score(
         case_studies=case_studies,
         assessments=assessments,
         scenario_cues=scenario_cues,
         has_assessment_upload=has_assessment_upload,
+        subject_rel=subject_rel,
+        clarity_score=clarity_score,
         target_level=target_level,
-        subject_rel = subject_rel
     )
 
     # Save using MCP session from graph state
@@ -296,6 +311,7 @@ async def evaluate_engagement(state: dict) -> dict:
             "assessments_found": assessments,
             "scenario_cues": scenario_cues,
             "assessment_uploaded": has_assessment_upload,
+            "clarity_score": clarity_score,
         },
         "gemini": gemini_result,
     }

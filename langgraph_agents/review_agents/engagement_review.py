@@ -99,12 +99,20 @@ IMPORTANT RULES:
 - Count examples ONLY if relevant to topic
 - Ignore irrelevant examples
 - Suggest improvements based on subject
+- clarity_score: Rate how easy the content is to learn from (1-5).
+  Consider: structured presentation, logical flow, language clarity,
+  readability, and whether the content is well-organized for the student level.
+  Even purely theoretical content can score high if it is clearly written.
 
 Max 5 short suggestions (<15 words)
 
 Return JSON:
 {{
- "suggestions":[...]
+  "case_studies": <int>,
+  "examples": <int>,
+  "scenario_cues": <int>,
+  "clarity_score": <1-5>,
+  "suggestions": [...]
 }}
 
 Content:
@@ -154,6 +162,7 @@ def compute_engagement_score(
         case_studies,
         examples,
         scenario_cues,
+        clarity_score,
         target_level
 ):
 
@@ -162,7 +171,12 @@ def compute_engagement_score(
         ENGAGEMENT_LEVELS["default"]
     )
 
+    # Base engagement from clarity (ease of learning, structure, readability)
+    # clarity_score 1-5  ->  base 0.8 to 4.0
+    base_engagement = (max(1, min(5, clarity_score)) / 5.0) * 4.0
+
     raw_score = (
+            base_engagement +
             case_studies * cfg["case_w"] +
             examples * cfg["case_w"] +
             scenario_cues * cfg["scenario_w"]
@@ -212,11 +226,13 @@ async def review_engagement(state: dict) -> dict:
     case_studies = gemini_result.get("case_studies", 0)
     examples = gemini_result.get("examples", 0)
     scenarios = gemini_result.get("scenario_cues", 0)
+    clarity_score = gemini_result.get("clarity_score", 2)
 
     score = compute_engagement_score(
         case_studies,
         examples,
         scenarios,
+        clarity_score,
         target_level
     )
 
@@ -247,6 +263,7 @@ async def review_engagement(state: dict) -> dict:
                 "case_studies": case_studies,
                 "examples": examples,
                 "scenario_cues": scenarios,
+                "clarity_score": clarity_score,
             },
             "suggestions": suggestions
         }
